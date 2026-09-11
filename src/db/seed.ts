@@ -8,7 +8,7 @@ import {
 } from "./seed-data";
 
 async function seed() {
-  const databaseUrl = process.env.DATABASE_URL;
+  const databaseUrl = process.env.DATABASE_URL || process.argv[2];
   if (!databaseUrl) {
     console.error("DATABASE_URL is not set. Cannot seed Neon database.");
     process.exit(1);
