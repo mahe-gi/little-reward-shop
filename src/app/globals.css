@@ -1,0 +1,57 @@
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #faf7f2;
+  --foreground: #2c2724;
+}
+
+body {
+  background: radial-gradient(circle at 10% 20%, #fdfbf7 0%, #f5efe6 100%);
+  color: #2c2724;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.desktop-canvas {
+  border-radius: 24px;
+  box-shadow: 0 25px 50px -12px rgba(44, 39, 36, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.06);
+}
+
+@keyframes pulse-subtle {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+}
+
+.animate-heart {
+  animation: pulse-subtle 2.8s ease-in-out infinite;
+}
+
+@keyframes float-badge {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-4px); }
+}
+
+.animate-float {
+  animation: float-badge 3s ease-in-out infinite;
+}
+
+/* Safe area insets for mobile PWA */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 1rem);
+}
