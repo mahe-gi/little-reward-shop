@@ -32,32 +32,7 @@ export function HerLayout({
   const [orders, setOrders] = useState<RedemptionOrder[]>(initialOrders);
 
   const [currentTab, setCurrentTab] = useState<"home" | "shop" | "cart" | "orders">("home");
-  const [cart, setCart] = useState<CartItem[]>([
-    {
-      rewardId: "rew_1_hug",
-      title: "One Hug",
-      description: "A proper, long hug. No rush.",
-      points: 1,
-      emoji: "❤️",
-      quantity: 1,
-    },
-    {
-      rewardId: "rew_3_snack",
-      title: "Favorite Snack",
-      description: "I'll get your favorite snack.",
-      points: 3,
-      emoji: "🍫",
-      quantity: 1,
-    },
-    {
-      rewardId: "rew_5_movie",
-      title: "Favorite Movie",
-      description: "You choose the movie. I'm watching.",
-      points: 5,
-      emoji: "🎬",
-      quantity: 1,
-    },
-  ]);
+  const [cart, setCart] = useState<CartItem[]>([]);
 
   const [selectedReward, setSelectedReward] = useState<Reward | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<RedemptionOrder | null>(null);
