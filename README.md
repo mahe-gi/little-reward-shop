@@ -113,7 +113,7 @@ npm install
 ```
 
 ### 4. Database Setup & Seeding (Neon PostgreSQL)
-When deploying to Neon PostgreSQL, push the schema tables and seed the initial 10 rewards and starting 10 points:
+When deploying to Neon PostgreSQL, push the schema tables and seed users plus starting 10 points:
 ```bash
 npm run db:push
 npm run db:seed

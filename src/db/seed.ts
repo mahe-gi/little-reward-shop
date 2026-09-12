@@ -42,7 +42,7 @@ async function seed() {
     })
     .onConflictDoNothing();
 
-  console.log("Seeding 10 catalog rewards...");
+  console.log("Seeding catalog rewards...");
   for (const r of INITIAL_REWARDS) {
     await db
       .insert(schema.rewards)
