@@ -1,17 +1,19 @@
 "use client";
 
 import React from "react";
-import { Reward, RedemptionOrder, PointTransaction } from "@/types";
+import { Reward, RedemptionOrder, PointTransaction, CartItem } from "@/types";
 import { PrettyIcon } from "@/components/shared/PrettyIcon";
-import { Sparkles, User, Crown, Clock, ArrowRight, Heart } from "lucide-react";
+import { Sparkles, User, Crown, Clock, ArrowRight, Heart, Plus, Minus } from "lucide-react";
 
 interface HerHomeProps {
   points: number;
   featuredRewards: Reward[];
   activeOrder: RedemptionOrder | null;
+  cart?: CartItem[];
   onNavigate: (tab: "shop" | "orders" | "cart") => void;
   onSelectReward: (reward: Reward) => void;
   onAddToCart: (reward: Reward) => void;
+  onUpdateQuantity?: (rewardId: string, delta: number) => void;
   onOpenProfile: () => void;
   onViewOrder: (order: RedemptionOrder) => void;
   todayPointsEarned?: number;
@@ -22,9 +24,11 @@ export function HerHome({
   points,
   featuredRewards,
   activeOrder,
+  cart = [],
   onNavigate,
   onSelectReward,
   onAddToCart,
+  onUpdateQuantity,
   onOpenProfile,
   onViewOrder,
   todayPointsEarned = 0,
@@ -35,7 +39,7 @@ export function HerHome({
   const strokeDash = `${progressPercent}, 100`;
 
   return (
-    <div className="flex-1 overflow-y-auto hide-scrollbar pb-24 px-5 pt-3">
+    <div className="flex-1 overflow-y-auto hide-scrollbar pb-32 px-5 pt-3">
       {/* Top Greeting */}
       <div className="flex items-center justify-between mb-4">
         <div>
@@ -222,38 +226,70 @@ export function HerHome({
         </div>
 
         <div className="grid grid-cols-1 gap-2.5">
-          {featuredRewards.slice(0, 3).map((reward) => (
-            <div
-              key={reward.id}
-              className="p-3.5 rounded-2xl bg-white border border-warm-border shadow-sm flex items-center justify-between hover:border-romantic-300 transition-colors"
-            >
+          {featuredRewards.slice(0, 3).map((reward) => {
+            const cartItem = cart.find((item) => item.rewardId === reward.id);
+            const quantity = cartItem?.quantity || 0;
+
+            return (
               <div
-                onClick={() => onSelectReward(reward)}
-                className="flex items-center space-x-3 cursor-pointer flex-1"
+                key={reward.id}
+                className="p-3.5 rounded-2xl bg-white border border-warm-border shadow-sm flex items-center justify-between hover:border-romantic-300 transition-colors"
               >
-                <div className="w-12 h-12 rounded-xl bg-romantic-50/80 flex items-center justify-center border border-romantic-100 shrink-0">
-                  <PrettyIcon name={reward.emoji} className="w-6 h-6" />
+                <div
+                  onClick={() => onSelectReward(reward)}
+                  className="flex items-center space-x-3 cursor-pointer flex-1 min-w-0 mr-2"
+                >
+                  <div className="w-12 h-12 rounded-xl bg-romantic-50/80 flex items-center justify-center border border-romantic-100 shrink-0">
+                    <PrettyIcon name={reward.emoji} className="w-6 h-6" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-bold text-warm-dark truncate">
+                      {reward.title}
+                    </div>
+                    <div className="text-xs text-warm-subtle truncate">
+                      {reward.description}
+                    </div>
+                    <div className="text-xs font-semibold text-romantic-600 mt-0.5">
+                      {reward.points} {reward.points === 1 ? "point" : "points"}
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <div className="text-sm font-bold text-warm-dark line-clamp-1">
-                    {reward.title}
+
+                {quantity > 0 ? (
+                  <div
+                    onClick={(e) => e.stopPropagation()}
+                    className="flex items-center bg-romantic-500 text-white rounded-xl shadow-xs overflow-hidden shrink-0"
+                  >
+                    <button
+                      onClick={() => onUpdateQuantity?.(reward.id, -1)}
+                      className="p-2 hover:bg-romantic-600 active:scale-90 transition-all flex items-center justify-center text-white"
+                      title="Decrease"
+                    >
+                      <Minus className="w-3.5 h-3.5 stroke-[2.5]" />
+                    </button>
+                    <span className="px-2 text-xs font-bold min-w-[20px] text-center select-none text-white">
+                      {quantity}
+                    </span>
+                    <button
+                      onClick={() => onUpdateQuantity?.(reward.id, 1)}
+                      className="p-2 hover:bg-romantic-600 active:scale-90 transition-all flex items-center justify-center text-white"
+                      title="Increase"
+                    >
+                      <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                    </button>
                   </div>
-                  <div className="text-xs text-warm-subtle line-clamp-1">
-                    {reward.description}
-                  </div>
-                  <div className="text-xs font-semibold text-romantic-600 mt-0.5">
-                    {reward.points} {reward.points === 1 ? "point" : "points"}
-                  </div>
-                </div>
+                ) : (
+                  <button
+                    onClick={() => onAddToCart(reward)}
+                    className="px-3.5 py-1.5 rounded-xl bg-romantic-50 hover:bg-romantic-100 text-romantic-700 text-xs font-bold border border-romantic-200 transition-colors active:scale-95 shrink-0 flex items-center gap-1 uppercase tracking-wide"
+                  >
+                    <span>Add</span>
+                    <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                  </button>
+                )}
               </div>
-              <button
-                onClick={() => onAddToCart(reward)}
-                className="px-3.5 py-1.5 rounded-xl bg-romantic-50 hover:bg-romantic-100 text-romantic-700 text-xs font-semibold border border-romantic-200 transition-colors active:scale-95 shrink-0 ml-2"
-              >
-                + Add
-              </button>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>

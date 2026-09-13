@@ -11,6 +11,7 @@ import { RewardDetailSheet } from "./RewardDetailSheet";
 import { RedemptionConfirmModal } from "./RedemptionConfirmModal";
 import { OrderSuccessView } from "./OrderSuccessView";
 import { HerProfileModal } from "./HerProfileModal";
+import { FloatingCartBar } from "./FloatingCartBar";
 import { createOrderAction } from "@/actions/orders";
 import {
   addToCartAction,
@@ -262,11 +263,13 @@ export function HerLayout({
             points={points}
             featuredRewards={featuredRewards.length > 0 ? featuredRewards : activeRewards}
             activeOrder={activeOrder}
+            cart={cart}
             todayPointsEarned={todayPointsEarned}
             recentTransactions={recentTransactions}
             onNavigate={(tab) => handleTabChange(tab)}
             onSelectReward={(r) => setSelectedReward(r)}
             onAddToCart={handleAddToCart}
+            onUpdateQuantity={handleUpdateQuantity}
             onOpenProfile={() => setIsProfileModalOpen(true)}
             onViewOrder={(ord) => setSelectedOrder(ord)}
           />
@@ -276,8 +279,10 @@ export function HerLayout({
           <RewardShop
             rewards={activeRewards}
             points={points}
+            cart={cart}
             onSelectReward={(r) => setSelectedReward(r)}
             onAddToCart={handleAddToCart}
+            onUpdateQuantity={handleUpdateQuantity}
           />
         );
       case "cart":
@@ -308,6 +313,20 @@ export function HerLayout({
         <main className="flex-1 flex flex-col overflow-y-auto">
           {renderContent()}
         </main>
+
+        <FloatingCartBar
+          totalCount={totalCartCount}
+          totalPoints={totalCartPoints}
+          onViewCart={() => handleTabChange("cart")}
+          visible={
+            !selectedReward &&
+            !selectedOrder &&
+            !isConfirmModalOpen &&
+            !isProfileModalOpen &&
+            !successOrder &&
+            (currentTab === "shop" || currentTab === "home")
+          }
+        />
 
         <nav className="fixed bottom-0 inset-x-0 max-w-md mx-auto h-16 bg-white/95 backdrop-blur-md border-t border-warm-border px-6 flex items-center justify-around z-40 safe-bottom shadow-lg select-none">
           <button

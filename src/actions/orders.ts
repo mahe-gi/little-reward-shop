@@ -276,6 +276,15 @@ export async function completeOrderAction(orderId: string) {
     };
   }
 
+  // Verify all fulfillment checklist items are checked
+  const uncompleted = order.fulfillmentItems.filter((f) => !f.completed);
+  if (uncompleted.length > 0) {
+    return {
+      success: false,
+      error: `Please complete all ${order.fulfillmentItems.length} checklist items before marking order complete.`,
+    };
+  }
+
   const now = new Date();
   const db = getDb();
 
