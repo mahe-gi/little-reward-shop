@@ -1,12 +1,14 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/db";
 import * as schema from "@/db/schema";
 import { sql } from "drizzle-orm";
+import { ensureDatabaseTables } from "@/db/auto-migrate";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const databaseUrl = process.env.DATABASE_URL || "";
+  const shouldMigrate = request.nextUrl.searchParams.get("migrate") === "1" || request.nextUrl.searchParams.get("setup") === "1";
   
   // Safe environment inspection (do not expose password)
   let safeDbHost = "not-configured";
@@ -42,13 +44,40 @@ export async function GET() {
     );
   }
 
+  if (shouldMigrate) {
+    try {
+      await ensureDatabaseTables();
+    } catch (migErr: any) {
+      return NextResponse.json(
+        {
+          status: "error",
+          code: "MIGRATION_FAILED",
+          message: migErr?.message || String(migErr),
+          env,
+        },
+        { status: 500 }
+      );
+    }
+  }
+
   try {
     const db = getDb();
+    
+    // Check cart_items table as well
+    try {
+      await db.select({ count: sql<number>`count(*)` }).from(schema.cartItems);
+    } catch (err: any) {
+      if (err?.message?.includes("does not exist") || String(err).includes("relation")) {
+        await ensureDatabaseTables();
+      }
+    }
+
     const result = await db.select({ count: sql<number>`count(*)` }).from(schema.rewards);
     
     return NextResponse.json({
       status: "ok",
       database: "connected",
+      tablesReady: true,
       rewardsCount: Number(result[0]?.count || 0),
       env,
     });
@@ -60,6 +89,18 @@ export async function GET() {
         message: error?.message || String(error),
         env,
       },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST() {
+  try {
+    await ensureDatabaseTables();
+    return NextResponse.json({ status: "ok", message: "Database tables created/verified successfully" });
+  } catch (error: any) {
+    return NextResponse.json(
+      { status: "error", message: error?.message || String(error) },
       { status: 500 }
     );
   }

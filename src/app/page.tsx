@@ -11,6 +11,7 @@ import { getCart } from "@/actions/cart";
 import { HerLayout } from "@/components/girlfriend/HerLayout";
 import { ToastProvider } from "@/components/shared/Toast";
 import { DbNotice } from "@/components/shared/DbNotice";
+import { ensureDatabaseTables } from "@/db/auto-migrate";
 
 export const dynamic = "force-dynamic";
 
@@ -63,8 +64,33 @@ export default async function HomePage({ searchParams }: HomePageProps) {
     todayEarned = data[4];
     recentTransactions = data[5];
   } catch (error: any) {
-    console.error("HomePage database fetch error:", error);
-    return <DbNotice error={error?.message || String(error)} role="girlfriend" />;
+    const errorMsg = error?.message || String(error);
+    // If a table is missing (e.g. cart_items), automatically create tables and retry
+    if (errorMsg.includes("does not exist") || errorMsg.includes("relation")) {
+      try {
+        await ensureDatabaseTables();
+        const data = await Promise.all([
+          getPointsBalance(userId),
+          getRewards({ activeOnly: true }),
+          getOrders(userId),
+          getCart(userId),
+          getTodayPointsEarned(userId),
+          getRecentEarnedTransactions(userId, 3),
+        ]);
+        points = data[0];
+        rewards = data[1];
+        orders = data[2];
+        cart = data[3];
+        todayEarned = data[4];
+        recentTransactions = data[5];
+      } catch (retryError: any) {
+        console.error("HomePage retry failed after auto-migrate:", retryError);
+        return <DbNotice error={retryError?.message || String(retryError)} role="girlfriend" />;
+      }
+    } else {
+      console.error("HomePage database fetch error:", error);
+      return <DbNotice error={errorMsg} role="girlfriend" />;
+    }
   }
 
   return (

@@ -6,6 +6,7 @@ import { getOrders } from "@/actions/orders";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { ToastProvider } from "@/components/shared/Toast";
 import { DbNotice } from "@/components/shared/DbNotice";
+import { ensureDatabaseTables } from "@/db/auto-migrate";
 
 export const dynamic = "force-dynamic";
 
@@ -55,8 +56,28 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
     orders = data[2];
     history = data[3];
   } catch (error: any) {
-    console.error("AdminPage database fetch error:", error);
-    return <DbNotice error={error?.message || String(error)} role="admin" />;
+    const errorMsg = error?.message || String(error);
+    if (errorMsg.includes("does not exist") || errorMsg.includes("relation")) {
+      try {
+        await ensureDatabaseTables();
+        const data = await Promise.all([
+          getPointsBalance("user_girlfriend"),
+          getRewards(),
+          getOrders(),
+          getPointsHistory("user_girlfriend"),
+        ]);
+        points = data[0];
+        rewards = data[1];
+        orders = data[2];
+        history = data[3];
+      } catch (retryError: any) {
+        console.error("AdminPage retry failed after auto-migrate:", retryError);
+        return <DbNotice error={retryError?.message || String(retryError)} role="admin" />;
+      }
+    } else {
+      console.error("AdminPage database fetch error:", error);
+      return <DbNotice error={errorMsg} role="admin" />;
+    }
   }
 
   return (

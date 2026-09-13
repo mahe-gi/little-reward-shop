@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
-import { Database, AlertTriangle, RefreshCw, KeyRound, ExternalLink } from "lucide-react";
+import React, { useState } from "react";
+import { Database, AlertTriangle, RefreshCw, KeyRound, ExternalLink, Wand2, CheckCircle2 } from "lucide-react";
 
 interface DbNoticeProps {
   error: string;
@@ -11,6 +11,28 @@ interface DbNoticeProps {
 export function DbNotice({ error, role = "girlfriend" }: DbNoticeProps) {
   const isMissingDb = error.includes("DATABASE_URL") || error.includes("missing");
   const isTableMissing = error.includes("does not exist") || error.includes("relation");
+  const [isFixing, setIsFixing] = useState(false);
+  const [fixedMessage, setFixedMessage] = useState<string | null>(null);
+
+  const handleAutoFix = async () => {
+    setIsFixing(true);
+    try {
+      const res = await fetch("/api/health?migrate=1");
+      const data = await res.json();
+      if (data.status === "ok") {
+        setFixedMessage("Tables created! Reloading...");
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      } else {
+        alert(data.message || "Failed to auto-create tables");
+      }
+    } catch (e: any) {
+      alert("Error: " + (e.message || String(e)));
+    } finally {
+      setIsFixing(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-warm-canvas flex items-center justify-center p-4">
@@ -76,10 +98,37 @@ export function DbNotice({ error, role = "girlfriend" }: DbNoticeProps) {
           )}
         </div>
 
+        {isTableMissing && (
+          <div className="mb-4">
+            <button
+              onClick={handleAutoFix}
+              disabled={isFixing || Boolean(fixedMessage)}
+              className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-romantic-500 to-rose-500 hover:from-romantic-600 hover:to-rose-600 active:scale-[0.98] text-white text-xs font-bold shadow-soft transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              {isFixing ? (
+                <>
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  <span>Creating missing tables in PostgreSQL...</span>
+                </>
+              ) : fixedMessage ? (
+                <>
+                  <CheckCircle2 className="w-4 h-4 text-emerald-300" />
+                  <span>{fixedMessage}</span>
+                </>
+              ) : (
+                <>
+                  <Wand2 className="w-4 h-4" />
+                  <span>1-Click Auto-Create Missing Tables</span>
+                </>
+              )}
+            </button>
+          </div>
+        )}
+
         <div className="flex items-center gap-2">
           <button
             onClick={() => window.location.reload()}
-            className="flex-1 py-3 rounded-xl bg-romantic-500 hover:bg-romantic-600 active:scale-95 text-white text-xs font-semibold shadow-soft transition-all flex items-center justify-center gap-2"
+            className="flex-1 py-3 rounded-xl bg-warm-muted hover:bg-warm-border text-warm-dark active:scale-95 text-xs font-semibold transition-all flex items-center justify-center gap-2"
           >
             <RefreshCw className="w-4 h-4" />
             <span>Try Again</span>
