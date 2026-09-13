@@ -2,6 +2,17 @@
 
 import React from "react";
 import { RedemptionOrder } from "@/types";
+import {
+  Sparkles,
+  Salad,
+  Footprints,
+  Gift,
+  PlusCircle,
+  CheckCircle2,
+  Clock,
+  Heart,
+  ArrowRight,
+} from "lucide-react";
 
 interface AdminDashboardProps {
   points: number;
@@ -40,7 +51,7 @@ export function AdminDashboard({
             Reward Control Center
           </h2>
           <p className="text-xs text-warm-subtle">
-            Everything she wants. Your problem now. 😂
+            Everything she wants. Your problem now.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -91,7 +102,7 @@ export function AdminDashboard({
             {pendingOrders.length}
           </div>
           <div className="text-[11px] text-amber-700 font-medium mt-1">
-            {pendingOrders.length > 0 ? "Needs attention! 👀" : "All caught up"}
+            {pendingOrders.length > 0 ? "Needs attention!" : "All caught up"}
           </div>
         </div>
 
@@ -156,14 +167,15 @@ export function AdminDashboard({
       ) : (
         <div className="p-4 rounded-2xl bg-white/80 border border-warm-border shadow-soft flex items-center justify-between text-xs text-warm-subtle">
           <div className="flex items-center gap-2">
-            <span>✨</span>
+            <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
             <span>You&apos;re all caught up! No pending redemption requests right now.</span>
           </div>
           <button
             onClick={() => onNavigateTab("orders")}
-            className="text-romantic-600 font-semibold hover:underline"
+            className="text-romantic-600 font-semibold hover:underline flex items-center gap-1"
           >
-            View all orders →
+            <span>View all orders</span>
+            <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
       )}
@@ -180,7 +192,7 @@ export function AdminDashboard({
               onClick={() => onQuickAddPoints(1, "Healthy habit verified")}
               className="p-3 rounded-xl bg-romantic-50 hover:bg-romantic-100 text-romantic-700 border border-romantic-200 text-left transition-all active:scale-95"
             >
-              <div className="text-base mb-1">🥗</div>
+              <Salad className="w-5 h-5 text-emerald-600 mb-1" />
               <div>+1 Healthy Habit</div>
             </button>
 
@@ -188,7 +200,7 @@ export function AdminDashboard({
               onClick={() => onQuickAddPoints(1, "Morning walk verified")}
               className="p-3 rounded-xl bg-warm-muted hover:bg-warm-border text-warm-dark border border-warm-border text-left transition-all active:scale-95"
             >
-              <div className="text-base mb-1">👟</div>
+              <Footprints className="w-5 h-5 text-blue-500 mb-1" />
               <div>+1 Morning Walk</div>
             </button>
 
@@ -196,7 +208,7 @@ export function AdminDashboard({
               onClick={onOpenGivePoints}
               className="p-3 rounded-xl bg-warm-muted hover:bg-warm-border text-warm-dark border border-warm-border text-left transition-all active:scale-95"
             >
-              <div className="text-base mb-1">🎁</div>
+              <Gift className="w-5 h-5 text-romantic-500 mb-1" />
               <div>Custom Points...</div>
             </button>
 
@@ -204,7 +216,7 @@ export function AdminDashboard({
               onClick={onOpenCreateReward}
               className="p-3 rounded-xl bg-warm-muted hover:bg-warm-border text-warm-dark border border-warm-border text-left transition-all active:scale-95"
             >
-              <div className="text-base mb-1">✨</div>
+              <PlusCircle className="w-5 h-5 text-purple-600 mb-1" />
               <div>Add New Reward</div>
             </button>
           </div>
@@ -222,17 +234,13 @@ export function AdminDashboard({
                 className="flex items-center justify-between pb-2 border-b border-warm-border last:border-0"
               >
                 <div className="flex items-center gap-2">
-                  <span
-                    className={`font-bold ${
-                      ord.status === "completed"
-                        ? "text-emerald-600"
-                        : ord.status === "pending"
-                        ? "text-amber-600"
-                        : "text-romantic-600"
-                    }`}
-                  >
-                    {ord.status === "completed" ? "✓" : ord.status === "pending" ? "⏳" : "❤️"}
-                  </span>
+                  {ord.status === "completed" ? (
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  ) : ord.status === "pending" ? (
+                    <Clock className="w-4 h-4 text-amber-600 shrink-0" />
+                  ) : (
+                    <Heart className="w-4 h-4 text-romantic-600 fill-romantic-100 shrink-0" />
+                  )}
                   <span className="font-medium text-warm-dark">
                     Order {ord.orderNumber} ({ord.items.map((i) => i.titleSnapshot).join(", ")})
                   </span>

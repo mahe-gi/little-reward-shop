@@ -2,6 +2,7 @@
 
 import React, { useEffect } from "react";
 import confetti from "canvas-confetti";
+import { Heart, Sparkles, CheckCircle2 } from "lucide-react";
 
 interface OrderSuccessViewProps {
   orderNumber: string;
@@ -35,18 +36,18 @@ export function OrderSuccessView({
     <div className="flex-1 flex flex-col justify-between p-6 text-center bg-gradient-to-b from-warm-cream via-romantic-50/60 to-warm-cream">
       <div className="mt-8">
         <div className="relative w-24 h-24 mx-auto mb-5">
-          <div className="w-full h-full rounded-full bg-romantic-100 flex items-center justify-center text-4xl shadow-soft animate-heart">
-            💖
+          <div className="w-full h-full rounded-full bg-romantic-100 flex items-center justify-center text-romantic-600 shadow-soft animate-heart">
+            <Heart className="w-12 h-12 fill-romantic-400 text-romantic-500" />
           </div>
-          <span className="absolute -top-1 -right-1 text-2xl animate-float">✨</span>
-          <span className="absolute -bottom-1 -left-1 text-xl">🎉</span>
+          <Sparkles className="absolute -top-1 -right-1 w-6 h-6 text-amber-500 animate-float" />
+          <CheckCircle2 className="absolute -bottom-1 -left-1 w-6 h-6 text-emerald-500 bg-white rounded-full" />
         </div>
 
         <h2 className="font-serif text-3xl font-bold text-warm-dark">
-          Reward request sent ❤️
+          Reward request sent
         </h2>
         <p className="text-xs text-warm-subtle mt-2 max-w-[260px] mx-auto leading-relaxed">
-          Your request is now waiting for Mahesh. He&apos;s been notified of his pending duties! 👀
+          Your request is now waiting for Mahesh. He has been notified of his pending duties!
         </p>
 
         <div className="mt-6 p-4 rounded-2xl bg-white border border-romantic-200/80 shadow-soft text-left">
@@ -63,7 +64,7 @@ export function OrderSuccessView({
           <div className="flex justify-between items-center text-xs pt-2.5">
             <span className="text-warm-subtle">Current Status</span>
             <span className="font-bold text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
-              Waiting for Mahesh 👀
+              Waiting for Mahesh
             </span>
           </div>
         </div>

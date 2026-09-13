@@ -201,7 +201,7 @@ export async function rejectOrderAction(orderId: string, rejectionReason?: strin
   }
 
   const now = new Date();
-  const note = rejectionReason?.trim() || "Let's save points for something better ❤️";
+  const note = rejectionReason?.trim() || "Let's save points for something better";
 
   const db = getDb();
   await db

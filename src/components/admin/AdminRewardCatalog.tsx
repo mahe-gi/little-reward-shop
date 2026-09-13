@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { Reward, RewardCategory } from "@/types";
+import { PrettyIcon } from "@/components/shared/PrettyIcon";
 
 interface AdminRewardCatalogProps {
   rewards: Reward[];
@@ -35,7 +36,7 @@ export function AdminRewardCatalog({
   const [newTitle, setNewTitle] = useState("");
   const [newDesc, setNewDesc] = useState("");
   const [newPoints, setNewPoints] = useState(5);
-  const [newEmoji, setNewEmoji] = useState("✨");
+  const [newEmoji, setNewEmoji] = useState("gift");
   const [newCategory, setNewCategory] = useState<RewardCategory>("Little Things");
   const [newFeatured, setNewFeatured] = useState(false);
   const [newFulfillment, setNewFulfillment] = useState("");
@@ -68,7 +69,7 @@ export function AdminRewardCatalog({
     setNewTitle("");
     setNewDesc("");
     setNewPoints(5);
-    setNewEmoji("✨");
+    setNewEmoji("gift");
     setNewFeatured(false);
     setNewFulfillment("");
   };
@@ -129,7 +130,9 @@ export function AdminRewardCatalog({
           >
             <div>
               <div className="flex items-center justify-between">
-                <span className="text-2xl">{reward.emoji}</span>
+                <div className="w-10 h-10 rounded-xl bg-romantic-50 border border-romantic-100 flex items-center justify-center">
+                  <PrettyIcon name={reward.emoji} size={20} />
+                </div>
                 <div className="flex items-center gap-1">
                   {reward.featured && (
                     <span className="text-[10px] bg-romantic-50 text-romantic-700 font-bold px-2 py-0.5 rounded border border-romantic-200">
@@ -227,14 +230,35 @@ export function AdminRewardCatalog({
                       />
                     </div>
                     <div>
-                      <label className="block font-semibold text-warm-dark mb-1">Emoji</label>
+                      <label className="block font-semibold text-warm-dark mb-1">Icon</label>
                       <input
                         type="text"
                         value={newEmoji}
                         onChange={(e) => setNewEmoji(e.target.value)}
-                        className="w-full px-3 py-2 border border-warm-border rounded-xl text-center text-lg focus:outline-none focus:ring-2 focus:ring-romantic-400"
+                        placeholder="e.g. gift, heart, coffee"
+                        className="w-full px-3 py-2 border border-warm-border rounded-xl text-center text-xs focus:outline-none focus:ring-2 focus:ring-romantic-400 font-medium"
                       />
                     </div>
+                  </div>
+
+                  {/* Icon Presets */}
+                  <div className="flex items-center gap-1.5 overflow-x-auto pb-1 hide-scrollbar">
+                    {["gift", "heart", "coffee", "cookie", "rose", "film", "bike", "crown", "sparkles"].map(
+                      (iconName) => (
+                        <button
+                          key={iconName}
+                          type="button"
+                          onClick={() => setNewEmoji(iconName)}
+                          className={`p-1.5 rounded-lg border transition-all shrink-0 ${
+                            newEmoji === iconName
+                              ? "bg-romantic-100 border-romantic-400"
+                              : "bg-warm-cream/50 border-warm-border hover:bg-white"
+                          }`}
+                        >
+                          <PrettyIcon name={iconName} size={16} />
+                        </button>
+                      )
+                    )}
                   </div>
 
                   <div>
@@ -272,8 +296,8 @@ export function AdminRewardCatalog({
                   </div>
                   <div className="bg-white rounded-2xl p-4 border-2 border-romantic-300 shadow-soft flex flex-col justify-between min-h-[160px] mx-auto w-full max-w-[220px]">
                     <div>
-                      <div className="w-10 h-10 rounded-xl bg-romantic-50 border border-romantic-100 flex items-center justify-center text-xl mb-2">
-                        {newEmoji || "🎁"}
+                      <div className="w-10 h-10 rounded-xl bg-romantic-50 border border-romantic-100 flex items-center justify-center mb-2">
+                        <PrettyIcon name={newEmoji || "gift"} size={22} />
                       </div>
                       <div className="font-bold text-xs text-warm-dark line-clamp-1">
                         {newTitle || "Reward Title"}

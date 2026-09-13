@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { RedemptionOrder } from "@/types";
 import { formatDate } from "@/lib/utils";
+import { PartyPopper, Sparkles, ClipboardList, Check, CheckCircle2 } from "lucide-react";
 
 interface AdminOrdersFulfillmentProps {
   orders: RedemptionOrder[];
@@ -26,7 +27,7 @@ export function AdminOrdersFulfillment({
   // Modal states
   const [approvingOrder, setApprovingOrder] = useState<RedemptionOrder | null>(null);
   const [rejectingOrder, setRejectingOrder] = useState<RedemptionOrder | null>(null);
-  const [rejectionReason, setRejectionReason] = useState("Let's save this for another day ❤️");
+  const [rejectionReason, setRejectionReason] = useState("Let's save this for another day");
   const [isProcessing, setIsProcessing] = useState(false);
 
   const pendingOrders = orders.filter((o) => o.status === "pending");
@@ -126,7 +127,7 @@ export function AdminOrdersFulfillment({
         <div className="space-y-4">
           {pendingOrders.length === 0 ? (
             <div className="text-center py-12 bg-white rounded-3xl border border-warm-border">
-              <div className="text-3xl mb-2">🎉</div>
+              <PartyPopper className="w-8 h-8 text-romantic-400 mx-auto mb-2" />
               <h4 className="font-serif text-base font-bold text-warm-dark">
                 No Pending Requests!
               </h4>
@@ -212,7 +213,7 @@ export function AdminOrdersFulfillment({
         <div className="space-y-4">
           {fulfillingOrders.length === 0 ? (
             <div className="text-center py-12 bg-white rounded-3xl border border-warm-border">
-              <div className="text-3xl mb-2">✨</div>
+              <Sparkles className="w-8 h-8 text-romantic-400 mx-auto mb-2" />
               <h4 className="font-serif text-base font-bold text-warm-dark">
                 No Active Fulfillments
               </h4>
@@ -233,7 +234,7 @@ export function AdminOrdersFulfillment({
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-warm-border gap-2">
                     <div className="flex items-center gap-2">
-                      <span className="text-xl">📋</span>
+                      <ClipboardList className="w-5 h-5 text-romantic-600" />
                       <div>
                         <h3 className="font-serif text-lg font-bold text-warm-dark">
                           Ready to Fulfill · {order.orderNumber}
@@ -287,7 +288,13 @@ export function AdminOrdersFulfillment({
                               : "bg-warm-muted text-warm-subtle"
                           }`}
                         >
-                          {item.completed ? "Done ✓" : "Pending"}
+                          {item.completed ? (
+                            <span className="inline-flex items-center gap-1">
+                              <Check className="w-3 h-3" /> Done
+                            </span>
+                          ) : (
+                            "Pending"
+                          )}
                         </span>
                       </label>
                     ))}
@@ -306,7 +313,8 @@ export function AdminOrdersFulfillment({
                           : "bg-stone-200 text-stone-400 cursor-not-allowed"
                       }`}
                     >
-                      <span>Mark Order Completed ❤️</span>
+                      <span>Mark Order Completed</span>
+                      <CheckCircle2 className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
@@ -336,8 +344,9 @@ export function AdminOrdersFulfillment({
                     {ord.completedAt ? formatDate(ord.completedAt) : "Recently"}
                   </div>
                 </div>
-                <span className="text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full font-semibold border border-emerald-200">
-                  Delivered ❤️
+                <span className="inline-flex items-center gap-1 text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full font-semibold border border-emerald-200">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Delivered</span>
                 </span>
               </div>
             ))
@@ -377,7 +386,7 @@ export function AdminOrdersFulfillment({
       {approvingOrder && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl border border-warm-border text-center">
-            <div className="text-2xl mb-2">🤝</div>
+            <CheckCircle2 className="w-8 h-8 text-emerald-600 mx-auto mb-2" />
             <h3 className="font-serif text-xl font-bold text-warm-dark">
               Approve this reward request?
             </h3>

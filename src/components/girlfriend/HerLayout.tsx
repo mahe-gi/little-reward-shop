@@ -18,6 +18,7 @@ import {
   removeFromCartAction,
 } from "@/actions/cart";
 import { useToast } from "@/components/shared/Toast";
+import { Home, Gift, ShoppingCart, Package } from "lucide-react";
 
 interface HerLayoutProps {
   initialPoints: number;
@@ -124,12 +125,12 @@ export function HerLayout({
         },
       ];
     });
-    showToast("Added to Cart! " + reward.emoji, `${reward.title} added ❤️`);
+    showToast("Added to Cart!", `${reward.title} added.`);
 
     // Sync to Database
     const res = await addToCartAction(reward.id);
     if (!res.success) {
-      showToast("⚠️ Notice", res.error || "Could not save to cart.");
+      showToast("Notice", res.error || "Could not save to cart.");
     } else if (res.cart) {
       setCart(res.cart);
     }
@@ -152,7 +153,7 @@ export function HerLayout({
     // Sync to Database
     const res = await updateCartQuantityAction(rewardId, delta);
     if (!res.success) {
-      showToast("⚠️ Notice", res.error || "Could not update cart quantity.");
+      showToast("Notice", res.error || "Could not update cart quantity.");
     } else if (res.cart) {
       setCart(res.cart);
     }
@@ -165,7 +166,7 @@ export function HerLayout({
     // Sync to Database
     const res = await removeFromCartAction(rewardId);
     if (!res.success) {
-      showToast("⚠️ Notice", res.error || "Could not remove item from cart.");
+      showToast("Notice", res.error || "Could not remove item from cart.");
     } else if (res.cart) {
       setCart(res.cart);
     }
@@ -181,7 +182,7 @@ export function HerLayout({
     try {
       const res = await createOrderAction(cart, pendingNote);
       if (!res.success) {
-        showToast("⚠️ Notice", res.error || "Could not submit order.");
+        showToast("Notice", res.error || "Could not submit order.");
         setIsSubmitting(false);
         setIsConfirmModalOpen(false);
         return;
@@ -221,9 +222,9 @@ export function HerLayout({
       // Clear cart
       setCart([]);
       setIsConfirmModalOpen(false);
-      showToast("💖 Request Sent!", "Notification sent ❤️");
+      showToast("Request Sent!", "Your boyfriend has been notified.");
     } catch {
-      showToast("⚠️ Error", "Failed to send request. Please try again.");
+      showToast("Error", "Failed to send request. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -251,12 +252,15 @@ export function HerLayout({
       );
     }
 
+    const activeRewards = rewards.filter((r) => r.active !== false);
+    const featuredRewards = activeRewards.filter((r) => r.featured);
+
     switch (currentTab) {
       case "home":
         return (
           <HerHome
             points={points}
-            featuredRewards={rewards}
+            featuredRewards={featuredRewards.length > 0 ? featuredRewards : activeRewards}
             activeOrder={activeOrder}
             todayPointsEarned={todayPointsEarned}
             recentTransactions={recentTransactions}
@@ -270,7 +274,7 @@ export function HerLayout({
       case "shop":
         return (
           <RewardShop
-            rewards={rewards}
+            rewards={activeRewards}
             points={points}
             onSelectReward={(r) => setSelectedReward(r)}
             onAddToCart={handleAddToCart}
@@ -314,7 +318,7 @@ export function HerLayout({
                 : "text-warm-subtle hover:text-romantic-600"
             }`}
           >
-            <span className="text-lg leading-none">🏠</span>
+            <Home className="w-5 h-5" />
             <span className="text-[10px] font-semibold mt-1">Home</span>
           </button>
 
@@ -326,7 +330,7 @@ export function HerLayout({
                 : "text-warm-subtle hover:text-romantic-600"
             }`}
           >
-            <span className="text-lg leading-none">🎁</span>
+            <Gift className="w-5 h-5" />
             <span className="text-[10px] font-medium mt-1">Rewards</span>
           </button>
 
@@ -338,7 +342,7 @@ export function HerLayout({
                 : "text-warm-subtle hover:text-romantic-600"
             }`}
           >
-            <span className="text-lg leading-none">🛒</span>
+            <ShoppingCart className="w-5 h-5" />
             {totalCartCount > 0 && (
               <span className="absolute -top-1 right-1 w-4 h-4 rounded-full bg-romantic-500 text-white text-[9px] font-bold flex items-center justify-center shadow-xs">
                 {totalCartCount}
@@ -355,7 +359,7 @@ export function HerLayout({
                 : "text-warm-subtle hover:text-romantic-600"
             }`}
           >
-            <span className="text-lg leading-none">📦</span>
+            <Package className="w-5 h-5" />
             <span className="text-[10px] font-medium mt-1">Orders</span>
           </button>
         </nav>

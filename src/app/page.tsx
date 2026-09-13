@@ -42,7 +42,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   const [points, rewards, orders, cart, todayEarned, recentTransactions] =
     await Promise.all([
       getPointsBalance(userId),
-      getRewards(),
+      getRewards({ activeOnly: true }),
       getOrders(userId),
       getCart(userId),
       getTodayPointsEarned(userId),

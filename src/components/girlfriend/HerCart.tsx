@@ -2,6 +2,8 @@
 
 import React, { useState } from "react";
 import { CartItem } from "@/types";
+import { PrettyIcon } from "@/components/shared/PrettyIcon";
+import { ShoppingBag, AlertCircle, Heart, X, Sparkles } from "lucide-react";
 
 interface HerCartProps {
   cart: CartItem[];
@@ -31,19 +33,20 @@ export function HerCart({
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-6 text-center pb-24">
         <div className="w-16 h-16 rounded-full bg-warm-muted flex items-center justify-center text-3xl mb-3 animate-heart">
-          🛒
+          <ShoppingBag className="w-8 h-8 text-romantic-400" />
         </div>
         <h4 className="font-serif text-lg font-bold text-warm-dark">
-          Your cart is feeling lonely.
+          Your cart is feeling lonely
         </h4>
         <p className="text-xs text-warm-subtle mt-1 max-w-[220px]">
-          You have earned points ready to be turned into sweet memories. ❤️
+          You have earned points ready to be turned into sweet memories.
         </p>
         <button
           onClick={onExploreRewards}
-          className="mt-4 px-4 py-2 bg-romantic-500 hover:bg-romantic-600 text-white rounded-xl text-xs font-semibold shadow-soft transition-all active:scale-95"
+          className="mt-4 px-4 py-2 bg-romantic-500 hover:bg-romantic-600 text-white rounded-xl text-xs font-semibold shadow-soft transition-all active:scale-95 flex items-center gap-1.5"
         >
-          Find a Reward
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>Find a Reward</span>
         </button>
       </div>
     );
@@ -67,8 +70,8 @@ export function HerCart({
             className="p-3.5 rounded-2xl bg-white border border-warm-border shadow-soft flex items-center justify-between"
           >
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-xl bg-warm-muted flex items-center justify-center text-xl shrink-0">
-                {item.emoji}
+              <div className="w-10 h-10 rounded-xl bg-warm-muted flex items-center justify-center shrink-0">
+                <PrettyIcon name={item.emoji} className="w-5 h-5" />
               </div>
               <div>
                 <div className="font-bold text-xs text-warm-dark">{item.title}</div>
@@ -99,10 +102,10 @@ export function HerCart({
 
               <button
                 onClick={() => onRemoveItem(item.rewardId)}
-                className="text-xs text-stone-400 hover:text-rose-500 p-1 transition-colors"
+                className="text-stone-400 hover:text-rose-500 p-1.5 transition-colors rounded-lg hover:bg-rose-50"
                 title="Remove item"
               >
-                ✕
+                <X className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
@@ -117,7 +120,7 @@ export function HerCart({
             type="text"
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            placeholder="Anything you want Mahesh to know? 🥺"
+            placeholder="Anything you want Mahesh to know?"
             className="w-full px-3 py-2 text-xs bg-white border border-warm-border rounded-xl focus:outline-none focus:ring-2 focus:ring-romantic-400 text-warm-dark placeholder:text-warm-taupe"
           />
         </div>
@@ -126,7 +129,7 @@ export function HerCart({
       {/* Insufficient points alert banner */}
       {isInsufficient && (
         <div className="mx-5 my-2 p-3 bg-rose-50 border border-rose-200 rounded-2xl flex items-center gap-2 text-xs">
-          <span className="text-lg">👀</span>
+          <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />
           <div>
             <div className="font-bold text-rose-800">You&apos;re {shortage} points short</div>
             <div className="text-[11px] text-rose-600">
@@ -160,14 +163,15 @@ export function HerCart({
             disabled
             className="w-full py-3.5 rounded-2xl bg-stone-200 text-stone-400 font-semibold text-sm cursor-not-allowed text-center"
           >
-            Keep earning ❤️ (Need {shortage} more)
+            Keep earning (Need {shortage} more)
           </button>
         ) : (
           <button
             onClick={() => onSubmitRedemption(note)}
             className="w-full py-3.5 rounded-2xl bg-romantic-500 hover:bg-romantic-600 active:scale-[0.98] text-white font-semibold text-sm shadow-soft transition-all flex items-center justify-center gap-2"
           >
-            <span>Redeem Rewards ❤️</span>
+            <Heart className="w-4 h-4 fill-white text-white" />
+            <span>Redeem Rewards</span>
           </button>
         )}
 

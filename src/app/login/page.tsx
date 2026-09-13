@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { loginAction } from "@/actions/auth";
 import { UserRole } from "@/types";
+import { Heart, User, ShieldCheck, ArrowRight, Lock } from "lucide-react";
 
 export default function LoginPage() {
   const [selectedRole, setSelectedRole] = useState<UserRole>("girlfriend");
@@ -12,7 +13,7 @@ export default function LoginPage() {
 
   const [existingSession, setExistingSession] = useState<{ name: string; role: UserRole } | null>(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     import("@/actions/auth").then(({ getSessionAction }) => {
       getSessionAction().then((session) => {
         if (session) {
@@ -49,7 +50,6 @@ export default function LoginPage() {
     }
   };
 
-
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-b from-warm-cream via-romantic-50/40 to-warm-cream">
       <div className="w-full max-w-sm bg-white rounded-3xl p-7 shadow-2xl border border-warm-border text-center relative overflow-hidden">
@@ -57,8 +57,8 @@ export default function LoginPage() {
         <div className="absolute -top-10 -right-10 w-36 h-36 bg-romantic-200/30 rounded-full blur-2xl pointer-events-none"></div>
 
         {/* Brand Icon */}
-        <div className="relative w-16 h-16 rounded-2xl bg-romantic-100 border border-romantic-200 text-romantic-600 text-3xl flex items-center justify-center mx-auto mb-3 shadow-soft animate-heart">
-          ❤️
+        <div className="relative w-16 h-16 rounded-2xl bg-romantic-100 border border-romantic-200 flex items-center justify-center mx-auto mb-3 shadow-soft animate-heart">
+          <Heart className="w-8 h-8 text-romantic-500 fill-romantic-400" />
         </div>
 
         <span className="text-[11px] uppercase tracking-widest font-semibold text-romantic-600">
@@ -76,14 +76,25 @@ export default function LoginPage() {
           <div className="mt-4 p-3 rounded-2xl bg-warm-muted border border-warm-border text-left">
             <div className="text-[11px] text-warm-subtle">Currently signed in:</div>
             <div className="flex items-center justify-between mt-1">
-              <span className="text-xs font-bold text-warm-dark">
-                {existingSession.role === "admin" ? "🧔 Mahesh" : "👩‍🦰 Her"}
+              <span className="text-xs font-bold text-warm-dark flex items-center gap-1.5">
+                {existingSession.role === "admin" ? (
+                  <>
+                    <ShieldCheck className="w-3.5 h-3.5 text-stone-700" />
+                    <span>Mahesh</span>
+                  </>
+                ) : (
+                  <>
+                    <User className="w-3.5 h-3.5 text-romantic-500" />
+                    <span>Her</span>
+                  </>
+                )}
               </span>
               <a
                 href={existingSession.role === "admin" ? "/admin" : "/"}
-                className="text-xs font-semibold text-romantic-600 hover:text-romantic-700 underline"
+                className="text-xs font-semibold text-romantic-600 hover:text-romantic-700 underline flex items-center gap-1"
               >
-                Go to {existingSession.role === "admin" ? "Admin" : "Shop"} →
+                <span>Go to {existingSession.role === "admin" ? "Admin" : "Shop"}</span>
+                <ArrowRight className="w-3 h-3" />
               </a>
             </div>
           </div>
@@ -103,7 +114,7 @@ export default function LoginPage() {
                 : "text-warm-subtle hover:text-warm-dark"
             }`}
           >
-            <span>👩‍🦰</span>
+            <User className="w-3.5 h-3.5" />
             <span>I&apos;m Her</span>
           </button>
 
@@ -119,7 +130,7 @@ export default function LoginPage() {
                 : "text-warm-subtle hover:text-warm-dark"
             }`}
           >
-            <span>🧔</span>
+            <ShieldCheck className="w-3.5 h-3.5" />
             <span>I&apos;m Mahesh</span>
           </button>
         </div>
@@ -127,8 +138,9 @@ export default function LoginPage() {
         {/* Login Form */}
         <form onSubmit={handleSubmit} className="space-y-3.5 text-left">
           <div>
-            <label className="block text-[11px] font-semibold text-warm-dark mb-1">
-              {selectedRole === "girlfriend" ? "Her Password" : "Mahesh's Password"}
+            <label className="block text-[11px] font-semibold text-warm-dark mb-1 flex items-center gap-1">
+              <Lock className="w-3 h-3 text-warm-subtle" />
+              <span>{selectedRole === "girlfriend" ? "Her Password" : "Mahesh's Password"}</span>
             </label>
             <input
               type="password"
@@ -149,22 +161,31 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className={`w-full py-3 text-white rounded-xl font-semibold text-xs shadow-soft transition-all disabled:opacity-50 mt-2 active:scale-[0.98] ${
+            className={`w-full py-3 text-white rounded-xl font-semibold text-xs shadow-soft transition-all disabled:opacity-50 mt-2 active:scale-[0.98] flex items-center justify-center gap-2 ${
               selectedRole === "admin"
                 ? "bg-stone-900 hover:bg-stone-800"
                 : "bg-romantic-500 hover:bg-romantic-600"
             }`}
           >
-            {isLoading
-              ? "Signing in..."
-              : selectedRole === "admin"
-              ? "Enter Admin Control 🧔"
-              : "Enter Reward Shop ❤️"}
+            {isLoading ? (
+              <span>Signing in...</span>
+            ) : selectedRole === "admin" ? (
+              <>
+                <span>Enter Admin Control</span>
+                <ShieldCheck className="w-3.5 h-3.5" />
+              </>
+            ) : (
+              <>
+                <span>Enter Reward Shop</span>
+                <Heart className="w-3.5 h-3.5 fill-white" />
+              </>
+            )}
           </button>
         </form>
 
-        <div className="mt-6 pt-3 border-t border-warm-border text-[11px] text-warm-subtle">
-          Encrypted with love & pinky promises 💌
+        <div className="mt-6 pt-3 border-t border-warm-border text-[11px] text-warm-subtle flex items-center justify-center gap-1">
+          <Heart className="w-3 h-3 text-romantic-400 fill-romantic-300" />
+          <span>Encrypted with love & pinky promises</span>
         </div>
       </div>
     </div>

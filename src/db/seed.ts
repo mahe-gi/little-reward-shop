@@ -65,7 +65,7 @@ async function seed() {
       .onConflictDoNothing();
   }
 
-  console.log("Seeding completed successfully! ❤️");
+  console.log("Seeding completed successfully!");
   if (global._pgPool) {
     await global._pgPool.end();
   }

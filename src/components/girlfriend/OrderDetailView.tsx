@@ -3,6 +3,16 @@
 import React from "react";
 import { RedemptionOrder } from "@/types";
 import { formatDate } from "@/lib/utils";
+import {
+  ArrowLeft,
+  Clock,
+  Heart,
+  CheckCircle2,
+  XCircle,
+  Check,
+  X,
+  Package,
+} from "lucide-react";
 
 interface OrderDetailViewProps {
   order: RedemptionOrder;
@@ -14,34 +24,34 @@ export function OrderDetailView({ order, onBack }: OrderDetailViewProps) {
     switch (order.status) {
       case "pending":
         return {
-          emoji: "⏳",
-          heading: "Waiting for Mahesh 👀",
-          desc: "Your request is sitting on his desk. He's deciding your fate!",
+          icon: <Clock className="w-6 h-6 text-amber-600 mx-auto mb-1" />,
+          heading: "Waiting for Mahesh",
+          desc: "Your request is waiting for Mahesh's review.",
           bg: "bg-amber-50 border-amber-200 text-amber-900",
           descColor: "text-amber-700",
         };
       case "approved":
       case "fulfilling":
         return {
-          emoji: "😂",
-          heading: "Mahesh accepted his fate 😂",
-          desc: `Your rewards are officially approved and locked in (${order.totalPoints} points deducted). Get ready!`,
+          icon: <Package className="w-6 h-6 text-romantic-600 mx-auto mb-1" />,
+          heading: "Request Approved & Locked In",
+          desc: `Your rewards are officially approved (${order.totalPoints} points deducted). Ready for fulfillment!`,
           bg: "bg-romantic-50 border-romantic-200 text-romantic-900",
           descColor: "text-romantic-700",
         };
       case "completed":
         return {
-          emoji: "❤️",
-          heading: "Delivered with love ❤️",
+          icon: <CheckCircle2 className="w-6 h-6 text-emerald-600 mx-auto mb-1" />,
+          heading: "Delivered with Love",
           desc: "All rewards for this request have been delivered and completed.",
           bg: "bg-emerald-50 border-emerald-200 text-emerald-900",
           descColor: "text-emerald-700",
         };
       case "rejected":
         return {
-          emoji: "👀",
-          heading: "Not this time 👀",
-          desc: order.rejectionReason || "Let's save points for something better ❤️",
+          icon: <XCircle className="w-6 h-6 text-rose-600 mx-auto mb-1" />,
+          heading: "Not this time",
+          desc: order.rejectionReason || "Let's save points for something better",
           bg: "bg-rose-50 border-rose-200 text-rose-900",
           descColor: "text-rose-700",
         };
@@ -50,7 +60,6 @@ export function OrderDetailView({ order, onBack }: OrderDetailViewProps) {
 
   const banner = getBannerInfo();
 
-  const isSentDone = true;
   const isApprovedDone =
     order.status === "approved" ||
     order.status === "fulfilling" ||
@@ -66,7 +75,8 @@ export function OrderDetailView({ order, onBack }: OrderDetailViewProps) {
           onClick={onBack}
           className="text-xs text-warm-subtle hover:text-warm-dark flex items-center gap-1 font-medium transition-colors"
         >
-          <span>← Back</span>
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>Back</span>
         </button>
         <span className="font-mono text-xs font-bold text-warm-dark">{order.orderNumber}</span>
         <div className="w-6"></div>
@@ -74,7 +84,7 @@ export function OrderDetailView({ order, onBack }: OrderDetailViewProps) {
 
       {/* Hero Status Banner */}
       <div className={`p-4 rounded-2xl border mb-4 text-center ${banner.bg}`}>
-        <div className="text-2xl mb-1">{banner.emoji}</div>
+        {banner.icon}
         <h3 className="font-serif text-lg font-bold">{banner.heading}</h3>
         <p className={`text-xs mt-0.5 ${banner.descColor}`}>{banner.desc}</p>
       </div>
@@ -119,8 +129,8 @@ export function OrderDetailView({ order, onBack }: OrderDetailViewProps) {
 
           {/* Step 1: Request Sent */}
           <div className="relative flex items-start gap-3">
-            <div className="absolute -left-6 top-0.5 w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] font-bold shadow-xs">
-              ✓
+            <div className="absolute -left-6 top-0.5 w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-xs">
+              <Check className="w-3 h-3 stroke-[2.5]" />
             </div>
             <div>
               <div className="text-xs font-bold text-warm-dark">Request sent</div>
@@ -131,8 +141,8 @@ export function OrderDetailView({ order, onBack }: OrderDetailViewProps) {
           {/* Step 2: Approved / Rejected */}
           {order.status === "rejected" ? (
             <div className="relative flex items-start gap-3">
-              <div className="absolute -left-6 top-0.5 w-5 h-5 rounded-full bg-rose-500 text-white flex items-center justify-center text-[10px] font-bold shadow-xs">
-                ✕
+              <div className="absolute -left-6 top-0.5 w-5 h-5 rounded-full bg-rose-500 text-white flex items-center justify-center shadow-xs">
+                <X className="w-3 h-3 stroke-[2.5]" />
               </div>
               <div>
                 <div className="text-xs font-bold text-rose-700">Request declined</div>
@@ -146,13 +156,17 @@ export function OrderDetailView({ order, onBack }: OrderDetailViewProps) {
               }`}
             >
               <div
-                className={`absolute -left-6 top-0.5 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shadow-xs ${
+                className={`absolute -left-6 top-0.5 w-5 h-5 rounded-full flex items-center justify-center shadow-xs ${
                   isApprovedDone
                     ? "bg-emerald-500 text-white"
                     : "bg-warm-border text-warm-subtle"
                 }`}
               >
-                {isApprovedDone ? "✓" : "○"}
+                {isApprovedDone ? (
+                  <Check className="w-3 h-3 stroke-[2.5]" />
+                ) : (
+                  <div className="w-1.5 h-1.5 rounded-full bg-warm-subtle" />
+                )}
               </div>
               <div>
                 <div className="text-xs font-bold text-warm-dark">Approved by Mahesh</div>
@@ -171,7 +185,7 @@ export function OrderDetailView({ order, onBack }: OrderDetailViewProps) {
               }`}
             >
               <div
-                className={`absolute -left-6 top-0.5 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shadow-xs ${
+                className={`absolute -left-6 top-0.5 w-5 h-5 rounded-full flex items-center justify-center shadow-xs ${
                   isFulfilledDone
                     ? "bg-emerald-500 text-white"
                     : isApprovedDone
@@ -179,7 +193,13 @@ export function OrderDetailView({ order, onBack }: OrderDetailViewProps) {
                     : "bg-warm-border text-warm-subtle"
                 }`}
               >
-                {isFulfilledDone ? "✓" : isApprovedDone ? "⏳" : "○"}
+                {isFulfilledDone ? (
+                  <Check className="w-3 h-3 stroke-[2.5]" />
+                ) : isApprovedDone ? (
+                  <Clock className="w-3 h-3" />
+                ) : (
+                  <div className="w-1.5 h-1.5 rounded-full bg-warm-subtle" />
+                )}
               </div>
               <div>
                 <div className="text-xs font-bold text-warm-dark">Being fulfilled</div>
@@ -187,7 +207,7 @@ export function OrderDetailView({ order, onBack }: OrderDetailViewProps) {
                   {isFulfilledDone
                     ? "All checklist items complete"
                     : isApprovedDone
-                    ? "Boyfriend in action mode"
+                    ? "Action mode"
                     : "Awaiting approval"}
                 </div>
               </div>
@@ -202,16 +222,23 @@ export function OrderDetailView({ order, onBack }: OrderDetailViewProps) {
               }`}
             >
               <div
-                className={`absolute -left-6 top-0.5 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shadow-xs ${
+                className={`absolute -left-6 top-0.5 w-5 h-5 rounded-full flex items-center justify-center shadow-xs ${
                   isCompletedDone
                     ? "bg-emerald-500 text-white"
                     : "bg-warm-border text-warm-subtle"
                 }`}
               >
-                {isCompletedDone ? "✓" : "○"}
+                {isCompletedDone ? (
+                  <Check className="w-3 h-3 stroke-[2.5]" />
+                ) : (
+                  <div className="w-1.5 h-1.5 rounded-full bg-warm-subtle" />
+                )}
               </div>
               <div>
-                <div className="text-xs font-bold text-warm-dark">Delivered with love ❤️</div>
+                <div className="text-xs font-bold text-warm-dark flex items-center gap-1">
+                  <span>Delivered with love</span>
+                  <Heart className="w-3 h-3 fill-romantic-500 text-romantic-500" />
+                </div>
                 <div className="text-[10px] text-warm-subtle">
                   {order.completedAt ? formatDate(order.completedAt) : "Pending fulfillment"}
                 </div>

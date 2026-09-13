@@ -2,6 +2,8 @@
 
 import React, { useState } from "react";
 import { Reward, RewardCategory } from "@/types";
+import { PrettyIcon } from "@/components/shared/PrettyIcon";
+import { Sparkles, Plus } from "lucide-react";
 
 interface RewardShopProps {
   rewards: Reward[];
@@ -26,10 +28,11 @@ export function RewardShop({
 }: RewardShopProps) {
   const [activeCategory, setActiveCategory] = useState<RewardCategory>("All");
 
+  const activeRewards = rewards.filter((r) => r.active !== false);
   const filteredRewards =
     activeCategory === "All"
-      ? rewards
-      : rewards.filter((r) => r.category === activeCategory);
+      ? activeRewards
+      : activeRewards.filter((r) => r.category === activeCategory);
 
   return (
     <div className="flex-1 overflow-y-auto hide-scrollbar pb-24 px-4 pt-3">
@@ -74,13 +77,14 @@ export function RewardShop({
             }`}
           >
             {reward.featured && (
-              <span className="absolute top-2 right-2 text-[9px] bg-romantic-100 text-romantic-700 px-1.5 py-0.5 rounded font-bold">
-                Featured
+              <span className="absolute top-2 right-2 text-[9px] bg-romantic-100 text-romantic-700 px-1.5 py-0.5 rounded font-bold flex items-center gap-0.5">
+                <Sparkles className="w-2.5 h-2.5 text-romantic-600" />
+                <span>Featured</span>
               </span>
             )}
             <div>
-              <div className="w-10 h-10 rounded-xl bg-romantic-50/80 border border-romantic-100 flex items-center justify-center text-xl mb-2.5">
-                {reward.emoji}
+              <div className="w-10 h-10 rounded-xl bg-romantic-50/80 border border-romantic-100 flex items-center justify-center mb-2.5">
+                <PrettyIcon name={reward.emoji} className="w-5 h-5" />
               </div>
               <div className="font-bold text-xs text-warm-dark line-clamp-1 uppercase tracking-tight">
                 {reward.title}
@@ -98,9 +102,10 @@ export function RewardShop({
                   e.stopPropagation();
                   onAddToCart(reward);
                 }}
-                className="px-3 py-1 rounded-lg bg-romantic-500 hover:bg-romantic-600 active:scale-95 text-white text-xs font-semibold shadow-xs transition-all"
+                className="px-3 py-1 rounded-lg bg-romantic-500 hover:bg-romantic-600 active:scale-95 text-white text-xs font-semibold shadow-xs transition-all flex items-center gap-1"
               >
-                Add
+                <Plus className="w-3 h-3" />
+                <span>Add</span>
               </button>
             </div>
           </div>

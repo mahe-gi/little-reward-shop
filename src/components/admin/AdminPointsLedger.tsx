@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { PointTransaction } from "@/types";
 import { formatDate } from "@/lib/utils";
+import { Gift, Coins } from "lucide-react";
 
 interface AdminPointsLedgerProps {
   points: number;
@@ -143,7 +144,7 @@ export function AdminPointsLedger({
       {isGiveModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl border border-warm-border">
-            <div className="text-2xl mb-2">🎁</div>
+            <Gift className="w-8 h-8 text-romantic-500 mb-2" />
             <h3 className="font-serif text-xl font-bold text-warm-dark">Give Points to Her</h3>
             <p className="text-xs text-warm-subtle mt-0.5 mb-4">
               Reward her for being amazing or completing habits.
@@ -198,7 +199,7 @@ export function AdminPointsLedger({
       {isDeductModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl border border-warm-border">
-            <div className="text-2xl mb-2">🪙</div>
+            <Coins className="w-8 h-8 text-amber-500 mb-2" />
             <h3 className="font-serif text-xl font-bold text-warm-dark">Deduct Points</h3>
             <p className="text-xs text-warm-subtle mt-0.5 mb-4">
               Manual balance adjustment with reason required.

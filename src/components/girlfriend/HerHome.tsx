@@ -2,6 +2,8 @@
 
 import React from "react";
 import { Reward, RedemptionOrder, PointTransaction } from "@/types";
+import { PrettyIcon } from "@/components/shared/PrettyIcon";
+import { Sparkles, User, Crown, Clock, ArrowRight, Heart } from "lucide-react";
 
 interface HerHomeProps {
   points: number;
@@ -38,10 +40,11 @@ export function HerHome({
       <div className="flex items-center justify-between mb-4">
         <div>
           <div className="flex items-center gap-1.5">
-            <span className="text-xs font-semibold tracking-wide uppercase text-romantic-600">
-              Hey ❤️
+            <span className="text-xs font-semibold tracking-wide uppercase text-romantic-600 flex items-center gap-1">
+              <span>Hey</span>
+              <Heart className="w-3 h-3 fill-romantic-500 text-romantic-500" />
             </span>
-            <span className="text-xs">✨</span>
+            <Sparkles className="w-3 h-3 text-amber-500" />
           </div>
           <h2 className="font-serif text-2xl font-bold text-warm-dark leading-tight">
             Your little reward world
@@ -52,7 +55,7 @@ export function HerHome({
           className="w-9 h-9 rounded-full bg-white border border-warm-border flex items-center justify-center text-sm shadow-sm hover:border-romantic-300 transition-colors active:scale-95"
           title="Her Profile"
         >
-          👩‍🦰
+          <User className="w-4 h-4 text-warm-dark" />
         </button>
       </div>
 
@@ -67,8 +70,9 @@ export function HerHome({
                 Points Available
               </span>
               {todayPointsEarned > 0 && (
-                <span className="text-[10px] font-bold px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full">
-                  +{todayPointsEarned} earned today
+                <span className="text-[10px] font-bold px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full flex items-center gap-1">
+                  <Sparkles className="w-2.5 h-2.5 text-emerald-600" />
+                  <span>+{todayPointsEarned} earned today</span>
                 </span>
               )}
             </div>
@@ -81,7 +85,7 @@ export function HerHome({
               </span>
             </div>
             <p className="text-xs text-warm-subtle mt-1 flex items-center gap-1">
-              <span>You&apos;ve earned them. Spend them wisely 👀</span>
+              <span>You&apos;ve earned them. Spend them wisely</span>
             </p>
           </div>
 
@@ -104,7 +108,7 @@ export function HerHome({
                 d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
               ></path>
             </svg>
-            <span className="absolute text-base">👑</span>
+            <Crown className="absolute w-5 h-5 text-amber-500" />
           </div>
         </div>
 
@@ -114,7 +118,7 @@ export function HerHome({
             className="py-2.5 px-3 bg-romantic-500 hover:bg-romantic-600 active:scale-[0.98] text-white rounded-xl text-xs font-semibold shadow-sm flex items-center justify-center gap-1.5 transition-all"
           >
             <span>Explore Rewards</span>
-            <span>→</span>
+            <ArrowRight className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={() => onNavigate("orders")}
@@ -127,10 +131,14 @@ export function HerHome({
         {/* Real Habit Wins from Database */}
         <div className="mt-4 pt-3.5 border-t border-romantic-100/80">
           <div className="text-[10px] uppercase font-bold text-warm-subtle tracking-wider mb-2 flex items-center justify-between">
-            <span>Recent Wins ❤️</span>
+            <span className="flex items-center gap-1">
+              <span>Recent Wins</span>
+              <Heart className="w-3 h-3 fill-romantic-500 text-romantic-500" />
+            </span>
             {todayPointsEarned > 0 && (
-              <span className="text-romantic-700 bg-romantic-50 border border-romantic-200/80 px-2 py-0.5 rounded-full font-semibold text-[10px]">
-                +{todayPointsEarned} pts earned today ✨
+              <span className="text-romantic-700 bg-romantic-50 border border-romantic-200/80 px-2 py-0.5 rounded-full font-semibold text-[10px] flex items-center gap-1">
+                <Sparkles className="w-2.5 h-2.5 text-romantic-500" />
+                <span>+{todayPointsEarned} pts earned today</span>
               </span>
             )}
           </div>
@@ -142,7 +150,8 @@ export function HerHome({
                   className="flex items-center justify-between py-1 px-2.5 rounded-xl bg-white/80 border border-warm-border/60 shadow-xs"
                 >
                   <span className="text-warm-dark flex items-center gap-2">
-                    <span>✨</span> {tx.reason}
+                    <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                    <span>{tx.reason}</span>
                   </span>
                   <span className="font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded text-[11px]">
                     +{tx.amount} {tx.amount === 1 ? "pt" : "pts"}
@@ -152,7 +161,7 @@ export function HerHome({
             </div>
           ) : (
             <div className="py-2.5 px-3 rounded-xl bg-white/60 border border-warm-border/60 text-center text-xs text-warm-subtle">
-              No points awarded yet today. Ready to earn more! 🌟
+              No points awarded yet today. Ready to earn more!
             </div>
           )}
         </div>
@@ -164,7 +173,7 @@ export function HerHome({
           <div className="flex items-start justify-between gap-2">
             <div className="flex items-start gap-3">
               <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-sm font-bold shrink-0 mt-0.5">
-                ⏳
+                <Clock className="w-4 h-4 text-amber-700" />
               </div>
               <div>
                 <div className="text-[11px] font-semibold text-amber-800 uppercase tracking-wider">
@@ -178,8 +187,8 @@ export function HerHome({
                   <span>
                     Status:{" "}
                     {activeOrder.status === "pending"
-                      ? "Waiting for approval 👀"
-                      : "Approved & locked in! ❤️"}
+                      ? "Waiting for approval"
+                      : "Approved & locked in"}
                   </span>
                 </div>
               </div>
@@ -205,9 +214,10 @@ export function HerHome({
           </div>
           <button
             onClick={() => onNavigate("shop")}
-            className="text-xs font-semibold text-romantic-600 hover:underline"
+            className="text-xs font-semibold text-romantic-600 hover:underline flex items-center gap-1"
           >
-            See All Rewards →
+            <span>See All Rewards</span>
+            <ArrowRight className="w-3 h-3" />
           </button>
         </div>
 
@@ -221,8 +231,8 @@ export function HerHome({
                 onClick={() => onSelectReward(reward)}
                 className="flex items-center space-x-3 cursor-pointer flex-1"
               >
-                <div className="w-12 h-12 rounded-xl bg-romantic-50/80 flex items-center justify-center text-2xl border border-romantic-100 shrink-0">
-                  {reward.emoji}
+                <div className="w-12 h-12 rounded-xl bg-romantic-50/80 flex items-center justify-center border border-romantic-100 shrink-0">
+                  <PrettyIcon name={reward.emoji} className="w-6 h-6" />
                 </div>
                 <div>
                   <div className="text-sm font-bold text-warm-dark line-clamp-1">

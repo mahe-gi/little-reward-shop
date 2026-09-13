@@ -35,7 +35,7 @@ export async function loginAction(formData: FormData) {
   }
 
   if (password !== expectedPassword) {
-    return { success: false, error: "Incorrect password. Try again! ❤️" };
+    return { success: false, error: "Incorrect password. Try again!" };
   }
 
   const db = getDb();

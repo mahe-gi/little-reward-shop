@@ -2,6 +2,8 @@
 
 import React from "react";
 import { Reward } from "@/types";
+import { PrettyIcon } from "@/components/shared/PrettyIcon";
+import { Plus } from "lucide-react";
 
 interface RewardDetailSheetProps {
   reward: Reward | null;
@@ -27,8 +29,8 @@ export function RewardDetailSheet({
         <div className="w-12 h-1.5 bg-stone-300 rounded-full mx-auto mb-5"></div>
 
         <div className="text-center mb-4">
-          <div className="w-20 h-20 rounded-3xl bg-romantic-50 border border-romantic-100 flex items-center justify-center text-4xl mx-auto shadow-sm mb-3">
-            {reward.emoji}
+          <div className="w-20 h-20 rounded-3xl bg-romantic-50 border border-romantic-100 flex items-center justify-center mx-auto shadow-sm mb-3">
+            <PrettyIcon name={reward.emoji} className="w-10 h-10" />
           </div>
           <h3 className="font-serif text-2xl font-bold text-warm-dark">{reward.title}</h3>
           <div className="inline-flex items-center gap-1 mt-1 px-3 py-1 rounded-full bg-romantic-50 text-romantic-700 font-bold text-sm">
@@ -55,7 +57,8 @@ export function RewardDetailSheet({
             }}
             className="w-full py-3.5 bg-romantic-500 hover:bg-romantic-600 active:scale-[0.98] text-white rounded-xl font-semibold text-sm shadow-soft transition-all flex items-center justify-center gap-1.5"
           >
-            <span>Add to Cart ❤️</span>
+            <Plus className="w-4 h-4" />
+            <span>Add to Cart</span>
           </button>
           <button
             onClick={onClose}

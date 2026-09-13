@@ -3,6 +3,7 @@
 import { getDb } from "@/db";
 import * as schema from "@/db/schema";
 import { eq, asc } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth";
 import { Reward, RewardCategory } from "@/types";
 
@@ -59,7 +60,7 @@ export async function createRewardAction(data: {
     title: data.title.trim(),
     description: data.description.trim(),
     points: data.points,
-    emoji: data.emoji || "🎁",
+    emoji: data.emoji || "gift",
     category: data.category || "Little Things",
     featured: Boolean(data.featured),
     active: data.active !== false,
@@ -69,7 +70,16 @@ export async function createRewardAction(data: {
     updatedAt: now,
   });
 
+  safeRevalidate();
+
   return { success: true, rewardId: id };
+}
+
+function safeRevalidate() {
+  try {
+    revalidatePath("/");
+    revalidatePath("/admin");
+  } catch {}
 }
 
 export async function updateRewardAction(
@@ -105,6 +115,8 @@ export async function updateRewardAction(
       updatedAt: now,
     })
     .where(eq(schema.rewards.id, id));
+
+  safeRevalidate();
 
   return { success: true };
 }

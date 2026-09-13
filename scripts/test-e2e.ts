@@ -73,10 +73,10 @@ async function runEndToEndVerification() {
   const history = await getPointsHistory("user_girlfriend");
   console.log(`Transactions Count: ${history.length}`);
   console.log(`Initial Transaction Reason: "${history[0]?.reason}", Amount: +${history[0]?.amount}`);
-  if (history[0]?.amount !== 10 || history[0]?.reason !== "Starting points ❤️") {
-    throw new Error("Initial transaction mismatch!");
+  if (history[0]?.amount !== 10 || !history[0]?.reason.startsWith("Starting points")) {
+    throw new Error(`Unexpected initial transaction: ${JSON.stringify(history[0])}`);
   }
-  console.log("✓ +10 transaction 'Starting points ❤️' verified.");
+  console.log("✓ +10 transaction 'Starting points' verified.");
 
   // 2. Browse Rewards catalog
   console.log("\n[Step 2] Girlfriend browses catalog rewards...");

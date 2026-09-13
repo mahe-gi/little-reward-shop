@@ -48,6 +48,17 @@ export async function addToCartAction(
     const userId = session?.userId || "user_girlfriend";
 
     const db = getDb();
+
+    // Verify reward exists and is active
+    const rewardRecord = await db
+      .select()
+      .from(schema.rewards)
+      .where(eq(schema.rewards.id, rewardId));
+
+    if (rewardRecord.length === 0 || !rewardRecord[0].active) {
+      return { success: false, error: "This reward is currently unavailable." };
+    }
+
     const existing = await db
       .select()
       .from(schema.cartItems)

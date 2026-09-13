@@ -18,6 +18,16 @@ import {
 } from "@/actions/orders";
 import { logoutAction } from "@/actions/auth";
 import { useToast } from "@/components/shared/Toast";
+import {
+  Heart,
+  LayoutDashboard,
+  Coins,
+  Gift,
+  Package,
+  History,
+  Settings,
+  UserCheck,
+} from "lucide-react";
 
 interface AdminLayoutProps {
   initialPoints: number;
@@ -66,12 +76,12 @@ export function AdminLayout({
           },
           ...prev,
         ]);
-        showToast("🪙 Points Awarded!", `Added +${amount} points for her.`);
+        showToast("Points Awarded", `Added +${amount} points for her.`);
       } else {
-        showToast("⚠️ Error", res.error || "Could not give points.");
+        showToast("Notice", res.error || "Could not give points.");
       }
     } catch {
-      showToast("⚠️ Error", "An error occurred.");
+      showToast("Error", "An error occurred.");
     }
   };
 
@@ -91,12 +101,12 @@ export function AdminLayout({
           },
           ...prev,
         ]);
-        showToast("🪙 Points Deducted", `Deducted -${amount} points.`);
+        showToast("Points Deducted", `Deducted -${amount} points.`);
       } else {
-        showToast("⚠️ Error", res.error || "Could not deduct points.");
+        showToast("Notice", res.error || "Could not deduct points.");
       }
     } catch {
-      showToast("⚠️ Error", "An error occurred.");
+      showToast("Error", "An error occurred.");
     }
   };
 
@@ -127,12 +137,12 @@ export function AdminLayout({
           updatedAt: new Date().toISOString(),
         };
         setRewards((prev) => [...prev, newRew]);
-        showToast("✨ Reward Created!", `${data.title} is now live.`);
+        showToast("Reward Created", `${data.title} is now live.`);
       } else {
-        showToast("⚠️ Error", res.error || "Could not create reward.");
+        showToast("Notice", res.error || "Could not create reward.");
       }
     } catch {
-      showToast("⚠️ Error", "An error occurred.");
+      showToast("Error", "An error occurred.");
     }
   };
 
@@ -142,9 +152,9 @@ export function AdminLayout({
       setRewards((prev) =>
         prev.map((r) => (r.id === id ? { ...r, active } : r))
       );
-      showToast(active ? "✓ Enabled" : "✕ Disabled", "Reward updated.");
+      showToast(active ? "Enabled" : "Disabled", "Reward updated.");
     } catch {
-      showToast("⚠️ Error", "Could not update reward.");
+      showToast("Error", "Could not update reward.");
     }
   };
 
@@ -173,12 +183,12 @@ export function AdminLayout({
             )
           );
         }
-        showToast("🎉 Order Approved!", "Points deducted & fulfillment unlocked.");
+        showToast("Order Approved", "Points deducted & fulfillment unlocked.");
       } else {
-        showToast("⚠️ Notice", res.error || "Could not approve order.");
+        showToast("Notice", res.error || "Could not approve order.");
       }
     } catch {
-      showToast("⚠️ Error", "An error occurred.");
+      showToast("Error", "An error occurred.");
     }
   };
 
@@ -197,12 +207,12 @@ export function AdminLayout({
               : o
           )
         );
-        showToast("👀 Declined", "Order declined without point deduction.");
+        showToast("Declined", "Order declined without point deduction.");
       } else {
-        showToast("⚠️ Notice", res.error || "Could not decline order.");
+        showToast("Notice", res.error || "Could not decline order.");
       }
     } catch {
-      showToast("⚠️ Error", "An error occurred.");
+      showToast("Error", "An error occurred.");
     }
   };
 
@@ -227,7 +237,7 @@ export function AdminLayout({
         }))
       );
     } catch {
-      showToast("⚠️ Error", "Could not toggle checklist item.");
+      showToast("Error", "Could not toggle checklist item.");
     }
   };
 
@@ -246,12 +256,12 @@ export function AdminLayout({
               : o
           )
         );
-        showToast("❤️ Delivered & Completed", "Order marked delivered!");
+        showToast("Delivered & Completed", "Order marked delivered!");
       } else {
-        showToast("⚠️ Notice", res.error || "Could not complete order.");
+        showToast("Notice", res.error || "Could not complete order.");
       }
     } catch {
-      showToast("⚠️ Error", "An error occurred.");
+      showToast("Error", "An error occurred.");
     }
   };
 
@@ -319,7 +329,7 @@ export function AdminLayout({
             {/* Brand */}
             <div className="flex items-center space-x-3 mb-8">
               <div className="w-9 h-9 rounded-xl bg-romantic-500 flex items-center justify-center text-white font-bold shadow-md shadow-romantic-500/20">
-                ❤️
+                <Heart className="w-5 h-5 fill-white text-white" />
               </div>
               <div>
                 <div className="font-bold text-sm tracking-tight text-white">Reward Control</div>
@@ -337,7 +347,7 @@ export function AdminLayout({
                     : "text-stone-400 hover:text-white hover:bg-stone-800/60"
                 }`}
               >
-                <span>📊</span>
+                <LayoutDashboard className="w-4 h-4" />
                 <span>Dashboard</span>
               </button>
 
@@ -350,7 +360,7 @@ export function AdminLayout({
                 }`}
               >
                 <div className="flex items-center gap-2.5">
-                  <span>🪙</span>
+                  <Coins className="w-4 h-4 text-amber-400" />
                   <span>Points Balance</span>
                 </div>
                 <span className="text-[10px] bg-stone-700 px-1.5 py-0.5 rounded text-stone-300 font-mono">
@@ -367,7 +377,7 @@ export function AdminLayout({
                 }`}
               >
                 <div className="flex items-center gap-2.5">
-                  <span>🎁</span>
+                  <Gift className="w-4 h-4 text-romantic-400" />
                   <span>Reward Catalog</span>
                 </div>
                 <span className="text-[10px] bg-stone-700 px-1.5 py-0.5 rounded text-stone-300 font-mono">
@@ -384,7 +394,7 @@ export function AdminLayout({
                 }`}
               >
                 <div className="flex items-center gap-2.5">
-                  <span>📦</span>
+                  <Package className="w-4 h-4 text-blue-400" />
                   <span>Orders & Fulfill</span>
                 </div>
                 {pendingCount > 0 && (
@@ -402,7 +412,7 @@ export function AdminLayout({
                     : "text-stone-400 hover:text-white hover:bg-stone-800/60"
                 }`}
               >
-                <span>📜</span>
+                <History className="w-4 h-4 text-emerald-400" />
                 <span>History Log</span>
               </button>
 
@@ -414,7 +424,7 @@ export function AdminLayout({
                     : "text-stone-400 hover:text-white hover:bg-stone-800/60"
                 }`}
               >
-                <span>⚙️</span>
+                <Settings className="w-4 h-4 text-stone-400" />
                 <span>Settings</span>
               </button>
             </nav>
@@ -423,7 +433,9 @@ export function AdminLayout({
           {/* Bottom Mahesh Session & Logout */}
           <div className="pt-4 border-t border-stone-800 flex items-center justify-between text-xs">
             <div className="flex items-center gap-2">
-              <span className="text-base">🧔</span>
+              <div className="w-7 h-7 rounded-lg bg-stone-800 flex items-center justify-center text-stone-300">
+                <UserCheck className="w-4 h-4" />
+              </div>
               <div>
                 <div className="font-semibold text-stone-200 text-xs">Mahesh</div>
                 <div className="text-[10px] text-stone-400">Admin Control</div>
