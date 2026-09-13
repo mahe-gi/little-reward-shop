@@ -105,6 +105,11 @@ export function HerLayout({
       (o) => o.status === "pending" || o.status === "approved" || o.status === "fulfilling"
     ) || null;
 
+  // Active in-progress orders count for nav badge
+  const activeOrdersCount = orders.filter(
+    (o) => o.status === "pending" || o.status === "approved" || o.status === "fulfilling"
+  ).length;
+
   const handleAddToCart = async (reward: Reward) => {
     // Optimistic UI update
     setCart((prev) => {
@@ -355,18 +360,20 @@ export function HerLayout({
 
           <button
             onClick={() => handleTabChange("cart")}
-            className={`relative flex flex-col items-center justify-center transition-colors ${
+            className={`flex flex-col items-center justify-center transition-colors ${
               currentTab === "cart" && !selectedOrder && !successOrder
                 ? "text-romantic-600"
                 : "text-warm-subtle hover:text-romantic-600"
             }`}
           >
-            <ShoppingCart className="w-5 h-5" />
-            {totalCartCount > 0 && (
-              <span className="absolute -top-1 right-1 w-4 h-4 rounded-full bg-romantic-500 text-white text-[9px] font-bold flex items-center justify-center shadow-xs">
-                {totalCartCount}
-              </span>
-            )}
+            <div className="relative">
+              <ShoppingCart className="w-5 h-5" />
+              {totalCartCount > 0 && (
+                <span className="absolute -top-1.5 -right-2 min-w-[16px] h-4 px-1 rounded-full bg-romantic-500 text-white text-[9px] font-bold flex items-center justify-center shadow-xs">
+                  {totalCartCount}
+                </span>
+              )}
+            </div>
             <span className="text-[10px] font-medium mt-1">Cart</span>
           </button>
 
@@ -378,7 +385,14 @@ export function HerLayout({
                 : "text-warm-subtle hover:text-romantic-600"
             }`}
           >
-            <Package className="w-5 h-5" />
+            <div className="relative">
+              <Package className="w-5 h-5" />
+              {activeOrdersCount > 0 && (
+                <span className="absolute -top-1.5 -right-2 min-w-[16px] h-4 px-1 rounded-full bg-romantic-500 text-white text-[9px] font-bold flex items-center justify-center shadow-xs">
+                  {activeOrdersCount}
+                </span>
+              )}
+            </div>
             <span className="text-[10px] font-medium mt-1">Orders</span>
           </button>
         </nav>
