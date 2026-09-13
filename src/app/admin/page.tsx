@@ -5,6 +5,7 @@ import { getRewards } from "@/actions/rewards";
 import { getOrders } from "@/actions/orders";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { ToastProvider } from "@/components/shared/Toast";
+import { DbNotice } from "@/components/shared/DbNotice";
 
 export const dynamic = "force-dynamic";
 
@@ -37,10 +38,26 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
     ? (params.tab as (typeof validTabs)[number])
     : "dashboard";
 
-  const points = await getPointsBalance("user_girlfriend");
-  const rewards = await getRewards();
-  const orders = await getOrders();
-  const history = await getPointsHistory("user_girlfriend");
+  let points = 0;
+  let rewards: any[] = [];
+  let orders: any[] = [];
+  let history: any[] = [];
+
+  try {
+    const data = await Promise.all([
+      getPointsBalance("user_girlfriend"),
+      getRewards(),
+      getOrders(),
+      getPointsHistory("user_girlfriend"),
+    ]);
+    points = data[0];
+    rewards = data[1];
+    orders = data[2];
+    history = data[3];
+  } catch (error: any) {
+    console.error("AdminPage database fetch error:", error);
+    return <DbNotice error={error?.message || String(error)} role="admin" />;
+  }
 
   return (
     <ToastProvider>

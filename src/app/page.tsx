@@ -10,6 +10,7 @@ import { getOrders } from "@/actions/orders";
 import { getCart } from "@/actions/cart";
 import { HerLayout } from "@/components/girlfriend/HerLayout";
 import { ToastProvider } from "@/components/shared/Toast";
+import { DbNotice } from "@/components/shared/DbNotice";
 
 export const dynamic = "force-dynamic";
 
@@ -39,8 +40,15 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   const userId = session.userId || "user_girlfriend";
 
   // Fetch real database state
-  const [points, rewards, orders, cart, todayEarned, recentTransactions] =
-    await Promise.all([
+  let points = 0;
+  let rewards: any[] = [];
+  let orders: any[] = [];
+  let cart: any[] = [];
+  let todayEarned = 0;
+  let recentTransactions: any[] = [];
+
+  try {
+    const data = await Promise.all([
       getPointsBalance(userId),
       getRewards({ activeOnly: true }),
       getOrders(userId),
@@ -48,6 +56,16 @@ export default async function HomePage({ searchParams }: HomePageProps) {
       getTodayPointsEarned(userId),
       getRecentEarnedTransactions(userId, 3),
     ]);
+    points = data[0];
+    rewards = data[1];
+    orders = data[2];
+    cart = data[3];
+    todayEarned = data[4];
+    recentTransactions = data[5];
+  } catch (error: any) {
+    console.error("HomePage database fetch error:", error);
+    return <DbNotice error={error?.message || String(error)} role="girlfriend" />;
+  }
 
   return (
     <ToastProvider>

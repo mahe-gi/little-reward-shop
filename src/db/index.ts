@@ -25,7 +25,7 @@ export function getDb(): AppDb {
     );
   }
 
-  const isNeon = databaseUrl.includes("neon.tech") || process.env.VERCEL === "1";
+  const isNeon = databaseUrl.includes("neon.tech");
 
   if (isNeon) {
     const sql = neon(databaseUrl);
