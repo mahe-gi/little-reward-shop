@@ -1,6 +1,8 @@
-import { neon } from "@neondatabase/serverless";
-import { drizzle } from "drizzle-orm/neon-http";
+import { loadEnvConfig } from "@next/env";
+import { getDb } from "./index";
 import * as schema from "./schema";
+
+loadEnvConfig(process.cwd());
 import {
   INITIAL_USERS,
   INITIAL_POINTS_TRANSACTION,
@@ -8,15 +10,17 @@ import {
 } from "./seed-data";
 
 async function seed() {
-  const databaseUrl = process.env.DATABASE_URL || process.argv[2];
-  if (!databaseUrl) {
-    console.error("DATABASE_URL is not set. Cannot seed Neon database.");
+  if (process.argv[2]) {
+    process.env.DATABASE_URL = process.argv[2];
+  }
+
+  if (!process.env.DATABASE_URL) {
+    console.error("DATABASE_URL is not set. Cannot seed database.");
     process.exit(1);
   }
 
-  console.log("Connecting to Neon database...");
-  const sql = neon(databaseUrl);
-  const db = drizzle(sql, { schema });
+  console.log("Connecting to database...");
+  const db = getDb();
 
   console.log("Seeding users...");
   for (const u of INITIAL_USERS) {
@@ -62,6 +66,9 @@ async function seed() {
   }
 
   console.log("Seeding completed successfully! ❤️");
+  if (global._pgPool) {
+    await global._pgPool.end();
+  }
 }
 
 seed().catch((err) => {

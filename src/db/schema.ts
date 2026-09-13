@@ -81,3 +81,16 @@ export const fulfillmentItems = pgTable("fulfillment_items", {
   completed: boolean("completed").default(false).notNull(),
   completedAt: timestamp("completed_at", { withTimezone: true }),
 });
+
+export const cartItems = pgTable("cart_items", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  userId: varchar("user_id", { length: 64 })
+    .notNull()
+    .references(() => users.id),
+  rewardId: varchar("reward_id", { length: 64 })
+    .notNull()
+    .references(() => rewards.id),
+  quantity: integer("quantity").notNull().default(1),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});

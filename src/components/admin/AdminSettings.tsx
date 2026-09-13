@@ -9,6 +9,10 @@ export function AdminSettings() {
     window.location.href = "/login";
   };
 
+  const appName = process.env.NEXT_PUBLIC_APP_NAME || "Our Little Reward Shop";
+  const girlfriendName = process.env.NEXT_PUBLIC_GIRLFRIEND_NAME || "Her";
+  const adminName = process.env.NEXT_PUBLIC_MAHESH_NAME || "Mahesh";
+
   return (
     <div className="space-y-6">
       <div>
@@ -24,15 +28,15 @@ export function AdminSettings() {
         <div className="space-y-3 text-xs">
           <div className="flex justify-between items-center py-2 border-b border-warm-border">
             <span className="text-warm-subtle">Application Name:</span>
-            <span className="font-semibold text-warm-dark">Our Little Reward Shop</span>
+            <span className="font-semibold text-warm-dark">{appName}</span>
           </div>
           <div className="flex justify-between items-center py-2 border-b border-warm-border">
             <span className="text-warm-subtle">Girlfriend Name:</span>
-            <span className="font-semibold text-warm-dark">Her</span>
+            <span className="font-semibold text-warm-dark">{girlfriendName}</span>
           </div>
           <div className="flex justify-between items-center py-2 border-b border-warm-border">
             <span className="text-warm-subtle">Admin / Boyfriend:</span>
-            <span className="font-semibold text-warm-dark">Mahesh</span>
+            <span className="font-semibold text-warm-dark">{adminName}</span>
           </div>
           <div className="flex justify-between items-center py-2 border-b border-warm-border">
             <span className="text-warm-subtle">Design System:</span>

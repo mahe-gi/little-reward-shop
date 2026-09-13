@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Reward, RedemptionOrder } from "@/types";
+import { Reward, RedemptionOrder, PointTransaction } from "@/types";
 
 interface HerHomeProps {
   points: number;
@@ -12,6 +12,8 @@ interface HerHomeProps {
   onAddToCart: (reward: Reward) => void;
   onOpenProfile: () => void;
   onViewOrder: (order: RedemptionOrder) => void;
+  todayPointsEarned?: number;
+  recentTransactions?: PointTransaction[];
 }
 
 export function HerHome({
@@ -23,6 +25,8 @@ export function HerHome({
   onAddToCart,
   onOpenProfile,
   onViewOrder,
+  todayPointsEarned = 0,
+  recentTransactions = [],
 }: HerHomeProps) {
   // Progress ring calculation (normalized out of 20 points)
   const progressPercent = Math.min(100, Math.round((points / 20) * 100));
@@ -62,9 +66,11 @@ export function HerHome({
               <span className="text-[11px] font-bold uppercase tracking-wider text-warm-subtle">
                 Points Available
               </span>
-              <span className="text-[10px] font-bold px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full">
-                +1 earned today
-              </span>
+              {todayPointsEarned > 0 && (
+                <span className="text-[10px] font-bold px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full">
+                  +{todayPointsEarned} earned today
+                </span>
+              )}
             </div>
             <div className="flex items-baseline gap-2 mt-1.5">
               <span className="text-5xl font-extrabold text-warm-dark tracking-tight font-serif">
@@ -118,40 +124,37 @@ export function HerHome({
           </button>
         </div>
 
-        {/* Today's Habit Wins */}
+        {/* Real Habit Wins from Database */}
         <div className="mt-4 pt-3.5 border-t border-romantic-100/80">
           <div className="text-[10px] uppercase font-bold text-warm-subtle tracking-wider mb-2 flex items-center justify-between">
-            <span>Today&apos;s Habit Wins</span>
-            <span className="text-romantic-700 bg-romantic-50 border border-romantic-200/80 px-2 py-0.5 rounded-full font-semibold text-[10px]">
-              3 wins today ✨
-            </span>
+            <span>Recent Wins ❤️</span>
+            {todayPointsEarned > 0 && (
+              <span className="text-romantic-700 bg-romantic-50 border border-romantic-200/80 px-2 py-0.5 rounded-full font-semibold text-[10px]">
+                +{todayPointsEarned} pts earned today ✨
+              </span>
+            )}
           </div>
-          <div className="space-y-1.5 text-xs">
-            <div className="flex items-center justify-between py-1 px-2.5 rounded-xl bg-white/80 border border-warm-border/60 shadow-xs">
-              <span className="text-warm-dark flex items-center gap-2">
-                <span>🥗</span> Healthy habit completed
-              </span>
-              <span className="font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded text-[11px]">
-                +1 pt
-              </span>
+          {recentTransactions.length > 0 ? (
+            <div className="space-y-1.5 text-xs">
+              {recentTransactions.map((tx) => (
+                <div
+                  key={tx.id}
+                  className="flex items-center justify-between py-1 px-2.5 rounded-xl bg-white/80 border border-warm-border/60 shadow-xs"
+                >
+                  <span className="text-warm-dark flex items-center gap-2">
+                    <span>✨</span> {tx.reason}
+                  </span>
+                  <span className="font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded text-[11px]">
+                    +{tx.amount} {tx.amount === 1 ? "pt" : "pts"}
+                  </span>
+                </div>
+              ))}
             </div>
-            <div className="flex items-center justify-between py-1 px-2.5 rounded-xl bg-white/80 border border-warm-border/60 shadow-xs">
-              <span className="text-warm-dark flex items-center gap-2">
-                <span>👟</span> Morning walk (30 mins)
-              </span>
-              <span className="font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded text-[11px]">
-                +1 pt
-              </span>
+          ) : (
+            <div className="py-2.5 px-3 rounded-xl bg-white/60 border border-warm-border/60 text-center text-xs text-warm-subtle">
+              No points awarded yet today. Ready to earn more! 🌟
             </div>
-            <div className="flex items-center justify-between py-1 px-2.5 rounded-xl bg-white/80 border border-warm-border/60 shadow-xs">
-              <span className="text-warm-dark flex items-center gap-2">
-                <span>😴</span> 8 hrs of deep sleep
-              </span>
-              <span className="font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded text-[11px]">
-                +1 pt
-              </span>
-            </div>
-          </div>
+          )}
         </div>
       </div>
 
@@ -175,8 +178,8 @@ export function HerHome({
                   <span>
                     Status:{" "}
                     {activeOrder.status === "pending"
-                      ? "Waiting for Mahesh 👀"
-                      : "Mahesh accepted his fate 😂"}
+                      ? "Waiting for approval 👀"
+                      : "Approved & locked in! ❤️"}
                   </span>
                 </div>
               </div>
@@ -198,7 +201,7 @@ export function HerHome({
             <h3 className="font-serif text-lg font-bold text-warm-dark">
               Maybe you&apos;ll like these
             </h3>
-            <p className="text-xs text-warm-subtle">Curated by Mahesh just for you</p>
+            <p className="text-xs text-warm-subtle">Curated rewards catalog</p>
           </div>
           <button
             onClick={() => onNavigate("shop")}

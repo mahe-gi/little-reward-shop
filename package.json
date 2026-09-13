@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "tsc --noEmit",
-    "test:e2e": "esbuild scripts/test-e2e.ts --bundle --platform=node --alias:@=./src --outfile=dist/test-e2e.cjs && node dist/test-e2e.cjs && rm -rf dist .local-db.json",
+    "test:e2e": "esbuild scripts/test-e2e.ts --bundle --platform=node --alias:@=./src --outfile=dist/test-e2e.cjs && node dist/test-e2e.cjs && rm -rf dist",
     "db:push": "drizzle-kit push",
     "db:seed": "node -r esbuild-register src/db/seed.ts"
   },

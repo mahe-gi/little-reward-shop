@@ -1,4 +1,7 @@
-import { getPointsBalance, getPointsHistory, givePointsAction, deductPointsAction } from "@/actions/points";
+import { loadEnvConfig } from "@next/env";
+loadEnvConfig(process.cwd());
+
+import { getPointsBalance, getPointsHistory } from "@/actions/points";
 import { getRewards } from "@/actions/rewards";
 import {
   createOrderAction,
@@ -8,16 +11,49 @@ import {
   completeOrderAction,
   getOrders,
 } from "@/actions/orders";
-import { resetLocalDb } from "@/db";
-
+import { addToCartAction, getCart } from "@/actions/cart";
+import { getDb } from "@/db";
+import * as schema from "@/db/schema";
+import {
+  INITIAL_USERS,
+  INITIAL_POINTS_TRANSACTION,
+  INITIAL_REWARDS,
+} from "@/db/seed-data";
 import { __setMockSessionForTesting } from "@/lib/auth";
+
+async function resetTestDb() {
+  const db = getDb();
+  await db.delete(schema.cartItems);
+  await db.delete(schema.fulfillmentItems);
+  await db.delete(schema.redemptionItems);
+  await db.delete(schema.redemptionOrders);
+  await db.delete(schema.pointTransactions);
+  await db.delete(schema.rewards);
+  await db.delete(schema.users);
+
+  for (const u of INITIAL_USERS) {
+    await db.insert(schema.users).values(u);
+  }
+
+  await db.insert(schema.pointTransactions).values({
+    id: INITIAL_POINTS_TRANSACTION.id,
+    userId: INITIAL_POINTS_TRANSACTION.userId,
+    amount: INITIAL_POINTS_TRANSACTION.amount,
+    type: INITIAL_POINTS_TRANSACTION.type,
+    reason: INITIAL_POINTS_TRANSACTION.reason,
+  });
+
+  for (const r of INITIAL_REWARDS) {
+    await db.insert(schema.rewards).values(r);
+  }
+}
 
 async function runEndToEndVerification() {
   console.log("=== STARTING END-TO-END VERIFICATION JOURNEY ===");
 
   // 0. Reset DB to baseline state
   console.log("\n[Step 0] Resetting test database state...");
-  resetLocalDb();
+  await resetTestDb();
   __setMockSessionForTesting({
     userId: "user_girlfriend",
     name: "Her",
@@ -52,27 +88,35 @@ async function runEndToEndVerification() {
   }
   console.log(`✓ Found "${movieReward.title}" (${movieReward.points} pts, ${movieReward.emoji}).`);
 
-  // 3. Girlfriend creates an order for Favorite Movie (5 pts)
-  console.log("\n[Step 3] Girlfriend submits redemption order for Favorite Movie (5 pts)...");
-  const cartItems = [
-    {
-      rewardId: movieReward.id,
-      title: movieReward.title,
-      description: movieReward.description,
-      points: movieReward.points,
-      emoji: movieReward.emoji,
-      quantity: 1,
-    },
-  ];
+  // 3. Test Cart Database Persistence
+  console.log("\n[Step 3] Testing Cart Database Persistence...");
+  const addCartRes = await addToCartAction(movieReward.id);
+  if (!addCartRes.success) {
+    throw new Error(`Failed to add to cart: ${addCartRes.error}`);
+  }
+  const persistedCart = await getCart("user_girlfriend");
+  if (persistedCart.length !== 1 || persistedCart[0].rewardId !== movieReward.id) {
+    throw new Error("Cart was not properly persisted in the database!");
+  }
+  console.log(`✓ Cart successfully persisted in DB: ${persistedCart[0].title} (Qty: ${persistedCart[0].quantity})`);
 
-  const orderRes = await createOrderAction(cartItems, "Can we watch Interstellar tonight? 🥺");
+  // 4. Girlfriend creates an order from cart
+  console.log("\n[Step 4] Girlfriend submits redemption order for Favorite Movie (5 pts)...");
+  const orderRes = await createOrderAction(persistedCart, "Can we watch Interstellar tonight? 🥺");
   if (!orderRes.success) {
     throw new Error(`Order creation failed: ${orderRes.error}`);
   }
   console.log(`✓ Order created: ID=${orderRes.orderId}, Number=${orderRes.orderNumber}`);
 
+  // Check cart cleared in database after order
+  const cartAfterOrder = await getCart("user_girlfriend");
+  if (cartAfterOrder.length !== 0) {
+    throw new Error("Cart was not cleared in database after order creation!");
+  }
+  console.log("✓ Cart cleared in database upon order creation.");
+
   // CRITICAL CHECK: Points must REMAIN 10 while order is pending!
-  console.log("\n[Step 4] CRITICAL CHECK: Verifying points balance during pending state...");
+  console.log("\n[Step 5] CRITICAL CHECK: Verifying points balance during pending state...");
   const balanceWhilePending = await getPointsBalance("user_girlfriend");
   console.log(`Balance while pending: ${balanceWhilePending} points`);
   if (balanceWhilePending !== 10) {
@@ -90,9 +134,8 @@ async function runEndToEndVerification() {
   }
   console.log(`✓ Order ${pendingOrder.orderNumber} status is '${pendingOrder.status}'.`);
 
-  // 4. Mahesh reviews and approves order
-  console.log("\n[Step 5] Mahesh reviews and approves Order #0007...");
-  // Simulate admin session
+  // 5. Mahesh reviews and approves order
+  console.log("\n[Step 6] Mahesh reviews and approves order...");
   __setMockSessionForTesting({
     userId: "user_mahesh",
     name: "Mahesh",
@@ -105,7 +148,7 @@ async function runEndToEndVerification() {
   console.log("✓ Order approved successfully.");
 
   // CRITICAL CHECK: Balance should NOW be 10 - 5 = 5 points
-  console.log("\n[Step 6] CRITICAL CHECK: Verifying point deduction after approval...");
+  console.log("\n[Step 7] CRITICAL CHECK: Verifying point deduction after approval...");
   const balanceAfterApproval = await getPointsBalance("user_girlfriend");
   console.log(`Balance after approval: ${balanceAfterApproval} points`);
   if (balanceAfterApproval !== 5) {
@@ -116,7 +159,7 @@ async function runEndToEndVerification() {
   console.log("✓ ATOMIC DEDUCTION VERIFIED: 5 points deducted. New balance is exactly 5 points.");
 
   // Test double-approval guard
-  console.log("\n[Step 7] Testing double-approval safeguard against race conditions...");
+  console.log("\n[Step 8] Testing double-approval safeguard against race conditions...");
   const duplicateApprove = await approveOrderAction(pendingOrder.id);
   if (duplicateApprove.success) {
     throw new Error("CRITICAL ERROR: Double approval succeeded! Should have been rejected.");
@@ -128,8 +171,8 @@ async function runEndToEndVerification() {
   }
   console.log("✓ Balance remained intact at 5 points.");
 
-  // 5. Fulfillment Checklist
-  console.log("\n[Step 8] Mahesh works on Fulfillment Checklist...");
+  // 6. Fulfillment Checklist
+  console.log("\n[Step 9] Mahesh works on Fulfillment Checklist...");
   orders = await getOrders();
   const fulfillingOrder = orders.find((o) => o.id === orderRes.orderId);
   if (!fulfillingOrder) throw new Error("Order not found!");
@@ -139,7 +182,7 @@ async function runEndToEndVerification() {
   });
 
   // Attempt to complete order before checking off items
-  console.log("\n[Step 9] Attempting to mark order completed before checklist is done...");
+  console.log("\n[Step 10] Attempting to mark order completed before checklist is done...");
   const prematureComplete = await completeOrderAction(fulfillingOrder.id);
   if (prematureComplete.success) {
     throw new Error("Order completed prematurely before checklist completion!");
@@ -147,22 +190,22 @@ async function runEndToEndVerification() {
   console.log(`✓ Premature completion safely blocked: "${prematureComplete.error}"`);
 
   // Check off all items
-  console.log("\n[Step 10] Checking off fulfillment checklist items...");
+  console.log("\n[Step 11] Checking off fulfillment checklist items...");
   for (const item of fulfillingOrder.fulfillmentItems) {
     await toggleFulfillmentItemAction(item.id, true);
     console.log(`  ✓ Checked off: ${item.label}`);
   }
 
   // Complete the order
-  console.log("\n[Step 11] Marking order completed ❤️...");
+  console.log("\n[Step 12] Marking order completed ❤️...");
   const completeRes = await completeOrderAction(fulfillingOrder.id);
   if (!completeRes.success) {
     throw new Error(`Failed to complete order: ${completeRes.error}`);
   }
   console.log("✓ Order completed successfully!");
 
-  // 6. Girlfriend checks completed state
-  console.log("\n[Step 12] Girlfriend views final delivered state...");
+  // 7. Girlfriend checks completed state
+  console.log("\n[Step 13] Girlfriend views final delivered state...");
   orders = await getOrders();
   const deliveredOrder = orders.find((o) => o.id === orderRes.orderId);
   if (!deliveredOrder || deliveredOrder.status !== "completed") {
@@ -178,8 +221,8 @@ async function runEndToEndVerification() {
   }
   console.log("✓ Final balance is verified at 5 points.");
 
-  // 7. Test Rejection flow (Zero point deduction)
-  console.log("\n[Step 13] Testing Rejection Flow...");
+  // 8. Test Rejection flow (Zero point deduction)
+  console.log("\n[Step 14] Testing Rejection Flow...");
   __setMockSessionForTesting({
     userId: "user_girlfriend",
     name: "Her",
@@ -223,6 +266,10 @@ async function runEndToEndVerification() {
   console.log("\n=======================================================");
   console.log("🎉 ALL END-TO-END SCENARIOS & CRITICAL RULES PASSED! 🎉");
   console.log("=======================================================\n");
+
+  if (global._pgPool) {
+    await global._pgPool.end();
+  }
 }
 
 runEndToEndVerification().catch((err) => {

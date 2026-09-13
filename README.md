@@ -18,7 +18,7 @@ A private, relationship-based habit reward web application and Progressive Web A
 - **Framework**: [Next.js 15](https://nextjs.org/) (App Router, Server Actions)
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS
-- **Database**: [Neon](https://neon.tech/) Serverless PostgreSQL
+- **Database**: PostgreSQL (Local PostgreSQL via Docker Compose in dev; [Neon](https://neon.tech/) Serverless PostgreSQL in production)
 - **ORM**: [Drizzle ORM](https://orm.drizzle.team/)
 - **PWA**: Web App Manifest with standalone display and mobile safe-area optimization
 - **Deployable to**: [Vercel](https://vercel.com/)
@@ -30,20 +30,21 @@ A private, relationship-based habit reward web application and Progressive Web A
 ### 👩‍🦰 Girlfriend Experience (Mobile-First 390×844)
 1. **Home**:
    - Personalized greeting and emotional subheading
-   - Dominant Points card with animated counter, progress circle, and "+1 earned today" badge
-   - "Today's Habit Wins" (+1 Healthy Habit, +1 Morning Walk, +1 8 Hours Sleep)
-   - Active in-progress order banner ("Waiting for Mahesh 👀" / "It's happening ❤️")
+   - Dominant Points card with animated counter, progress circle, and real points earned today badge
+   - Recent Habit Wins directly loaded from database transactions
+   - Active in-progress order banner ("Waiting for approval 👀" / "Approved & locked in! ❤️")
    - Curated reward recommendations with 1-click "+ Add"
 2. **Reward Shop**:
    - Filter by categories: *All*, *Little Things*, *Treats*, *Experiences*, *Special*
    - 2-Column responsive reward card grid
    - Reward details bottom drawer sheet
 3. **Cart & Insufficient Points Protection**:
+   - **Persistent Cart**: Stored in PostgreSQL (`cart_items` table), completely preserved across page refreshes and sessions
    - Real-time quantity adjustments and item deletion
    - Real-time calculation: Total Needed, Available Balance, Remaining after redeem
    - Dynamic Insufficient Points banner (`"You're X points short 👀"`) disabling checkout if balance is exceeded
    - Optional romantic note for Mahesh
-   - **Critical Rule**: Adding items to cart or submitting a request **never** deducts points.
+   - **Critical Rule**: Adding items to cart or submitting a request **never** deducts points. Points are only deducted upon Mahesh's approval.
 4. **Order Confirmation & Success Celebration**:
    - Modal `"Wait... 👀"` confirmation before final request dispatch
    - Emotional success screen with subtle confetti celebration
@@ -59,7 +60,7 @@ A private, relationship-based habit reward web application and Progressive Web A
 1. **Dashboard**:
    - 4-Stat Overview: Current Points, Active Rewards, Pending Requests, Completed Count
    - "Needs Your Attention" alert card with one-click Approve / Decline
-   - Boyfriend Quick Actions: +1 Healthy Habit, +1 Morning Walk, Custom Points dialog, Add New Reward
+   - Quick Actions: +1 Healthy Habit, +1 Morning Walk, Custom Points dialog, Add New Reward
    - Recent activity stream
 2. **Points Ledger**:
    - Current balance hero and lifetime statistics (Earned vs Redeemed)
@@ -76,86 +77,76 @@ A private, relationship-based habit reward web application and Progressive Web A
    - **Interactive Fulfillment Checklist**: Check off items as they are delivered; unlocks the `"Mark Order Completed ❤️"` button once all items are completed
 5. **History & Settings**:
    - Audit log of points, redemptions, and order events
-   - Session logout and configuration status
+   - Dynamic configuration and session logout
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Environments & Local Development
 
-### 1. Prerequisites
-- Node.js 18+ or 20+
-- npm
+The project cleanly separates development and production environments with zero mock code. The PostgreSQL database is the single source of truth in all environments.
 
-### 2. Environment Configuration
-Copy `.env.example` to `.env.local`:
-```bash
-cp .env.example .env.local
-```
+### Local Development (with Docker Compose)
 
-Configure your environment variables:
-```env
-# Neon PostgreSQL connection string
-DATABASE_URL=postgresql://[user]:[password]@[neon-hostname]/[dbname]?sslmode=require
+1. **Start the local PostgreSQL database**:
+   ```bash
+   docker compose up -d
+   ```
+   This spins up a local PostgreSQL 16 Alpine container with a persistent volume on port `5432`.
 
-# Passwords for private 2-person authentication
-ADMIN_PASSWORD=your_mahesh_password
-GIRLFRIEND_PASSWORD=your_girlfriend_password
-```
+2. **Configure `.env.local`**:
+   ```env
+   DATABASE_URL=postgresql://rewardshop:rewardshop@localhost:5432/rewardshop?sslmode=disable
+   ADMIN_PASSWORD=mahesh123
+   GIRLFRIEND_PASSWORD=love123
+   NEXT_PUBLIC_APP_NAME="Our Little Reward Shop"
+   NEXT_PUBLIC_GIRLFRIEND_NAME="Her"
+   NEXT_PUBLIC_MAHESH_NAME="Mahesh"
+   ```
 
-> **Note on Development vs Production**:
-> - In development (`NODE_ENV !== "production"`), the app provides a local database fallback and convenient 1-tap test passcodes (`love123` for Her, `mahesh123` for Mahesh) on the `/login` screen.
-> - In production (`NODE_ENV === "production"`), `DATABASE_URL`, `ADMIN_PASSWORD`, and `GIRLFRIEND_PASSWORD` are strictly required and verified at startup.
-> - Dedicated route isolation: `/` is strictly for Girlfriend, `/admin` is strictly for Mahesh, and `/login` handles private authentication.
+3. **Push database schema and seed initial rewards & points**:
+   ```bash
+   npm run db:push
+   npm run db:seed
+   ```
 
-### 3. Install Dependencies
-```bash
-npm install
-```
-
-### 4. Database Setup & Seeding (Neon PostgreSQL)
-When deploying to Neon PostgreSQL, push the schema tables and seed the initial 10 rewards and starting 10 points:
-```bash
-npm run db:push
-npm run db:seed
-```
-
-### 5. Run Locally
-```bash
-npm run dev
-```
-Open [http://localhost:3000](http://localhost:3000) to access the app.
+4. **Run the Next.js development server**:
+   ```bash
+   npm run dev
+   ```
+   Open [http://localhost:3000](http://localhost:3000).
 
 ---
 
-## 🚢 Production Deployment (Vercel)
+## 🚢 Production Deployment (Vercel + Neon)
 
-1. **Push your code** to GitHub:
+The app is optimized for seamless deployment to Vercel with Neon Serverless PostgreSQL over HTTP (zero connection pooling overhead on serverless lambdas).
+
+1. **Push your code to GitHub**:
    ```bash
    git push origin main
    ```
-2. **Import project** in [Vercel](https://vercel.com/):
-   - Select the `little-reward-shop` repository.
-   - Framework preset: **Next.js**.
-3. **Configure Environment Variables** in Vercel Project Settings:
-   - `DATABASE_URL`: Your pooled Neon connection string (`postgresql://...`).
-   - `ADMIN_PASSWORD`: Mahesh's private password.
-   - `GIRLFRIEND_PASSWORD`: Her private password.
-4. **Deploy**:
-   - Vercel automatically runs `npm run build` and deploys the app edge-to-edge.
+   Vercel automatically detects new commits and triggers a build.
+
+2. **Set Environment Variables in Vercel Project Settings**:
+   - `DATABASE_URL`: Your Neon PostgreSQL connection string (e.g., `postgresql://[user]:[password]@[neon-hostname]/[dbname]?sslmode=require`)
+   - `ADMIN_PASSWORD`: Mahesh's secret password
+   - `GIRLFRIEND_PASSWORD`: Her secret password
+   - `NEXT_PUBLIC_APP_NAME`: (Optional) "Our Little Reward Shop"
+   - `NEXT_PUBLIC_GIRLFRIEND_NAME`: (Optional) "Her"
+   - `NEXT_PUBLIC_MAHESH_NAME`: (Optional) "Mahesh"
+
+3. **Database Migration & Seed on Neon**:
+   To initialize a new Neon database instance, run:
+   ```bash
+   DATABASE_URL="your-neon-url" npm run db:push
+   DATABASE_URL="your-neon-url" npm run db:seed
+   ```
 
 ---
 
 ## 🔒 Security & Data Integrity
 
-- **Source of Truth**: All point transactions and order statuses are persisted in Neon PostgreSQL. Available balance is calculated dynamically as $\sum \text{amount}$ from `point_transactions`.
-- **Atomic Operations**: Approving an order deducts points and updates the order in a single atomic transaction. Double-approval is guarded against race conditions.
-- **Session Security**: Sessions are stored in secure HTTP-only cookies (`httpOnly: true`, `secure: true` in production, `sameSite: "lax"`). Role verification is strictly enforced server-side for all sensitive actions.
-
----
-
-## 📱 PWA Installation
-
-1. Open the application URL on Safari (iOS) or Chrome (Android).
-2. Tap **Share** (iOS) or the three-dot menu (Android).
-3. Select **Add to Home Screen**.
-4. The application opens in standalone fullscreen mode with custom theme colors and icons, feeling like a native phone app.
+- **Database as Sole Source of Truth**: No in-memory or file-based mock fallbacks exist in the codebase. All cart items, points, orders, and rewards are stored directly in PostgreSQL.
+- **Cart Persistence**: Cart additions and removals sync immediately to the database, ensuring carts persist across browser refreshes, restarts, and devices.
+- **Atomic Operations**: Approving an order deducts points and updates the order in a database transaction. Double-approval is strictly prevented.
+- **Session Security**: Authenticated sessions are stored in HTTP-only, secure cookies with strict role-based route isolation (`/` for Girlfriend, `/admin` for Mahesh, `/login` for authentication).

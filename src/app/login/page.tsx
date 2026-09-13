@@ -49,11 +49,6 @@ export default function LoginPage() {
     }
   };
 
-  const handleQuickFill = (role: UserRole, pw: string) => {
-    setSelectedRole(role);
-    setPassword(pw);
-    setError(null);
-  };
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-b from-warm-cream via-romantic-50/40 to-warm-cream">
@@ -168,30 +163,7 @@ export default function LoginPage() {
           </button>
         </form>
 
-        {/* Dev Quick Fill Helper (only when not strictly production) */}
-        {process.env.NODE_ENV !== "production" && (
-          <div className="mt-4 pt-3 border-t border-warm-border/60">
-            <div className="text-[10px] text-warm-subtle mb-1.5">Dev Quick-Fill:</div>
-            <div className="flex gap-2 justify-center">
-              <button
-                type="button"
-                onClick={() => handleQuickFill("girlfriend", "love123")}
-                className="px-2 py-1 bg-warm-muted hover:bg-romantic-100/60 rounded-lg text-[10px] text-warm-dark font-medium transition-colors"
-              >
-                👩‍🦰 Her (love123)
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickFill("admin", "mahesh123")}
-                className="px-2 py-1 bg-warm-muted hover:bg-stone-200 rounded-lg text-[10px] text-warm-dark font-medium transition-colors"
-              >
-                🧔 Mahesh (mahesh123)
-              </button>
-            </div>
-          </div>
-        )}
-
-        <div className="mt-4 pt-3 border-t border-warm-border text-[11px] text-warm-subtle">
+        <div className="mt-6 pt-3 border-t border-warm-border text-[11px] text-warm-subtle">
           Encrypted with love & pinky promises 💌
         </div>
       </div>

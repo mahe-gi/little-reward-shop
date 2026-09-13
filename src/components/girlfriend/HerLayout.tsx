@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { Reward, RedemptionOrder, CartItem } from "@/types";
+import React, { useState, useEffect } from "react";
+import { Reward, RedemptionOrder, CartItem, PointTransaction } from "@/types";
 import { HerHome } from "./HerHome";
 import { RewardShop } from "./RewardShop";
 import { HerCart } from "./HerCart";
@@ -12,18 +12,33 @@ import { RedemptionConfirmModal } from "./RedemptionConfirmModal";
 import { OrderSuccessView } from "./OrderSuccessView";
 import { HerProfileModal } from "./HerProfileModal";
 import { createOrderAction } from "@/actions/orders";
+import {
+  addToCartAction,
+  updateCartQuantityAction,
+  removeFromCartAction,
+} from "@/actions/cart";
 import { useToast } from "@/components/shared/Toast";
 
 interface HerLayoutProps {
   initialPoints: number;
   initialRewards: Reward[];
   initialOrders: RedemptionOrder[];
+  initialCart?: CartItem[];
+  initialTab?: "home" | "shop" | "cart" | "orders";
+  todayPointsEarned?: number;
+  recentTransactions?: PointTransaction[];
+  userName?: string;
 }
 
 export function HerLayout({
   initialPoints,
   initialRewards,
   initialOrders,
+  initialCart = [],
+  initialTab = "home",
+  todayPointsEarned = 0,
+  recentTransactions = [],
+  userName = "Her",
 }: HerLayoutProps) {
   const { showToast } = useToast();
 
@@ -31,8 +46,8 @@ export function HerLayout({
   const [rewards] = useState<Reward[]>(initialRewards);
   const [orders, setOrders] = useState<RedemptionOrder[]>(initialOrders);
 
-  const [currentTab, setCurrentTab] = useState<"home" | "shop" | "cart" | "orders">("home");
-  const [cart, setCart] = useState<CartItem[]>([]);
+  const [currentTab, setCurrentTab] = useState<"home" | "shop" | "cart" | "orders">(initialTab);
+  const [cart, setCart] = useState<CartItem[]>(initialCart);
 
   const [selectedReward, setSelectedReward] = useState<Reward | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<RedemptionOrder | null>(null);
@@ -46,6 +61,38 @@ export function HerLayout({
     itemsCount: number;
   } | null>(null);
 
+  const handleTabChange = (tab: "home" | "shop" | "cart" | "orders") => {
+    setSelectedOrder(null);
+    setSuccessOrder(null);
+    setCurrentTab(tab);
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      if (tab === "home") {
+        url.searchParams.delete("tab");
+      } else {
+        url.searchParams.set("tab", tab);
+      }
+      window.history.replaceState({}, "", url.toString());
+      try {
+        localStorage.setItem("reward_shop_active_tab", tab);
+      } catch {}
+    }
+  };
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && initialTab === "home") {
+      try {
+        const saved = localStorage.getItem("reward_shop_active_tab");
+        if (saved && (saved === "shop" || saved === "cart" || saved === "orders")) {
+          setCurrentTab(saved as any);
+          const url = new URL(window.location.href);
+          url.searchParams.set("tab", saved);
+          window.history.replaceState({}, "", url.toString());
+        }
+      } catch {}
+    }
+  }, [initialTab]);
+
   // Total items count for cart badge
   const totalCartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
   const totalCartPoints = cart.reduce((acc, item) => acc + item.points * item.quantity, 0);
@@ -56,7 +103,8 @@ export function HerLayout({
       (o) => o.status === "pending" || o.status === "approved" || o.status === "fulfilling"
     ) || null;
 
-  const handleAddToCart = (reward: Reward) => {
+  const handleAddToCart = async (reward: Reward) => {
+    // Optimistic UI update
     setCart((prev) => {
       const existing = prev.find((item) => item.rewardId === reward.id);
       if (existing) {
@@ -77,9 +125,18 @@ export function HerLayout({
       ];
     });
     showToast("Added to Cart! " + reward.emoji, `${reward.title} added ❤️`);
+
+    // Sync to Database
+    const res = await addToCartAction(reward.id);
+    if (!res.success) {
+      showToast("⚠️ Notice", res.error || "Could not save to cart.");
+    } else if (res.cart) {
+      setCart(res.cart);
+    }
   };
 
-  const handleUpdateQuantity = (rewardId: string, delta: number) => {
+  const handleUpdateQuantity = async (rewardId: string, delta: number) => {
+    // Optimistic UI update
     setCart((prev) =>
       prev
         .map((item) => {
@@ -91,10 +148,27 @@ export function HerLayout({
         })
         .filter(Boolean) as CartItem[]
     );
+
+    // Sync to Database
+    const res = await updateCartQuantityAction(rewardId, delta);
+    if (!res.success) {
+      showToast("⚠️ Notice", res.error || "Could not update cart quantity.");
+    } else if (res.cart) {
+      setCart(res.cart);
+    }
   };
 
-  const handleRemoveItem = (rewardId: string) => {
+  const handleRemoveItem = async (rewardId: string) => {
+    // Optimistic UI update
     setCart((prev) => prev.filter((item) => item.rewardId !== rewardId));
+
+    // Sync to Database
+    const res = await removeFromCartAction(rewardId);
+    if (!res.success) {
+      showToast("⚠️ Notice", res.error || "Could not remove item from cart.");
+    } else if (res.cart) {
+      setCart(res.cart);
+    }
   };
 
   const handleStartRedemption = (note: string) => {
@@ -147,7 +221,7 @@ export function HerLayout({
       // Clear cart
       setCart([]);
       setIsConfirmModalOpen(false);
-      showToast("💖 Request Sent!", "Mahesh has been notified.");
+      showToast("💖 Request Sent!", "Notification sent ❤️");
     } catch {
       showToast("⚠️ Error", "Failed to send request. Please try again.");
     } finally {
@@ -162,18 +236,8 @@ export function HerLayout({
           orderNumber={successOrder.orderNumber}
           totalPoints={successOrder.totalPoints}
           itemsCount={successOrder.itemsCount}
-          onViewTimeline={() => {
-            const found = orders.find((o) => o.orderNumber === successOrder.orderNumber);
-            if (found) {
-              setSelectedOrder(found);
-            }
-            setSuccessOrder(null);
-            setCurrentTab("orders");
-          }}
-          onBackToShop={() => {
-            setSuccessOrder(null);
-            setCurrentTab("shop");
-          }}
+          onBackToShop={() => handleTabChange("shop")}
+          onViewTimeline={() => handleTabChange("orders")}
         />
       );
     }
@@ -194,10 +258,9 @@ export function HerLayout({
             points={points}
             featuredRewards={rewards}
             activeOrder={activeOrder}
-            onNavigate={(tab) => {
-              setSelectedOrder(null);
-              setCurrentTab(tab);
-            }}
+            todayPointsEarned={todayPointsEarned}
+            recentTransactions={recentTransactions}
+            onNavigate={(tab) => handleTabChange(tab)}
             onSelectReward={(r) => setSelectedReward(r)}
             onAddToCart={handleAddToCart}
             onOpenProfile={() => setIsProfileModalOpen(true)}
@@ -220,7 +283,7 @@ export function HerLayout({
             availablePoints={points}
             onUpdateQuantity={handleUpdateQuantity}
             onRemoveItem={handleRemoveItem}
-            onExploreRewards={() => setCurrentTab("shop")}
+            onExploreRewards={() => handleTabChange("shop")}
             onSubmitRedemption={handleStartRedemption}
           />
         );
@@ -229,7 +292,7 @@ export function HerLayout({
           <HerOrders
             orders={orders}
             onSelectOrder={(ord) => setSelectedOrder(ord)}
-            onExploreRewards={() => setCurrentTab("shop")}
+            onExploreRewards={() => handleTabChange("shop")}
           />
         );
     }
@@ -237,21 +300,14 @@ export function HerLayout({
 
   return (
     <div className="w-full min-h-screen bg-warm-canvas flex justify-center selection:bg-romantic-100">
-      {/* Responsive Web App Container (Edge-to-edge on mobile, sleek boutique container on desktop) */}
       <div className="w-full max-w-md min-h-screen bg-warm-cream shadow-2xl border-x border-warm-border/70 flex flex-col relative pb-20">
-        {/* Main Content Viewport */}
         <main className="flex-1 flex flex-col overflow-y-auto">
           {renderContent()}
         </main>
 
-        {/* Fixed Responsive Bottom Navigation */}
         <nav className="fixed bottom-0 inset-x-0 max-w-md mx-auto h-16 bg-white/95 backdrop-blur-md border-t border-warm-border px-6 flex items-center justify-around z-40 safe-bottom shadow-lg select-none">
           <button
-            onClick={() => {
-              setSelectedOrder(null);
-              setSuccessOrder(null);
-              setCurrentTab("home");
-            }}
+            onClick={() => handleTabChange("home")}
             className={`flex flex-col items-center justify-center transition-colors ${
               currentTab === "home" && !selectedOrder && !successOrder
                 ? "text-romantic-600"
@@ -263,11 +319,7 @@ export function HerLayout({
           </button>
 
           <button
-            onClick={() => {
-              setSelectedOrder(null);
-              setSuccessOrder(null);
-              setCurrentTab("shop");
-            }}
+            onClick={() => handleTabChange("shop")}
             className={`flex flex-col items-center justify-center transition-colors ${
               currentTab === "shop" && !selectedOrder && !successOrder
                 ? "text-romantic-600"
@@ -279,11 +331,7 @@ export function HerLayout({
           </button>
 
           <button
-            onClick={() => {
-              setSelectedOrder(null);
-              setSuccessOrder(null);
-              setCurrentTab("cart");
-            }}
+            onClick={() => handleTabChange("cart")}
             className={`relative flex flex-col items-center justify-center transition-colors ${
               currentTab === "cart" && !selectedOrder && !successOrder
                 ? "text-romantic-600"
@@ -300,11 +348,7 @@ export function HerLayout({
           </button>
 
           <button
-            onClick={() => {
-              setSelectedOrder(null);
-              setSuccessOrder(null);
-              setCurrentTab("orders");
-            }}
+            onClick={() => handleTabChange("orders")}
             className={`flex flex-col items-center justify-center transition-colors ${
               currentTab === "orders" || selectedOrder
                 ? "text-romantic-600"
@@ -316,7 +360,6 @@ export function HerLayout({
           </button>
         </nav>
 
-        {/* Reward Detail Sheet */}
         <RewardDetailSheet
           reward={selectedReward}
           isOpen={Boolean(selectedReward)}
@@ -325,7 +368,6 @@ export function HerLayout({
           onAddToCart={handleAddToCart}
         />
 
-        {/* Confirmation Modal */}
         <RedemptionConfirmModal
           isOpen={isConfirmModalOpen}
           onClose={() => setIsConfirmModalOpen(false)}
@@ -336,11 +378,11 @@ export function HerLayout({
           isSubmitting={isSubmitting}
         />
 
-        {/* Profile Modal */}
         <HerProfileModal
           isOpen={isProfileModalOpen}
           onClose={() => setIsProfileModalOpen(false)}
           points={points}
+          userName={userName}
         />
       </div>
     </div>

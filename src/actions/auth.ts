@@ -7,7 +7,9 @@ import {
   validateProductionAuthConfig,
 } from "@/lib/auth";
 import { UserRole } from "@/types";
-import { resetLocalDb } from "@/db";
+import { getDb } from "@/db";
+import * as schema from "@/db/schema";
+import { eq } from "drizzle-orm";
 
 export async function loginAction(formData: FormData) {
   const role = formData.get("role") as UserRole;
@@ -22,13 +24,13 @@ export async function loginAction(formData: FormData) {
 
   const expectedPassword =
     role === "admin"
-      ? process.env.ADMIN_PASSWORD || (process.env.NODE_ENV !== "production" ? "mahesh123" : "")
-      : process.env.GIRLFRIEND_PASSWORD || (process.env.NODE_ENV !== "production" ? "love123" : "");
+      ? process.env.ADMIN_PASSWORD
+      : process.env.GIRLFRIEND_PASSWORD;
 
   if (!expectedPassword) {
     return {
       success: false,
-      error: "Server configuration error: password is not configured.",
+      error: "Server configuration error: password is not configured in environment variables.",
     };
   }
 
@@ -36,8 +38,15 @@ export async function loginAction(formData: FormData) {
     return { success: false, error: "Incorrect password. Try again! ❤️" };
   }
 
-  const userId = role === "admin" ? "user_mahesh" : "user_girlfriend";
-  const name = role === "admin" ? "Mahesh" : "Her";
+  const db = getDb();
+  const dbUsers = await db
+    .select()
+    .from(schema.users)
+    .where(eq(schema.users.role, role));
+
+  const user = dbUsers[0];
+  const userId = user?.id || (role === "admin" ? "user_mahesh" : "user_girlfriend");
+  const name = user?.name || (role === "admin" ? "Mahesh" : "Her");
 
   await setSession({ userId, name, role });
   return { success: true, role };
@@ -51,22 +60,4 @@ export async function logoutAction() {
 export async function getSessionAction() {
   const session = await getSession();
   return session;
-}
-
-export async function devSwitchRoleAction(role: UserRole) {
-  if (process.env.NODE_ENV === "production") {
-    return { success: false, error: "Disabled in production" };
-  }
-  const userId = role === "admin" ? "user_mahesh" : "user_girlfriend";
-  const name = role === "admin" ? "Mahesh" : "Her";
-  await setSession({ userId, name, role });
-  return { success: true, role };
-}
-
-export async function resetDevDataAction() {
-  if (process.env.NODE_ENV === "production") {
-    return { success: false, error: "Disabled in production" };
-  }
-  resetLocalDb();
-  return { success: true };
 }

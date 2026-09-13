@@ -7,9 +7,17 @@ interface HerProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
   points: number;
+  userName?: string;
+  partnerName?: string;
 }
 
-export function HerProfileModal({ isOpen, onClose, points }: HerProfileModalProps) {
+export function HerProfileModal({
+  isOpen,
+  onClose,
+  points,
+  userName = "Her",
+  partnerName = "Mahesh",
+}: HerProfileModalProps) {
   if (!isOpen) return null;
 
   const handleLogout = async () => {
@@ -23,7 +31,7 @@ export function HerProfileModal({ isOpen, onClose, points }: HerProfileModalProp
         <div className="w-16 h-16 rounded-full bg-romantic-100 border border-romantic-200 text-romantic-600 text-3xl flex items-center justify-center mx-auto mb-3 animate-heart">
           👩‍🦰
         </div>
-        <h3 className="font-serif text-xl font-bold text-warm-dark">Her Profile ❤️</h3>
+        <h3 className="font-serif text-xl font-bold text-warm-dark">{userName}&apos;s Profile ❤️</h3>
         <p className="text-xs text-warm-subtle mt-0.5">Your Little Reward Shop</p>
 
         <div className="my-4 p-3.5 bg-warm-muted rounded-2xl text-left text-xs space-y-2">
@@ -37,7 +45,7 @@ export function HerProfileModal({ isOpen, onClose, points }: HerProfileModalProp
           </div>
           <div className="flex justify-between items-center">
             <span className="text-warm-subtle">Fulfillment Manager:</span>
-            <span className="font-semibold text-warm-dark">Mahesh</span>
+            <span className="font-semibold text-warm-dark">{partnerName}</span>
           </div>
         </div>
 
