@@ -258,21 +258,21 @@ export function HerHome({
                 {quantity > 0 ? (
                   <div
                     onClick={(e) => e.stopPropagation()}
-                    className="flex items-center bg-romantic-500 text-white rounded-xl shadow-xs overflow-hidden shrink-0"
+                    className="flex items-center bg-romantic-500 text-white rounded-xl shadow-xs overflow-hidden shrink-0 h-8"
                   >
                     <button
                       onClick={() => onUpdateQuantity?.(reward.id, -1)}
-                      className="p-2 hover:bg-romantic-600 active:scale-90 transition-all flex items-center justify-center text-white"
+                      className="w-7 h-8 hover:bg-romantic-600 active:scale-75 transition-all flex items-center justify-center text-white select-none"
                       title="Decrease"
                     >
                       <Minus className="w-3.5 h-3.5 stroke-[2.5]" />
                     </button>
-                    <span className="px-2 text-xs font-bold min-w-[20px] text-center select-none text-white">
+                    <span className="w-5 text-center text-xs font-bold select-none text-white transition-transform">
                       {quantity}
                     </span>
                     <button
                       onClick={() => onUpdateQuantity?.(reward.id, 1)}
-                      className="p-2 hover:bg-romantic-600 active:scale-90 transition-all flex items-center justify-center text-white"
+                      className="w-7 h-8 hover:bg-romantic-600 active:scale-75 transition-all flex items-center justify-center text-white select-none"
                       title="Increase"
                     >
                       <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
@@ -281,7 +281,7 @@ export function HerHome({
                 ) : (
                   <button
                     onClick={() => onAddToCart(reward)}
-                    className="px-3.5 py-1.5 rounded-xl bg-romantic-50 hover:bg-romantic-100 text-romantic-700 text-xs font-bold border border-romantic-200 transition-colors active:scale-95 shrink-0 flex items-center gap-1 uppercase tracking-wide"
+                    className="h-8 px-3.5 rounded-xl bg-romantic-50 hover:bg-romantic-100 text-romantic-700 text-xs font-bold border border-romantic-200 transition-colors active:scale-95 shrink-0 flex items-center gap-1 uppercase tracking-wide select-none"
                   >
                     <span>Add</span>
                     <Plus className="w-3.5 h-3.5 stroke-[2.5]" />

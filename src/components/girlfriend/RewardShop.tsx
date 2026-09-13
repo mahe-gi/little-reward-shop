@@ -109,21 +109,21 @@ export function RewardShop({
                 {quantity > 0 ? (
                   <div
                     onClick={(e) => e.stopPropagation()}
-                    className="flex items-center bg-romantic-500 text-white rounded-lg shadow-xs overflow-hidden"
+                    className="flex items-center bg-romantic-500 text-white rounded-lg shadow-xs overflow-hidden h-7"
                   >
                     <button
                       onClick={() => onUpdateQuantity?.(reward.id, -1)}
-                      className="px-2 py-1 hover:bg-romantic-600 active:scale-90 transition-all flex items-center justify-center text-white"
+                      className="w-6 h-7 hover:bg-romantic-600 active:scale-75 transition-all flex items-center justify-center text-white select-none"
                       title="Decrease"
                     >
                       <Minus className="w-3 h-3 stroke-[2.5]" />
                     </button>
-                    <span className="px-1.5 text-xs font-bold min-w-[18px] text-center select-none text-white">
+                    <span className="w-5 text-center text-xs font-bold select-none text-white transition-transform">
                       {quantity}
                     </span>
                     <button
                       onClick={() => onUpdateQuantity?.(reward.id, 1)}
-                      className="px-2 py-1 hover:bg-romantic-600 active:scale-90 transition-all flex items-center justify-center text-white"
+                      className="w-6 h-7 hover:bg-romantic-600 active:scale-75 transition-all flex items-center justify-center text-white select-none"
                       title="Increase"
                     >
                       <Plus className="w-3 h-3 stroke-[2.5]" />
@@ -135,7 +135,7 @@ export function RewardShop({
                       e.stopPropagation();
                       onAddToCart(reward);
                     }}
-                    className="px-3 py-1 rounded-lg bg-white border border-romantic-300 hover:bg-romantic-50 active:scale-95 text-romantic-600 text-xs font-bold shadow-xs transition-all flex items-center gap-1 uppercase tracking-wide"
+                    className="h-7 px-3 rounded-lg bg-white border border-romantic-300 hover:bg-romantic-50 active:scale-95 text-romantic-600 text-xs font-bold shadow-xs transition-all flex items-center gap-1 uppercase tracking-wide select-none"
                   >
                     <span>Add</span>
                     <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
