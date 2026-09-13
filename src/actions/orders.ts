@@ -3,10 +3,18 @@
 import { getDb } from "@/db";
 import * as schema from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
 import { requireRole, getSession } from "@/lib/auth";
 import { getPointsBalance } from "./points";
 import { clearCartAction } from "./cart";
-import { RedemptionOrder, CartItem } from "@/types";
+import { RedemptionOrder, CartItem, FulfillmentItem } from "@/types";
+
+function safeRevalidate() {
+  try {
+    revalidatePath("/");
+    revalidatePath("/admin");
+  } catch {}
+}
 
 export async function getOrders(userId?: string): Promise<RedemptionOrder[]> {
   const db = getDb();
@@ -176,6 +184,7 @@ export async function approveOrderAction(orderId: string) {
     })
     .where(eq(schema.redemptionOrders.id, order.id));
 
+  const insertedFulfillmentItems: FulfillmentItem[] = [];
   for (const chk of checklistItems) {
     const fiId = `fi_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
     await db.insert(schema.fulfillmentItems).values({
@@ -185,9 +194,19 @@ export async function approveOrderAction(orderId: string) {
       label: chk.label,
       completed: false,
     });
+    insertedFulfillmentItems.push({
+      id: fiId,
+      orderId: order.id,
+      redemptionItemId: chk.redemptionItemId || null,
+      label: chk.label,
+      completed: false,
+      completedAt: null,
+    });
   }
 
-  return { success: true };
+  safeRevalidate();
+
+  return { success: true, fulfillmentItems: insertedFulfillmentItems };
 }
 
 export async function rejectOrderAction(orderId: string, rejectionReason?: string) {
@@ -213,6 +232,8 @@ export async function rejectOrderAction(orderId: string, rejectionReason?: strin
     })
     .where(eq(schema.redemptionOrders.id, order.id));
 
+  safeRevalidate();
+
   // ZERO points deducted
   return { success: true };
 }
@@ -232,6 +253,8 @@ export async function toggleFulfillmentItemAction(
       completedAt: completed ? now : null,
     })
     .where(eq(schema.fulfillmentItems.id, fulfillmentItemId));
+
+  safeRevalidate();
 
   return { success: true };
 }
@@ -253,17 +276,18 @@ export async function completeOrderAction(orderId: string) {
     };
   }
 
-  // Verify all fulfillment checklist items are checked
-  const uncompleted = order.fulfillmentItems.filter((f) => !f.completed);
-  if (uncompleted.length > 0) {
-    return {
-      success: false,
-      error: `Please complete all ${order.fulfillmentItems.length} checklist items before marking order complete.`,
-    };
-  }
-
   const now = new Date();
   const db = getDb();
+
+  // Mark all fulfillment items for this order as completed in database
+  await db
+    .update(schema.fulfillmentItems)
+    .set({
+      completed: true,
+      completedAt: now,
+    })
+    .where(eq(schema.fulfillmentItems.orderId, order.id));
+
   await db
     .update(schema.redemptionOrders)
     .set({
@@ -272,6 +296,8 @@ export async function completeOrderAction(orderId: string) {
       updatedAt: now,
     })
     .where(eq(schema.redemptionOrders.id, order.id));
+
+  safeRevalidate();
 
   return { success: true };
 }

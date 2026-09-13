@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Reward, RedemptionOrder, PointTransaction, RewardCategory } from "@/types";
 import { AdminDashboard } from "./AdminDashboard";
 import { AdminPointsLedger } from "./AdminPointsLedger";
@@ -29,11 +29,20 @@ import {
   UserCheck,
 } from "lucide-react";
 
+export type AdminTab =
+  | "dashboard"
+  | "points"
+  | "rewards"
+  | "orders"
+  | "history"
+  | "settings";
+
 interface AdminLayoutProps {
   initialPoints: number;
   initialRewards: Reward[];
   initialOrders: RedemptionOrder[];
   initialHistory: PointTransaction[];
+  initialTab?: AdminTab;
   onSwitchToGirlfriend?: () => void;
   isStandalone?: boolean;
 }
@@ -43,12 +52,58 @@ export function AdminLayout({
   initialRewards,
   initialOrders,
   initialHistory,
+  initialTab = "dashboard",
   onSwitchToGirlfriend,
   isStandalone = false,
 }: AdminLayoutProps) {
   const { showToast } = useToast();
 
-  const [currentTab, setCurrentTab] = useState<string>("dashboard");
+  const [currentTab, setCurrentTab] = useState<AdminTab>(initialTab || "dashboard");
+
+  const handleTabChange = (tab: AdminTab) => {
+    setCurrentTab(tab);
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      if (tab === "dashboard") {
+        url.searchParams.delete("tab");
+      } else {
+        url.searchParams.set("tab", tab);
+      }
+      window.history.replaceState({}, "", url.toString());
+      try {
+        localStorage.setItem("reward_shop_admin_active_tab", tab);
+      } catch {}
+    }
+  };
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlTab = urlParams.get("tab") as AdminTab | null;
+        const validTabs: AdminTab[] = [
+          "dashboard",
+          "points",
+          "rewards",
+          "orders",
+          "history",
+          "settings",
+        ];
+
+        if (urlTab && validTabs.includes(urlTab)) {
+          setCurrentTab(urlTab);
+        } else if (!initialTab || initialTab === "dashboard") {
+          const saved = localStorage.getItem("reward_shop_admin_active_tab") as AdminTab | null;
+          if (saved && validTabs.includes(saved) && saved !== "dashboard") {
+            setCurrentTab(saved);
+            const url = new URL(window.location.href);
+            url.searchParams.set("tab", saved);
+            window.history.replaceState({}, "", url.toString());
+          }
+        }
+      } catch {}
+    }
+  }, [initialTab]);
   const [points, setPoints] = useState(initialPoints);
   const [rewards, setRewards] = useState<Reward[]>(initialRewards);
   const [orders, setOrders] = useState<RedemptionOrder[]>(initialOrders);
@@ -172,12 +227,16 @@ export function AdminLayout({
                     ...o,
                     status: "approved",
                     approvedAt: new Date().toISOString(),
-                    fulfillmentItems: o.items.map((i) => ({
-                      id: `fi_${Date.now()}_${i.id}`,
-                      orderId: o.id,
-                      label: `${i.titleSnapshot} (Ready & Prepared)`,
-                      completed: false,
-                    })),
+                    fulfillmentItems:
+                      res.fulfillmentItems && res.fulfillmentItems.length > 0
+                        ? res.fulfillmentItems
+                        : o.items.map((i) => ({
+                            id: `fi_${Date.now()}_${i.id}`,
+                            orderId: o.id,
+                            label: `${i.titleSnapshot} (Ready & Prepared)`,
+                            completed: false,
+                            completedAt: null,
+                          })),
                   }
                 : o
             )
@@ -278,7 +337,7 @@ export function AdminLayout({
             onQuickAddPoints={(amt, reason) => handleGivePoints(amt, reason)}
             onApproveOrder={handleApproveOrder}
             onRejectOrder={(id) => handleRejectOrder(id)}
-            onNavigateTab={(tab) => setCurrentTab(tab)}
+            onNavigateTab={(tab) => handleTabChange(tab as AdminTab)}
           />
         );
       case "points":
@@ -340,7 +399,7 @@ export function AdminLayout({
             {/* Nav Links */}
             <nav className="space-y-1.5 text-xs font-semibold">
               <button
-                onClick={() => setCurrentTab("dashboard")}
+                onClick={() => handleTabChange("dashboard")}
                 className={`admin-nav-btn w-full px-3 py-2.5 rounded-xl flex items-center gap-2.5 transition-colors ${
                   currentTab === "dashboard"
                     ? "bg-stone-800 text-white"
@@ -352,7 +411,7 @@ export function AdminLayout({
               </button>
 
               <button
-                onClick={() => setCurrentTab("points")}
+                onClick={() => handleTabChange("points")}
                 className={`admin-nav-btn w-full px-3 py-2.5 rounded-xl flex items-center justify-between transition-colors ${
                   currentTab === "points"
                     ? "bg-stone-800 text-white"
@@ -369,7 +428,7 @@ export function AdminLayout({
               </button>
 
               <button
-                onClick={() => setCurrentTab("rewards")}
+                onClick={() => handleTabChange("rewards")}
                 className={`admin-nav-btn w-full px-3 py-2.5 rounded-xl flex items-center justify-between transition-colors ${
                   currentTab === "rewards"
                     ? "bg-stone-800 text-white"
@@ -386,7 +445,7 @@ export function AdminLayout({
               </button>
 
               <button
-                onClick={() => setCurrentTab("orders")}
+                onClick={() => handleTabChange("orders")}
                 className={`admin-nav-btn w-full px-3 py-2.5 rounded-xl flex items-center justify-between transition-colors ${
                   currentTab === "orders"
                     ? "bg-stone-800 text-white"
@@ -405,7 +464,7 @@ export function AdminLayout({
               </button>
 
               <button
-                onClick={() => setCurrentTab("history")}
+                onClick={() => handleTabChange("history")}
                 className={`admin-nav-btn w-full px-3 py-2.5 rounded-xl flex items-center gap-2.5 transition-colors ${
                   currentTab === "history"
                     ? "bg-stone-800 text-white"
@@ -417,7 +476,7 @@ export function AdminLayout({
               </button>
 
               <button
-                onClick={() => setCurrentTab("settings")}
+                onClick={() => handleTabChange("settings")}
                 className={`admin-nav-btn w-full px-3 py-2.5 rounded-xl flex items-center gap-2.5 transition-colors ${
                   currentTab === "settings"
                     ? "bg-stone-800 text-white"

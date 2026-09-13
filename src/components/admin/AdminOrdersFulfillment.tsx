@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { RedemptionOrder } from "@/types";
 import { formatDate } from "@/lib/utils";
 import { PartyPopper, Sparkles, ClipboardList, Check, CheckCircle2 } from "lucide-react";
@@ -23,6 +23,36 @@ export function AdminOrdersFulfillment({
   const [activeTab, setActiveTab] = useState<"pending" | "fulfilling" | "completed" | "rejected">(
     "pending"
   );
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlStatus = urlParams.get("status") as "pending" | "fulfilling" | "completed" | "rejected" | null;
+        const validSubtabs = ["pending", "fulfilling", "completed", "rejected"];
+        if (urlStatus && validSubtabs.includes(urlStatus)) {
+          setActiveTab(urlStatus);
+        } else {
+          const saved = localStorage.getItem("reward_shop_admin_orders_subtab") as any;
+          if (saved && validSubtabs.includes(saved)) {
+            setActiveTab(saved);
+          }
+        }
+      } catch {}
+    }
+  }, []);
+
+  const handleSubtabChange = (tab: "pending" | "fulfilling" | "completed" | "rejected") => {
+    setActiveTab(tab);
+    if (typeof window !== "undefined") {
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.set("status", tab);
+        window.history.replaceState({}, "", url.toString());
+        localStorage.setItem("reward_shop_admin_orders_subtab", tab);
+      } catch {}
+    }
+  };
 
   // Modal states
   const [approvingOrder, setApprovingOrder] = useState<RedemptionOrder | null>(null);
@@ -68,7 +98,7 @@ export function AdminOrdersFulfillment({
       {/* Status Tabs */}
       <div className="flex space-x-2 border-b border-warm-border pb-1">
         <button
-          onClick={() => setActiveTab("pending")}
+          onClick={() => handleSubtabChange("pending")}
           className={`pb-2 px-3 text-xs font-semibold flex items-center gap-1.5 border-b-2 transition-all ${
             activeTab === "pending"
               ? "border-romantic-500 text-romantic-600"
@@ -84,7 +114,7 @@ export function AdminOrdersFulfillment({
         </button>
 
         <button
-          onClick={() => setActiveTab("fulfilling")}
+          onClick={() => handleSubtabChange("fulfilling")}
           className={`pb-2 px-3 text-xs font-semibold flex items-center gap-1.5 border-b-2 transition-all ${
             activeTab === "fulfilling"
               ? "border-romantic-500 text-romantic-600"
@@ -100,7 +130,7 @@ export function AdminOrdersFulfillment({
         </button>
 
         <button
-          onClick={() => setActiveTab("completed")}
+          onClick={() => handleSubtabChange("completed")}
           className={`pb-2 px-3 text-xs font-semibold border-b-2 transition-all ${
             activeTab === "completed"
               ? "border-romantic-500 text-romantic-600"
@@ -111,7 +141,7 @@ export function AdminOrdersFulfillment({
         </button>
 
         <button
-          onClick={() => setActiveTab("rejected")}
+          onClick={() => handleSubtabChange("rejected")}
           className={`pb-2 px-3 text-xs font-semibold border-b-2 transition-all ${
             activeTab === "rejected"
               ? "border-romantic-500 text-romantic-600"
@@ -225,7 +255,7 @@ export function AdminOrdersFulfillment({
             fulfillingOrders.map((order) => {
               const completedCount = order.fulfillmentItems.filter((f) => f.completed).length;
               const totalCount = order.fulfillmentItems.length;
-              const allDone = totalCount > 0 && completedCount === totalCount;
+              const allDone = totalCount === 0 || completedCount === totalCount;
 
               return (
                 <div

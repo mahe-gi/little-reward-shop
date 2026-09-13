@@ -8,7 +8,11 @@ import { ToastProvider } from "@/components/shared/Toast";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminPage() {
+interface AdminPageProps {
+  searchParams?: Promise<{ tab?: string }>;
+}
+
+export default async function AdminPage({ searchParams }: AdminPageProps) {
   const session = await getSession();
 
   if (!session) {
@@ -19,6 +23,19 @@ export default async function AdminPage() {
   if (session.role !== "admin") {
     redirect("/");
   }
+
+  const params = searchParams ? await searchParams : {};
+  const validTabs = [
+    "dashboard",
+    "points",
+    "rewards",
+    "orders",
+    "history",
+    "settings",
+  ] as const;
+  const initialTab = validTabs.includes(params.tab as any)
+    ? (params.tab as (typeof validTabs)[number])
+    : "dashboard";
 
   const points = await getPointsBalance("user_girlfriend");
   const rewards = await getRewards();
@@ -33,6 +50,7 @@ export default async function AdminPage() {
           initialRewards={rewards}
           initialOrders={orders}
           initialHistory={history}
+          initialTab={initialTab}
           isStandalone={true}
         />
       </div>
