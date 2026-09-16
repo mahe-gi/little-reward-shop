@@ -92,6 +92,27 @@ export default function UsPage() {
         </div>
       </div>
 
+      {/* Points Snapshot */}
+      <div className="grid grid-cols-2 gap-2.5">
+        <div className="bg-white p-3 rounded-2xl border border-[#EAE6DE] shadow-2xs text-center">
+          <div className="text-[10px] font-bold uppercase tracking-wider text-[#807770]">
+            My Points
+          </div>
+          <div className="text-xl font-serif font-bold text-[#E06D75] mt-0.5">
+            {data.user.pointBalance} <span className="text-xs font-sans font-medium text-[#756963]">pts</span>
+          </div>
+        </div>
+
+        <div className="bg-white p-3 rounded-2xl border border-[#EAE6DE] shadow-2xs text-center">
+          <div className="text-[10px] font-bold uppercase tracking-wider text-[#807770]">
+            {partnerName}&apos;s Points
+          </div>
+          <div className="text-xl font-serif font-bold text-[#24201D] mt-0.5">
+            {data.partner?.pointBalance ?? 0} <span className="text-xs font-sans font-medium text-[#756963]">pts</span>
+          </div>
+        </div>
+      </div>
+
       {/* Couple Streak Card */}
       <div
         onClick={() => setStreakModalOpen(true)}

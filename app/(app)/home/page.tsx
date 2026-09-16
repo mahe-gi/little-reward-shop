@@ -84,7 +84,7 @@ export default function HomePage() {
       <div className="space-y-1">
         <PairlyLogo variant="horizontal" size="sm" />
         <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#24201D] tracking-tight">
-          Hey {data.user.name} <span className="animate-heartbeat inline-block">❤️</span>
+          Hey {data.user.name}
         </h1>
       </div>
 
