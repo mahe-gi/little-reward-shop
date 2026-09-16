@@ -16,10 +16,10 @@ export function ResponsiveAppShell({
   contentClassName = "",
 }: ResponsiveAppShellProps) {
   return (
-    <div className="min-h-screen w-full bg-[#FAF7F2] md:bg-ambient-dots flex items-center justify-center p-0 md:py-6 md:px-4">
+    <div className="h-[100dvh] min-h-[100dvh] w-full bg-[#FAF7F2] md:bg-ambient-dots flex items-center justify-center p-0 md:py-6 md:px-4 overflow-hidden">
       {/* Mobile-first centered phone frame */}
       <main
-        className={`w-full max-w-md min-h-screen md:min-h-[844px] md:max-h-[920px] md:h-[92vh] bg-[#FAF7F2] md:rounded-[36px] md:border md:border-[#EAE6DE] md:shadow-[0_20px_50px_-12px_rgba(60,45,40,0.12)] flex flex-col relative overflow-hidden ${className}`}
+        className={`w-full max-w-md h-[100dvh] min-h-[100dvh] max-h-[100dvh] md:h-[92vh] md:max-h-[920px] md:min-h-[844px] bg-[#FAF7F2] md:rounded-[36px] md:border md:border-[#EAE6DE] md:shadow-[0_20px_50px_-12px_rgba(60,45,40,0.12)] flex flex-col relative overflow-hidden ${className}`}
       >
         {/* Optional Header */}
         {header && (
@@ -35,8 +35,8 @@ export function ResponsiveAppShell({
           {children}
         </div>
 
-        {/* Optional Sticky/Floating Footer or BottomNav */}
-        {footer && <div className="shrink-0 z-40 relative">{footer}</div>}
+        {/* Anchored Footer / BottomNav */}
+        {footer && <div className="shrink-0 z-40 w-full relative">{footer}</div>}
       </main>
     </div>
   );

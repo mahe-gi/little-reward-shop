@@ -55,7 +55,7 @@ export function BottomNav({
   return (
     <nav
       aria-label="Bottom Navigation"
-      className={`w-full bg-[#FDFBF7]/95 backdrop-blur-lg border-t border-[#EAE6DE] px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-[0_-4px_20px_-2px_rgba(60,45,40,0.04)] ${className}`}
+      className={`w-full bg-[#FDFBF7]/95 backdrop-blur-lg border-t border-[#EAE6DE] px-2 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-4px_20px_-2px_rgba(60,45,40,0.04)] ${className}`}
     >
       <div className="flex items-center justify-around max-w-md mx-auto">
         {TABS.map((tab) => {
