@@ -1,0 +1,369 @@
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ------------------------------------------------------
+// ENUMS
+// ------------------------------------------------------
+
+enum TaskStatus {
+  ASSIGNED
+  COMPLETED
+  EXPIRED
+  CANCELLED
+}
+
+enum TaskFrequency {
+  DAILY
+  ONETIME
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+  FULFILLING
+  COMPLETED
+}
+
+enum WalletTxType {
+  EARN_TASK
+  RESERVE_REQUEST
+  RELEASE_REQUEST
+  SPEND_REQUEST
+  BONUS
+}
+
+enum WalletTxStatus {
+  PENDING
+  FINALIZED
+  REVERSED
+}
+
+enum ActivityType {
+  TASK_COMPLETED
+  TASK_CREATED
+  REQUEST_SUBMITTED
+  REQUEST_APPROVED
+  REQUEST_REJECTED
+  REQUEST_CANCELLED
+  REQUEST_FULFILLED
+}
+
+// ------------------------------------------------------
+// AUTH MODELS (Better Auth standard + app extensions)
+// ------------------------------------------------------
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  avatar        String?
+  pointBalance  Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Better Auth relations
+  sessions Session[]
+  accounts Account[]
+
+  // Pairly domain relations
+  coupleMember       CoupleMember?
+  assignedTasks      Task[]              @relation("AssignedTasks")
+  createdTasks       Task[]              @relation("CreatedTasks")
+  offeredRewards     Reward[]            @relation("OfferedRewards")
+  rewardRequests     RewardRequest[]     @relation("RequestedRewards")
+  receivedRequests   RewardRequest[]     @relation("ReceivedRequests")
+  walletTransactions WalletTransaction[]
+  streakDays         StreakDay[]
+  activities         Activity[]          @relation("ActorActivities")
+  notifications      Notification[]
+
+  @@map("user")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@unique([providerId, accountId])
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String    @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime? @default(now())
+  updatedAt  DateTime? @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+// ------------------------------------------------------
+// COUPLE & MEMBERSHIP
+// ------------------------------------------------------
+
+model Couple {
+  id          String   @id @default(cuid())
+  name        String?
+  inviteCode  String   @unique
+  timezone    String   @default("UTC")
+  streakCount Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  members    CoupleMember[]
+  tasks      Task[]
+  rewards    Reward[]
+  requests   RewardRequest[]
+  streakDays StreakDay[]
+  activities Activity[]
+
+  @@map("couple")
+}
+
+model CoupleMember {
+  id       String   @id @default(cuid())
+  coupleId String
+  couple   Couple   @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  userId   String   @unique
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role     String   @default("PARTNER")
+  joinedAt DateTime @default(now())
+
+  @@index([coupleId])
+  @@map("couple_member")
+}
+
+// ------------------------------------------------------
+// TASKS
+// ------------------------------------------------------
+
+model Task {
+  id           String        @id @default(cuid())
+  coupleId     String
+  couple       Couple        @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  title        String
+  description  String?
+  icon         String        @default("✨")
+  points       Int           @default(0)
+  status       TaskStatus    @default(ASSIGNED)
+  frequency    TaskFrequency @default(ONETIME)
+  dueDate      DateTime?
+  completedAt  DateTime?
+  assignedToId String?
+  assignedTo   User?         @relation("AssignedTasks", fields: [assignedToId], references: [id], onDelete: SetNull)
+  createdById  String
+  createdBy    User          @relation("CreatedTasks", fields: [createdById], references: [id], onDelete: Cascade)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([coupleId, status])
+  @@index([assignedToId, status])
+  @@index([coupleId, dueDate])
+  @@map("task")
+}
+
+// ------------------------------------------------------
+// REWARDS & REQUESTS
+// ------------------------------------------------------
+
+model Reward {
+  id          String   @id @default(cuid())
+  coupleId    String
+  couple      Couple   @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  cost        Int
+  category    String   @default("GENERAL")
+  icon        String?  @default("🎁")
+  offeredById String
+  offeredBy   User     @relation("OfferedRewards", fields: [offeredById], references: [id], onDelete: Cascade)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  requestItems RewardRequestItem[]
+
+  @@index([coupleId, isActive])
+  @@index([coupleId, category])
+  @@index([offeredById])
+  @@map("reward")
+}
+
+model RewardRequest {
+  id              String        @id @default(cuid())
+  coupleId        String
+  couple          Couple        @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User          @relation("RequestedRewards", fields: [userId], references: [id], onDelete: Cascade)
+  targetPartnerId String?
+  targetPartner   User?         @relation("ReceivedRequests", fields: [targetPartnerId], references: [id], onDelete: SetNull)
+  status          RequestStatus @default(PENDING)
+  totalCost       Int
+  note            String?
+  rejectionReason String?
+  approvedAt      DateTime?
+  completedAt     DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  items            RewardRequestItem[]
+  fulfillmentItems FulfillmentItem[]
+
+  @@index([coupleId, status])
+  @@index([userId, status])
+  @@index([targetPartnerId, status])
+  @@map("reward_request")
+}
+
+model RewardRequestItem {
+  id        String        @id @default(cuid())
+  requestId String
+  request   RewardRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  rewardId  String
+  reward    Reward        @relation(fields: [rewardId], references: [id], onDelete: Restrict)
+  unitCost  Int
+  quantity  Int           @default(1)
+  totalCost Int
+
+  @@unique([requestId, rewardId])
+  @@index([requestId])
+  @@index([rewardId])
+  @@map("reward_request_item")
+}
+
+model FulfillmentItem {
+  id          String        @id @default(cuid())
+  requestId   String
+  request     RewardRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  label       String
+  completed   Boolean       @default(false)
+  completedAt DateTime?
+  sortOrder   Int           @default(0)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([requestId, sortOrder])
+  @@map("fulfillment_item")
+}
+
+// ------------------------------------------------------
+// WALLET & TRANSACTIONS
+// ------------------------------------------------------
+
+model WalletTransaction {
+  id          String         @id @default(cuid())
+  userId      String
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount      Int
+  type        WalletTxType
+  status      WalletTxStatus @default(FINALIZED)
+  referenceId String?
+  description String?
+  createdAt   DateTime       @default(now())
+
+  @@index([userId, createdAt])
+  @@index([userId, status])
+  @@index([referenceId])
+  @@map("wallet_transaction")
+}
+
+// ------------------------------------------------------
+// STREAKS
+// ------------------------------------------------------
+
+model StreakDay {
+  id        String   @id @default(cuid())
+  coupleId  String
+  couple    Couple   @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date      String
+  qualified Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@unique([coupleId, userId, date])
+  @@index([coupleId, date])
+  @@index([userId, date])
+  @@map("streak_day")
+}
+
+// ------------------------------------------------------
+// ACTIVITY FEED
+// ------------------------------------------------------
+
+model Activity {
+  id          String       @id @default(cuid())
+  coupleId    String
+  couple      Couple       @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  actorUserId String
+  actor       User         @relation("ActorActivities", fields: [actorUserId], references: [id], onDelete: Cascade)
+  type        ActivityType
+  description String
+  referenceId String?
+  createdAt   DateTime     @default(now())
+
+  @@index([coupleId, createdAt])
+  @@index([actorUserId])
+  @@map("activity")
+}
+
+// ------------------------------------------------------
+// NOTIFICATIONS
+// ------------------------------------------------------
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  title     String
+  body      String
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, readAt])
+  @@index([userId, createdAt])
+  @@map("notification")
+}
