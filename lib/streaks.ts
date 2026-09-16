@@ -31,30 +31,41 @@ export async function recordTaskStreakDay(
   userId: string,
   timezone: string = "UTC"
 ) {
-  const todayStr = getNormalizedDateInTimezone(new Date(), timezone);
+  try {
+    const todayStr = getNormalizedDateInTimezone(new Date(), timezone);
 
-  // Upsert StreakDay record
-  await tx.streakDay.upsert({
-    where: {
-      coupleId_userId_date: {
+    // Safe find + update/create avoiding Postgres ON CONFLICT constraint requirement
+    const existing = await tx.streakDay.findFirst({
+      where: {
         coupleId,
         userId,
         date: todayStr,
       },
-    },
-    update: {
-      qualified: true,
-    },
-    create: {
-      coupleId,
-      userId,
-      date: todayStr,
-      qualified: true,
-    },
-  });
+    });
 
-  // Check if both partners in the couple completed at least 1 task today
-  await recalculateCoupleStreak(tx, coupleId, timezone);
+    if (existing) {
+      if (!existing.qualified) {
+        await tx.streakDay.update({
+          where: { id: existing.id },
+          data: { qualified: true },
+        });
+      }
+    } else {
+      await tx.streakDay.create({
+        data: {
+          coupleId,
+          userId,
+          date: todayStr,
+          qualified: true,
+        },
+      });
+    }
+
+    // Check if both partners in the couple completed at least 1 task today
+    await recalculateCoupleStreak(tx, coupleId, timezone);
+  } catch (err) {
+    console.error("Streak tracking warning (non-fatal):", err);
+  }
 }
 
 /**
