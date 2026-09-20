@@ -8,7 +8,40 @@ import { generateUniqueInviteCode, joinCoupleAtomic } from "@/lib/couple";
 export async function getCoupleState() {
   try {
     const ctx = await requireCouple();
-    return { success: true, data: ctx };
+    const userIds = [ctx.user.id, ctx.partner?.id].filter(
+      (id): id is string => Boolean(id)
+    );
+
+    const sessions = await prisma.session.groupBy({
+      by: ["userId"],
+      where: {
+        userId: { in: userIds },
+      },
+      _max: {
+        createdAt: true,
+      },
+    });
+
+    const lastLoginByUserId = new Map(
+      sessions.map((entry) => [entry.userId, entry._max.createdAt?.toISOString() ?? null])
+    );
+
+    return {
+      success: true,
+      data: {
+        ...ctx,
+        user: {
+          ...ctx.user,
+          lastLoginAt: lastLoginByUserId.get(ctx.user.id) ?? null,
+        },
+        partner: ctx.partner
+          ? {
+              ...ctx.partner,
+              lastLoginAt: lastLoginByUserId.get(ctx.partner.id) ?? null,
+            }
+          : null,
+      },
+    };
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : "Unknown error";
     return { success: false, error: msg };

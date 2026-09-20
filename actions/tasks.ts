@@ -163,3 +163,49 @@ export async function giveTask(
     return { success: false, error: msg };
   }
 }
+
+export async function addRewardPoints(points: number, message: string) {
+  try {
+    const { user } = await requireCouple();
+    const validPoints = Math.max(1, Math.min(Math.floor(points), 200));
+    const note = message.trim();
+
+    if (!note) {
+      return { success: false, error: "Please add a message." };
+    }
+
+    const updatedUser = await prisma.$transaction(async (tx) => {
+      await tx.walletTransaction.create({
+        data: {
+          userId: user.id,
+          amount: validPoints,
+          type: "BONUS",
+          status: "FINALIZED",
+          description: note,
+        },
+      });
+
+      return tx.user.update({
+        where: { id: user.id },
+        data: {
+          pointBalance: {
+            increment: validPoints,
+          },
+        },
+      });
+    });
+
+    revalidatePath("/");
+    revalidatePath("/tasks");
+    revalidatePath("/us");
+
+    return {
+      success: true,
+      pointsAdded: validPoints,
+      newBalance: updatedUser.pointBalance,
+    };
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "Failed to add reward points";
+    return { success: false, error: msg };
+  }
+}

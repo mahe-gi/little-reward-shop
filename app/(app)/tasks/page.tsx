@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getTasks, completeTask } from "@/actions/tasks";
+import { getTasks, completeTask, addRewardPoints } from "@/actions/tasks";
 import { getCoupleState } from "@/actions/couple";
 import { GiveTaskSheet } from "@/components/tasks/GiveTaskSheet";
 import { PillButton } from "@/components/ui/PillButton";
@@ -64,6 +64,29 @@ export default function TasksPage() {
     }
   };
 
+  const handleAddRewardPoints = async () => {
+    const pointsInput = window.prompt("How many reward points do you want to add?", "1");
+    if (pointsInput === null) return;
+
+    const parsedPoints = Number.parseInt(pointsInput, 10);
+    if (Number.isNaN(parsedPoints) || parsedPoints <= 0) {
+      setToastMessage("Please enter a valid points number.");
+      return;
+    }
+
+    const message = window.prompt("Add a short message for this reward points entry:", "");
+    if (message === null) return;
+
+    const res = await addRewardPoints(parsedPoints, message);
+    if (!res.success) {
+      setToastMessage(res.error || "Could not add points.");
+      return;
+    }
+
+    setToastMessage(`✨ +${res.pointsAdded} reward points added.`);
+    loadData();
+  };
+
   return (
     <div className="flex-1 p-5 pb-24 space-y-4">
       {/* Top Header & Give Task CTA */}
@@ -81,6 +104,14 @@ export default function TasksPage() {
           <span>+ Give Task</span>
         </PillButton>
       </div>
+
+      <button
+        type="button"
+        onClick={handleAddRewardPoints}
+        className="w-full rounded-2xl border border-[#EAE6DE] bg-white px-3 py-2 text-xs font-semibold text-[#24201D] shadow-2xs hover:bg-[#FAF7F2] transition-all"
+      >
+        + Add Reward Points with Message
+      </button>
 
       {/* Bilateral 2-Segment Switcher */}
       <div className="p-1 bg-[#F5F2EB] rounded-2xl flex text-xs font-semibold border border-[#EAE6DE]">

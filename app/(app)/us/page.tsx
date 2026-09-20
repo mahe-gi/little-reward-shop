@@ -10,9 +10,23 @@ import { StreakModal } from "@/components/modals/StreakModal";
 import { Toast } from "@/components/ui/Toast";
 
 interface UsData {
-  user: { id: string; name: string; email: string; avatar: string | null; pointBalance: number };
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    avatar: string | null;
+    pointBalance: number;
+    lastLoginAt: string | null;
+  };
   couple: { id: string; name: string; inviteCode: string; streakCount: number };
-  partner: { id: string; name: string; email: string; avatar: string | null; pointBalance: number } | null;
+  partner: {
+    id: string;
+    name: string;
+    email: string;
+    avatar: string | null;
+    pointBalance: number;
+    lastLoginAt: string | null;
+  } | null;
 }
 
 export default function UsPage() {
@@ -51,6 +65,16 @@ export default function UsPage() {
   }
 
   const partnerName = data.partner?.name || "Partner";
+  const formatLastLogin = (value: string | null) => {
+    if (!value) return "—";
+    return new Date(value).toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  };
 
   return (
     <div className="flex-1 p-4 sm:p-5 pb-24 space-y-4">
@@ -90,6 +114,21 @@ export default function UsPage() {
             Just the two of us.
           </p>
         </div>
+      </div>
+
+      <div className="bg-white rounded-2xl border border-[#EAE6DE] shadow-sm px-4 py-3 text-xs space-y-1.5">
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-[#756963]">{data.user.name} last login</span>
+          <span className="font-semibold text-[#24201D]">{formatLastLogin(data.user.lastLoginAt)}</span>
+        </div>
+        {data.partner && (
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-[#756963]">{partnerName} last login</span>
+            <span className="font-semibold text-[#24201D]">
+              {formatLastLogin(data.partner.lastLoginAt)}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Points Snapshot */}
