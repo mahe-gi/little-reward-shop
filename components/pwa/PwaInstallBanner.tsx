@@ -2,68 +2,22 @@
 
 import React, { useState, useEffect } from "react";
 import { PillButton } from "@/components/ui/PillButton";
-import { subscribeToPushNotifications } from "@/lib/web-push-client";
-
-interface BeforeInstallPromptEvent extends Event {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
-}
+import { usePwaInstall } from "@/components/pwa/usePwaInstall";
 
 export function PwaInstallBanner({ className = "" }: { className?: string }) {
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [isStandalone, setIsStandalone] = useState(false);
+  const { isStandalone, isMounted, triggerInstall } = usePwaInstall();
   const [isDismissed, setIsDismissed] = useState(true); // default true until client checks
-  const [isIOS, setIsIOS] = useState(false);
   const [showIosGuide, setShowIosGuide] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-
-    // Check if running in standalone mode (already installed PWA)
-    const isStandaloneMode =
-      window.matchMedia("(display-mode: standalone)").matches ||
-      (window.navigator as unknown as { standalone?: boolean }).standalone === true;
-
-    setIsStandalone(Boolean(isStandaloneMode));
-
-    // Check localStorage dismissal
     const dismissed = localStorage.getItem("pairly_pwa_dismissed");
     setIsDismissed(Boolean(dismissed));
-
-    // Check iOS user agent
-    const userAgent = window.navigator.userAgent.toLowerCase();
-    const isAppleDevice = /iphone|ipad|ipod/.test(userAgent);
-    setIsIOS(isAppleDevice);
-
-    // Listen for Chrome/Android/Desktop install prompt
-    const handleBeforeInstallPrompt = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
-    };
-
-    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-
-    return () => {
-      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-    };
   }, []);
 
   const handleInstallClick = async () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const choice = await deferredPrompt.userChoice;
-      if (choice.outcome === "accepted") {
-        setIsStandalone(true);
-        // Ask for phone notification bar permission right upon installation!
-        if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "default") {
-          subscribeToPushNotifications().catch(() => {});
-        }
-      }
-      setDeferredPrompt(null);
-    } else if (isIOS) {
-      setShowIosGuide(true);
-    } else {
-      // General guidance
+    const outcome = await triggerInstall();
+    if (outcome === "ios" || outcome === "unavailable") {
       setShowIosGuide(true);
     }
   };
@@ -75,8 +29,8 @@ export function PwaInstallBanner({ className = "" }: { className?: string }) {
     }
   };
 
-  // If already installed or dismissed, do not render
-  if (isStandalone || isDismissed) {
+  // If not yet mounted, already installed, or dismissed, do not render
+  if (!isMounted || isStandalone || isDismissed) {
     return null;
   }
 

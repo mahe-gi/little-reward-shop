@@ -37,6 +37,29 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="h-full min-h-[100dvh] antialiased font-sans">
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.__pairly_pwa_prompt = null;
+              window.addEventListener('beforeinstallprompt', function(e) {
+                e.preventDefault();
+                window.__pairly_pwa_prompt = e;
+                window.dispatchEvent(new CustomEvent('pairly:pwa-prompt-ready'));
+              });
+              window.addEventListener('appinstalled', function() {
+                window.__pairly_pwa_prompt = null;
+                window.dispatchEvent(new CustomEvent('pairly:pwa-installed'));
+              });
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                  navigator.serviceWorker.register('/sw.js').catch(function() {});
+                });
+              }
+            `,
+          }}
+        />
+      </head>
       <body className="h-full min-h-[100dvh] flex flex-col bg-[#FAF7F2] text-[#24201D] selection:bg-[#E06D75]/20 selection:text-[#24201D]">
         {children}
       </body>

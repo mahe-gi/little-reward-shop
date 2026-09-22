@@ -1,14 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { ModalSheet } from "@/components/ui/ModalSheet";
 import { PillButton } from "@/components/ui/PillButton";
-import { subscribeToPushNotifications } from "@/lib/web-push-client";
-
-interface BeforeInstallPromptEvent extends Event {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
-}
+import { usePwaInstall } from "@/components/pwa/usePwaInstall";
 
 export interface PwaInstallModalProps {
   isOpen: boolean;
@@ -17,49 +12,19 @@ export interface PwaInstallModalProps {
 }
 
 export function PwaInstallModal({ isOpen, onClose, onInstalled }: PwaInstallModalProps) {
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [isIOS, setIsIOS] = useState(false);
+  const { hasPrompt, isIOS, triggerInstall } = usePwaInstall();
   const [installing, setInstalling] = useState(false);
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const userAgent = window.navigator.userAgent.toLowerCase();
-    const isAppleDevice = /iphone|ipad|ipod/.test(userAgent);
-    setIsIOS(isAppleDevice);
-
-    const handleBeforeInstallPrompt = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
-    };
-
-    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-
-    return () => {
-      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-    };
-  }, []);
-
   const handleInstall = async () => {
-    if (deferredPrompt) {
-      setInstalling(true);
-      try {
-        await deferredPrompt.prompt();
-        const choice = await deferredPrompt.userChoice;
-        if (choice.outcome === "accepted") {
-          // Immediately prompt for phone notification bar permission
-          if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "default") {
-            await subscribeToPushNotifications().catch(() => {});
-          }
-          onInstalled?.();
-          onClose();
-        }
-      } catch (err) {
-        console.error("Install prompt error:", err);
-      } finally {
-        setInstalling(false);
-        setDeferredPrompt(null);
+    setInstalling(true);
+    try {
+      const outcome = await triggerInstall();
+      if (outcome === "accepted") {
+        onInstalled?.();
+        onClose();
       }
+    } finally {
+      setInstalling(false);
     }
   };
 
@@ -107,7 +72,7 @@ export function PwaInstallModal({ isOpen, onClose, onInstalled }: PwaInstallModa
         </div>
 
         {/* Action Button or Instructions */}
-        {deferredPrompt ? (
+        {hasPrompt ? (
           <div className="pt-2 space-y-2">
             <PillButton
               variant="primary"

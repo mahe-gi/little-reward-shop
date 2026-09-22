@@ -9,6 +9,24 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(self.clients.claim());
 });
 
+// Pass-through fetch handler required for PWA installability criteria in Chromium browsers
+self.addEventListener("fetch", (event) => {
+  if (event.request.method !== "GET") return;
+
+  event.respondWith(
+    fetch(event.request).catch(async () => {
+      const cache = await caches.open(CACHE_NAME);
+      const cached = await cache.match(event.request);
+      if (cached) return cached;
+      return new Response("Offline", {
+        status: 503,
+        statusText: "Service Unavailable",
+        headers: { "Content-Type": "text/plain" },
+      });
+    })
+  );
+});
+
 // Web Push Notification Handler
 self.addEventListener("push", (event) => {
   let data = {
