@@ -51,7 +51,7 @@ export function BottomNav({
   };
 
   return (
-    <div className={`fixed md:sticky bottom-0 inset-x-0 z-40 px-3.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 pointer-events-none ${className}`}>
+    <div className={`w-full px-3.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-1 pointer-events-none ${className}`}>
       {/* Floating Glass Dock */}
       <nav
         aria-label="Bottom Navigation"

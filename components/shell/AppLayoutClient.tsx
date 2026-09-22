@@ -133,7 +133,7 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
     <ResponsiveAppShell
       footer={
         !isCheckoutRoute ? (
-          <div className="flex flex-col">
+          <div className="flex flex-col w-full pointer-events-none justify-end">
             <FloatingCartBar
               itemsCount={totalCount}
               totalPoints={totalCost}

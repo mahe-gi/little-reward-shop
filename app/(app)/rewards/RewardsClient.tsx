@@ -71,7 +71,7 @@ export function RewardsClient({
   };
 
   return (
-    <div className="flex-1 p-4 pb-24 space-y-4">
+    <div className="flex-1 p-4 pb-36 space-y-4">
       {/* Top Header */}
       <div className="flex items-center justify-between px-1">
         <div>

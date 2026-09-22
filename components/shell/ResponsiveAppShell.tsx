@@ -35,8 +35,12 @@ export function ResponsiveAppShell({
           {children}
         </div>
 
-        {/* Anchored Footer / BottomNav */}
-        {footer && <div className="shrink-0 z-40 w-full relative">{footer}</div>}
+        {/* Anchored Floating Footer / BottomNav & Wish Dock */}
+        {footer && (
+          <div className="absolute bottom-0 inset-x-0 z-40 w-full pointer-events-none">
+            {footer}
+          </div>
+        )}
       </main>
     </div>
   );

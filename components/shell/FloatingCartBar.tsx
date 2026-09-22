@@ -27,9 +27,9 @@ export function FloatingCartBar({
 
   return (
     <div
-      className={`px-3 py-2 animate-in slide-in-from-bottom-5 duration-300 pointer-events-auto ${className}`}
+      className={`w-full px-3.5 pb-1 animate-in slide-in-from-bottom-3 duration-300 pointer-events-auto ${className}`}
     >
-      <div className="bg-[#24201D] text-[#FAF7F2] rounded-2xl p-2.5 sm:p-3 shadow-[0_12px_30px_-6px_rgba(36,32,29,0.35)] border border-[#3D3733] flex items-center justify-between gap-3">
+      <div className="max-w-md mx-auto bg-[#24201D] text-[#FAF7F2] rounded-2xl p-2.5 sm:p-3 shadow-[0_12px_30px_-6px_rgba(36,32,29,0.35)] border border-[#3D3733] flex items-center justify-between gap-3">
         {/* Left: Wish info & count */}
         <div
           onClick={onOpenCart}
