@@ -12,8 +12,8 @@ self.addEventListener("activate", (event) => {
 // Web Push Notification Handler
 self.addEventListener("push", (event) => {
   let data = {
-    title: "Pairly ✨",
-    body: "You have a new update from your partner!",
+    title: "Pairly",
+    body: "You have a new update from your partner",
     url: "/home",
   };
 

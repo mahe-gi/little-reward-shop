@@ -70,13 +70,24 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
           latestKnownId = newest.id;
           setToastMessage(`${newest.title} — ${newest.body}`);
 
-          // Also trigger Web Notification if permitted
+          // Also trigger Web Notification in phone notification bar if permitted
           if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
             try {
-              new Notification(newest.title, {
-                body: newest.body,
-                icon: "/icon-192.png",
-              });
+              if ("serviceWorker" in navigator) {
+                navigator.serviceWorker.ready.then((reg) => {
+                  reg.showNotification(newest.title, {
+                    body: newest.body,
+                    icon: "/icon-192.png",
+                    badge: "/icon-192.png",
+                    data: { url: "/home" },
+                  });
+                });
+              } else {
+                new Notification(newest.title, {
+                  body: newest.body,
+                  icon: "/icon-192.png",
+                });
+              }
             } catch {
               // Fallback
             }

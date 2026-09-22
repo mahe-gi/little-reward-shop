@@ -10,6 +10,8 @@ import { StreakModal } from "@/components/modals/StreakModal";
 import { PointsAdjustModal } from "@/components/modals/PointsAdjustModal";
 import { Toast } from "@/components/ui/Toast";
 import { FlameIcon } from "@/components/ui/Icons";
+import { PwaInstallModal } from "@/components/pwa/PwaInstallModal";
+import { DeviceNotificationToggle } from "@/components/notifications/DeviceNotificationToggle";
 
 function formatPresence(isoString: string | null | undefined): { isOnline: boolean; text: string } {
   if (!isoString) return { isOnline: false, text: "Offline" };
@@ -61,7 +63,18 @@ export function UsClient({ initialData }: UsClientProps) {
   const [copied, setCopied] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [streakModalOpen, setStreakModalOpen] = useState(false);
+  const [installModalOpen, setInstallModalOpen] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      const standalone =
+        window.matchMedia("(display-mode: standalone)").matches ||
+        (window.navigator as unknown as { standalone?: boolean }).standalone === true;
+      setIsStandalone(Boolean(standalone));
+    }
+  }, []);
 
   // Periodic polling every 20 seconds to keep WhatsApp-style online status live
   React.useEffect(() => {
@@ -391,7 +404,7 @@ export function UsClient({ initialData }: UsClientProps) {
         </div>
 
         <div
-          className="p-4 flex items-center justify-between hover:bg-[#FAF7F2]/60 cursor-pointer transition-colors"
+          className="p-4 flex items-center justify-between hover:bg-[#FAF7F2]/60 cursor-pointer transition-colors border-b border-[#EAE6DE]/60"
           onClick={() => setToastMessage("Daily 9:00 PM reminder is active")}
         >
           <div className="flex items-center gap-2.5">
@@ -402,6 +415,35 @@ export function UsClient({ initialData }: UsClientProps) {
             9:00 PM
           </span>
         </div>
+
+        {/* PWA App Download / Installed Row */}
+        {isStandalone ? (
+          <div className="p-4 flex items-center justify-between border-b border-[#EAE6DE]/60">
+            <div className="flex items-center gap-2.5">
+              <span className="text-xs font-semibold text-[#756963]">App</span>
+              <span className="font-semibold text-[#1E1A18]">Installed on Phone</span>
+            </div>
+            <span className="text-[#557567] font-bold bg-[#F4F7F5] border border-[#E5EEE9] px-2 py-0.5 rounded-full text-[11px]">
+              Installed ✓
+            </span>
+          </div>
+        ) : (
+          <div
+            className="p-4 flex items-center justify-between hover:bg-[#FAF7F2]/60 cursor-pointer transition-colors border-b border-[#EAE6DE]/60"
+            onClick={() => setInstallModalOpen(true)}
+          >
+            <div className="flex items-center gap-2.5">
+              <span className="text-xs font-semibold text-[#756963]">App</span>
+              <span className="font-semibold text-[#1E1A18]">Download Pairly App</span>
+            </div>
+            <span className="text-xs text-[#E06D75] font-bold flex items-center gap-1">
+              Install ›
+            </span>
+          </div>
+        )}
+
+        {/* Device Notification Bar alerts toggle */}
+        <DeviceNotificationToggle onToast={setToastMessage} />
 
         <div
           className="p-4 flex items-center justify-between hover:bg-red-50/60 cursor-pointer text-red-600 font-semibold transition-colors"
@@ -458,6 +500,16 @@ export function UsClient({ initialData }: UsClientProps) {
           }
           const r = await getCoupleState();
           if (r.success && r.data) setData(r.data as UsData);
+        }}
+      />
+
+      {/* PWA Install Guide Modal */}
+      <PwaInstallModal
+        isOpen={installModalOpen}
+        onClose={() => setInstallModalOpen(false)}
+        onInstalled={() => {
+          setIsStandalone(true);
+          setToastMessage("Pairly installed on your device");
         }}
       />
 
