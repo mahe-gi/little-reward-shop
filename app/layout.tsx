@@ -36,7 +36,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full min-h-[100dvh] antialiased font-sans">
+    <html lang="en" className="h-full antialiased font-sans overflow-hidden">
       <head>
         <script
           dangerouslySetInnerHTML={{
@@ -60,7 +60,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="h-full min-h-[100dvh] flex flex-col bg-[#FAF7F2] text-[#24201D] selection:bg-[#E06D75]/20 selection:text-[#24201D]">
+      <body className="h-full flex flex-col bg-[#FAF7F2] text-[#24201D] selection:bg-[#E06D75]/20 selection:text-[#24201D] overflow-hidden overscroll-none">
         {children}
       </body>
     </html>

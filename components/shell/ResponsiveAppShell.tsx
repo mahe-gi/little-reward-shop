@@ -16,10 +16,10 @@ export function ResponsiveAppShell({
   contentClassName = "",
 }: ResponsiveAppShellProps) {
   return (
-    <div className="h-[100dvh] min-h-[100dvh] w-full bg-[#FAF7F2] md:bg-ambient-dots flex items-center justify-center p-0 md:py-6 md:px-4 overflow-hidden">
+    <div className="fixed inset-0 md:relative md:inset-auto md:h-screen md:min-h-screen w-full bg-[#FAF7F2] md:bg-ambient-dots flex items-center justify-center p-0 md:py-6 md:px-4 overflow-hidden">
       {/* Mobile-first centered phone frame */}
       <main
-        className={`w-full max-w-md h-[100dvh] min-h-[100dvh] max-h-[100dvh] md:h-[92vh] md:max-h-[920px] md:min-h-[844px] bg-[#FAF7F2] md:rounded-[36px] md:border md:border-[#EAE6DE] md:shadow-[0_20px_50px_-12px_rgba(60,45,40,0.12)] flex flex-col relative overflow-hidden ${className}`}
+        className={`w-full max-w-md h-full md:h-[92vh] md:max-h-[920px] md:min-h-[844px] bg-[#FAF7F2] md:rounded-[36px] md:border md:border-[#EAE6DE] md:shadow-[0_20px_50px_-12px_rgba(60,45,40,0.12)] flex flex-col relative overflow-hidden ${className}`}
       >
         {/* Optional Header */}
         {header && (
