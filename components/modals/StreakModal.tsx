@@ -3,6 +3,7 @@
 import React from "react";
 import { ModalSheet } from "@/components/ui/ModalSheet";
 import { PillButton } from "@/components/ui/PillButton";
+import { FlameIcon } from "@/components/ui/Icons";
 
 export interface StreakModalProps {
   isOpen: boolean;
@@ -21,8 +22,8 @@ export function StreakModal({ isOpen, onClose, streakCount }: StreakModalProps) 
         {/* Animated flame aura */}
         <div className="relative w-20 h-20 mx-auto flex items-center justify-center">
           <div className="absolute inset-0 rounded-3xl bg-[#FFFBF0] border border-[#FEF3D6] shadow-sm rotate-6" />
-          <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-b from-[#FFFBF0] to-[#FCEBEE] border border-[#FAD4DA] flex items-center justify-center text-3xl shadow-xs">
-            🔥
+          <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-b from-[#FFFBF0] to-[#FCEBEE] border border-[#FAD4DA] flex items-center justify-center text-[#E06D75] shadow-xs">
+            <FlameIcon size={32} />
           </div>
         </div>
 

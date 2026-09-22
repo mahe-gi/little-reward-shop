@@ -16,7 +16,7 @@ export function Avatar({
   name,
   alt = "Avatar",
   size = "md",
-  fallback = "❤️",
+  fallback = "✦",
   className = "",
 }: AvatarProps) {
   const [imageError, setImageError] = useState(false);

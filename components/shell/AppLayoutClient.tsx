@@ -8,6 +8,7 @@ import { BottomNav } from "@/components/shell/BottomNav";
 import { FloatingCartBar } from "@/components/shell/FloatingCartBar";
 import { Toast } from "@/components/ui/Toast";
 import { touchPresence } from "@/actions/couple";
+import { getNotifications } from "@/actions/notifications";
 
 function AppShellContent({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -15,11 +16,18 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
   const { items, totalCount, totalCost } = useCart();
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Heartbeat to keep user presence live like WhatsApp
+  // Register Service Worker & Heartbeat
   useEffect(() => {
+    // 1. Service worker registration for PWA & Push
+    if (typeof window !== "undefined" && "serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js").catch(() => {});
+    }
+
+    // 2. Initial touch presence
     touchPresence().catch(() => {});
 
-    const interval = setInterval(() => {
+    // Heartbeat every 45s
+    const heartbeatInterval = setInterval(() => {
       if (typeof document !== "undefined" && document.visibilityState === "visible") {
         touchPresence().catch(() => {});
       }
@@ -33,9 +41,56 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
     document.addEventListener("visibilitychange", handleVisibility);
 
     return () => {
-      clearInterval(interval);
+      clearInterval(heartbeatInterval);
       document.removeEventListener("visibilitychange", handleVisibility);
     };
+  }, []);
+
+  // Poll for partner notifications in real-time
+  useEffect(() => {
+    let latestKnownId: string | null = null;
+    let initialized = false;
+
+    const checkNotifications = async () => {
+      if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
+
+      const res = await getNotifications();
+      if (res.success && res.data && res.data.notifications.length > 0) {
+        const newest = res.data.notifications[0];
+
+        // On first run, just record the latest ID without alert spam
+        if (!initialized) {
+          latestKnownId = newest.id;
+          initialized = true;
+          return;
+        }
+
+        // If a brand new unread notification arrived
+        if (newest.id !== latestKnownId && !newest.readAt) {
+          latestKnownId = newest.id;
+          setToastMessage(`${newest.title} — ${newest.body}`);
+
+          // Also trigger Web Notification if permitted
+          if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
+            try {
+              new Notification(newest.title, {
+                body: newest.body,
+                icon: "/icon-192.png",
+              });
+            } catch {
+              // Fallback
+            }
+          }
+        }
+      } else if (!initialized) {
+        initialized = true;
+      }
+    };
+
+    checkNotifications();
+    const notifInterval = setInterval(checkNotifications, 20000);
+
+    return () => clearInterval(notifInterval);
   }, []);
 
   const handleOpenReview = () => {

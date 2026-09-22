@@ -7,6 +7,8 @@ import { completeTask } from "@/actions/tasks";
 import { StreakModal } from "@/components/modals/StreakModal";
 import { PairlyLogo } from "@/components/ui/PairlyLogo";
 import { Toast } from "@/components/ui/Toast";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
+import { PwaInstallBanner } from "@/components/pwa/PwaInstallBanner";
 
 interface TaskItem {
   id: string;
@@ -20,6 +22,21 @@ interface TaskItem {
 interface HomeClientProps {
   initialData: HomeDashboardData;
   initialTasks: TaskItem[];
+}
+
+function formatActivityTime(isoString: string): string {
+  const date = new Date(isoString);
+  if (isNaN(date.getTime())) return "";
+  const diffMs = Date.now() - date.getTime();
+  const diffMin = Math.floor(diffMs / 60000);
+  if (diffMin < 1) return "Just now";
+  if (diffMin < 60) return `${diffMin}m ago`;
+  const diffHr = Math.floor(diffMin / 60);
+  if (diffHr < 24) return `${diffHr}h ago`;
+  const diffDay = Math.floor(diffHr / 24);
+  if (diffDay === 1) return "Yesterday";
+  if (diffDay < 7) return `${diffDay}d ago`;
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
 export function HomeClient({ initialData, initialTasks }: HomeClientProps) {
@@ -42,7 +59,7 @@ export function HomeClient({ initialData, initialTasks }: HomeClientProps) {
       setTasks((prev) =>
         prev.map((t) => (t.id === task.id ? { ...t, status: "COMPLETED" } : t))
       );
-      setToastMessage(`🎉 Completed habit: "${task.title}" (+${task.points} pts)`);
+      setToastMessage(`Completed habit: "${task.title}" (+${task.points} pts)`);
     } else {
       setToastMessage(res.error || "Failed to complete task");
     }
@@ -52,13 +69,16 @@ export function HomeClient({ initialData, initialTasks }: HomeClientProps) {
 
   return (
     <div className="flex-1 p-4 sm:p-5 pb-24 space-y-4">
-      {/* App Header / Brand Greeting */}
+      {/* App Header / Brand Greeting & Notification Bell */}
       <div className="flex items-center justify-between px-1">
         <PairlyLogo variant="horizontal" size="sm" />
-        <div className="text-right">
-          <div className="text-[11px] text-[#756963]">Good day,</div>
-          <div className="font-serif text-sm font-bold text-[#24201D] truncate max-w-[140px]">
-            {data.user.name}
+        <div className="flex items-center gap-2.5">
+          <NotificationBell />
+          <div className="text-right">
+            <div className="text-[10px] text-[#756963]">Good day,</div>
+            <div className="font-serif text-xs sm:text-sm font-bold text-[#1E1A18] truncate max-w-[120px]">
+              {data.user.name}
+            </div>
           </div>
         </div>
       </div>
@@ -72,9 +92,20 @@ export function HomeClient({ initialData, initialTasks }: HomeClientProps) {
         <div className="relative z-10 flex flex-col justify-between h-full space-y-4">
           <div className="flex items-start justify-between">
             <div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-white/80">
-                Shared Wallet
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-white/80">
+                  Shared Wallet
+                </span>
+                {data.couple.streakCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setStreakModalOpen(true)}
+                    className="px-2 py-0.5 rounded-full bg-white/20 hover:bg-white/30 text-white text-[10px] font-semibold backdrop-blur-xs transition-colors"
+                  >
+                    {data.couple.streakCount}d streak ›
+                  </button>
+                )}
+              </div>
               <div className="flex items-baseline gap-2 mt-0.5">
                 <span className="font-serif text-4xl sm:text-5xl font-extrabold tracking-tight">
                   {data.user.pointBalance}
@@ -108,19 +139,19 @@ export function HomeClient({ initialData, initialTasks }: HomeClientProps) {
         </div>
       </div>
 
-      {/* Today's Tasks Summary Widget */}
+      {/* PWA App Download Option in Middle */}
+      <PwaInstallBanner />
+
+      {/* Today's Habits Summary */}
       <div className="p-4 rounded-3xl bg-white border border-[#EAE6DE] shadow-xs space-y-3">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-base">✨</span>
-            <h2 className="font-serif text-base font-bold text-[#24201D]">
-              Today&apos;s Habits
-            </h2>
-          </div>
+          <h2 className="font-serif text-base font-bold text-[#1E1A18]">
+            Today&apos;s Habits
+          </h2>
           <Link
             href="/tasks"
             prefetch={false}
-            className="text-xs font-semibold text-[#E06D75] hover:text-[#BA3F4A] transition-colors"
+            className="text-xs font-semibold text-[#AB3B46] hover:text-[#BA3F4A] transition-colors"
           >
             See All →
           </Link>
@@ -130,7 +161,7 @@ export function HomeClient({ initialData, initialTasks }: HomeClientProps) {
           <div className="py-6 text-center text-xs text-[#756963] space-y-1">
             <p>No habits scheduled for today.</p>
             <p className="text-[11px] text-[#A89F99]">
-              Ask {partnerName} to give you a task!
+              Ask {partnerName} to gift you a habit!
             </p>
           </div>
         ) : (
@@ -143,7 +174,7 @@ export function HomeClient({ initialData, initialTasks }: HomeClientProps) {
                   className={`flex items-center justify-between p-2.5 rounded-2xl border transition-all ${
                     isDone
                       ? "bg-[#FAF7F2]/60 border-[#EAE6DE]/50"
-                      : "bg-[#FAF7F2] border-[#EAE6DE] hover:border-[#E06D75]/40 hover:shadow-2xs"
+                      : "bg-[#FAF7F2] border-[#EAE6DE] hover:border-[#AB3B46]/40 hover:shadow-2xs"
                   }`}
                 >
                   <div className="flex items-center gap-2.5 min-w-0 flex-1">
@@ -151,7 +182,7 @@ export function HomeClient({ initialData, initialTasks }: HomeClientProps) {
                     <div className="min-w-0 flex-1">
                       <div
                         className={`text-xs font-semibold truncate ${
-                          isDone ? "line-through text-[#807770]" : "text-[#24201D]"
+                          isDone ? "line-through text-[#807770]" : "text-[#1E1A18]"
                         }`}
                       >
                         {task.title}
@@ -170,7 +201,7 @@ export function HomeClient({ initialData, initialTasks }: HomeClientProps) {
                     <button
                       type="button"
                       onClick={() => handleComplete(task)}
-                      className="px-3 py-1 rounded-xl bg-[#FCEBEE] hover:bg-[#E06D75] hover:text-white text-[#C85A63] font-bold text-[11px] transition-all active:scale-95 shadow-2xs shrink-0"
+                      className="px-3 py-1 rounded-xl bg-[#FCEBEE] hover:bg-[#E06D75] hover:text-white text-[#AB3B46] font-bold text-[11px] transition-all active:scale-95 shadow-2xs shrink-0"
                     >
                       Done +{task.points}
                     </button>
@@ -182,67 +213,51 @@ export function HomeClient({ initialData, initialTasks }: HomeClientProps) {
         )}
       </div>
 
-      {/* Couple Streak Bar (Click opens modal) */}
-      <div
-        onClick={() => setStreakModalOpen(true)}
-        className="p-3.5 rounded-2xl bg-white border border-[#EAE6DE] shadow-2xs cursor-pointer hover:border-[#E06D75]/40 transition-all flex items-center justify-between"
-      >
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-[#FFFBF0] border border-[#FEF3D6] flex items-center justify-center text-xl shrink-0">
-            🔥
+      {/* Recent Activity (Clean, compact 3-item minimalist feed) */}
+      {data.recentActivities.length > 0 && (
+        <div className="space-y-2 pt-1">
+          <div className="flex items-center justify-between px-1">
+            <h3 className="font-serif text-sm font-bold text-[#1E1A18]">
+              Recent Activity
+            </h3>
+            <span className="text-[11px] text-[#756963]">Latest moments</span>
           </div>
-          <div>
-            <div className="text-xs font-bold text-[#24201D]">
-              {data.couple.streakCount}-Day Streak with {partnerName}
-            </div>
-            <div className="text-[11px] text-[#756963]">
-              Keep the momentum going together ❤️
-            </div>
-          </div>
-        </div>
-        <span className="text-[#807770] text-sm pr-1">›</span>
-      </div>
 
-      {/* Timeline Feed / Recent Activity */}
-      <div className="space-y-2 pt-1">
-        <div className="flex items-center justify-between px-1">
-          <h3 className="font-serif text-sm font-bold text-[#24201D]">
-            Our Little Timeline
-          </h3>
-          <span className="text-[11px] text-[#807770]">Recent moments</span>
-        </div>
-
-        {data.recentActivities.length === 0 ? (
-          <div className="p-6 bg-white rounded-3xl border border-[#EAE6DE] text-center text-xs text-[#756963]">
-            No recent activity yet. Start by completing a habit! 🌸
-          </div>
-        ) : (
-          <div className="bg-white rounded-3xl p-3 border border-[#EAE6DE] shadow-xs divide-y divide-[#EAE6DE]/60">
-            {data.recentActivities.map((act) => (
-              <div
-                key={act.id}
-                className="py-2.5 first:pt-1 last:pb-1 flex items-start gap-2.5 text-xs"
-              >
-                <div className="w-7 h-7 rounded-xl bg-[#FCEBEE] border border-[#FAD4DA] flex items-center justify-center text-sm shrink-0 mt-0.5">
-                  {act.type.includes("TASK") ? "✅" : "🎁"}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-[#24201D] leading-snug">
-                    <span className="font-bold">{act.actor.name}</span>{" "}
-                    <span className="text-[#756963]">{act.description}</span>
+          <div className="bg-white rounded-3xl p-3 border border-[#EAE6DE] shadow-2xs divide-y divide-[#EAE6DE]/60">
+            {data.recentActivities.slice(0, 3).map((act) => {
+              const isTask = act.type.includes("TASK");
+              return (
+                <div
+                  key={act.id}
+                  className="py-2.5 first:pt-1 last:pb-1 flex items-start gap-2.5 text-xs"
+                >
+                  <div
+                    className={`w-6 h-6 rounded-lg flex items-center justify-center text-[11px] font-bold shrink-0 mt-0.5 ${
+                      isTask
+                        ? "bg-[#F4F7F5] text-[#557567] border border-[#E5EEE9]"
+                        : "bg-[#FCEBEE] text-[#AB3B46] border border-[#FAD4DA]"
+                    }`}
+                  >
+                    {isTask ? "✓" : "✦"}
                   </div>
-                  <div className="text-[10px] text-[#A89F99] mt-0.5">
-                    {new Date(act.createdAt).toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[#1E1A18] leading-snug">
+                      <span className="font-bold">{act.actor.name}</span>{" "}
+                      <span className="text-[#756963]">{act.description}</span>
+                    </div>
+                    <div
+                      suppressHydrationWarning
+                      className="text-[10px] text-[#A89F99] mt-0.5"
+                    >
+                      {formatActivityTime(act.createdAt)}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Streak Modal */}
       <StreakModal

@@ -12,7 +12,22 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: "Pairly - Our Little Reward Shop",
-  description: "A cozy, playful couples reward & wish-granting space.",
+  description: "Small things you do for each other. Little rewards to look forward to.",
+  manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Pairly",
+  },
 };
 
 export default function RootLayout({

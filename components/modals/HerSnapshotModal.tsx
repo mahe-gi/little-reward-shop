@@ -29,9 +29,9 @@ export function HerSnapshotModal({
       <div className="text-center space-y-3.5 py-2">
         <Avatar
           avatar={partner.avatar}
-          fallback="❤️"
+          fallback="✦"
           size="lg"
-          className="w-16 h-16 rounded-2xl bg-[#FCEBEE] border border-[#FAD4DA] mx-auto shadow-sm"
+          className="w-16 h-16 rounded-2xl bg-[#F4F1EA] border border-[#EAE6DE] mx-auto shadow-sm text-[#24201D]"
         />
 
         <div>
@@ -55,7 +55,7 @@ export function HerSnapshotModal({
               HABITS THIS WEEK
             </span>
             <span className="font-serif text-2xl font-bold text-[#24201D]">
-              {tasksCompletedThisWeek} finished ✨
+              {tasksCompletedThisWeek} finished
             </span>
           </div>
         </div>

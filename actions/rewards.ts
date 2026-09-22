@@ -50,7 +50,7 @@ export async function createReward(
   category: string = "LOVE"
 ) {
   try {
-    const { user, couple } = await requireCouple();
+    const { user, couple, partner } = await requireCouple();
 
     if (!title || !title.trim()) {
       return { success: false, error: "Please enter a reward title." };
@@ -70,6 +70,17 @@ export async function createReward(
         isActive: true,
       },
     });
+
+    if (partner) {
+      await prisma.notification.create({
+        data: {
+          userId: partner.id,
+          type: "REWARD_ADDED",
+          title: "New Boutique Reward 🎁",
+          body: `${user.name} added a new treat: "${title.trim()}" (${validCost} pts)`,
+        },
+      });
+    }
 
     revalidatePath("/rewards");
     return { success: true, reward };

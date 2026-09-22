@@ -122,6 +122,16 @@ export async function submitRewardRequest(
         },
       });
 
+      // 6. Notify Partner
+      await tx.notification.create({
+        data: {
+          userId: partner.id,
+          type: "WISH_REQUESTED",
+          title: "New Wish Received 💌",
+          body: `${user.name} wished for: ${summaryTitles} (${totalCost} pts)`,
+        },
+      });
+
       return req;
     });
 
@@ -426,6 +436,15 @@ export async function fulfillRewardRequest(requestId: string) {
           type: "REQUEST_FULFILLED",
           description: `delivered and fulfilled reward with love ❤️`,
           referenceId: request.id,
+        },
+      });
+
+      await tx.notification.create({
+        data: {
+          userId: request.userId,
+          type: "WISH_FULFILLED",
+          title: "Wish Fulfilled! ✨",
+          body: `${user.name} delivered and fulfilled your wish!`,
         },
       });
     });

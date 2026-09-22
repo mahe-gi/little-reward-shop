@@ -206,7 +206,7 @@ export function GiveTaskSheet({
               +
             </button>
           </div>
-          <p className="text-[10px] text-[#A89F99] mt-1.5">Any amount — be fair & kind ❤️</p>
+          <p className="text-[10px] text-[#A89F99] mt-1.5">Any amount — fair and agreed upon</p>
         </div>
 
         <div>
@@ -228,7 +228,7 @@ export function GiveTaskSheet({
             onChange={(e) => setSaveAsPreset(e.target.checked)}
             className="w-3.5 h-3.5 rounded border-[#EAE6DE] text-[#E06D75] focus:ring-0 cursor-pointer accent-[#E06D75]"
           />
-          <span>Save as preset for quick daily reuse ✨</span>
+          <span>Save as preset for quick daily reuse</span>
         </label>
 
         <PillButton

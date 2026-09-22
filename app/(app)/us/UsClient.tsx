@@ -9,6 +9,7 @@ import { EditProfileModal } from "@/components/modals/EditProfileModal";
 import { StreakModal } from "@/components/modals/StreakModal";
 import { PointsAdjustModal } from "@/components/modals/PointsAdjustModal";
 import { Toast } from "@/components/ui/Toast";
+import { FlameIcon } from "@/components/ui/Icons";
 
 function formatPresence(isoString: string | null | undefined): { isOnline: boolean; text: string } {
   if (!isoString) return { isOnline: false, text: "Offline" };
@@ -139,8 +140,8 @@ export function UsClient({ initialData }: UsClientProps) {
           </div>
 
           {/* Connector Badge */}
-          <div className="relative z-20 mx-2 w-8 h-8 rounded-full bg-white border border-[#EAE6DE] shadow-xs flex items-center justify-center text-xs text-[#D4AF37]">
-            ✨
+          <div className="relative z-20 mx-2 w-8 h-8 rounded-full bg-white border border-[#EAE6DE] shadow-xs flex items-center justify-center text-xs font-serif italic text-[#756963]">
+            &amp;
           </div>
 
           {/* Partner Avatar */}
@@ -150,7 +151,7 @@ export function UsClient({ initialData }: UsClientProps) {
                 avatar={data.partner?.avatar}
                 name={partnerName}
                 size="lg"
-                fallback="✨"
+                fallback="✦"
                 className="w-14 h-14 rounded-xl bg-[#FAF7F2]"
               />
             </div>
@@ -301,14 +302,14 @@ export function UsClient({ initialData }: UsClientProps) {
         className="bg-gradient-to-r from-white via-white to-[#FFFBF0] p-4 sm:p-5 rounded-3xl border border-[#FEF3D6] shadow-xs cursor-pointer hover:border-[#D4AF37] transition-all flex items-center justify-between group active:scale-[0.99]"
       >
         <div className="flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-2xl bg-[#FFFBF0] border border-[#FEF3D6] flex items-center justify-center text-2xl shrink-0 group-hover:scale-105 transition-transform shadow-2xs">
-            🔥
+          <div className="w-12 h-12 rounded-2xl bg-[#FFFBF0] border border-[#FEF3D6] flex items-center justify-center text-[#D4AF37] shrink-0 group-hover:scale-105 transition-transform shadow-2xs">
+            <FlameIcon size={24} />
           </div>
           <div>
             <div className="font-serif text-base sm:text-lg font-bold text-[#1E1A18] flex items-center gap-1.5">
               <span>{data.couple.streakCount}-Day Couple Streak</span>
               <span className="text-[10px] font-bold text-[#D4AF37] bg-[#FFFBF0] px-2 py-0.5 rounded-full border border-[#FEF3D6]">
-                Flourishing
+                Active
               </span>
             </div>
             <p className="text-xs text-[#756963] mt-0.5 leading-relaxed">
@@ -391,11 +392,11 @@ export function UsClient({ initialData }: UsClientProps) {
 
         <div
           className="p-4 flex items-center justify-between hover:bg-[#FAF7F2]/60 cursor-pointer transition-colors"
-          onClick={() => setToastMessage("Daily 9:00 PM reminder is active ✨")}
+          onClick={() => setToastMessage("Daily 9:00 PM reminder is active")}
         >
           <div className="flex items-center gap-2.5">
-            <span className="text-base">🔔</span>
-            <span className="font-semibold text-[#1E1A18]">Daily Reminder</span>
+            <span className="text-xs font-semibold text-[#756963]">Daily</span>
+            <span className="font-semibold text-[#1E1A18]">Reminder</span>
           </div>
           <span className="text-[#557567] font-bold bg-[#F4F7F5] border border-[#E5EEE9] px-2 py-0.5 rounded-full text-[11px]">
             9:00 PM
@@ -411,7 +412,6 @@ export function UsClient({ initialData }: UsClientProps) {
           }}
         >
           <div className="flex items-center gap-2.5">
-            <span className="text-base">🚪</span>
             <span>Sign Out</span>
           </div>
           <span className="text-stone-400">›</span>
@@ -429,7 +429,7 @@ export function UsClient({ initialData }: UsClientProps) {
             ...prev,
             user: { ...prev.user, name: newName, avatar: newAvatar },
           }));
-          setToastMessage("Profile updated ✨");
+          setToastMessage("Profile updated");
         }}
       />
 
@@ -452,9 +452,9 @@ export function UsClient({ initialData }: UsClientProps) {
         onSuccess={async (mode, amount) => {
           const who = bonusTarget === "self" ? "yourself" : partnerName;
           if (mode === "remove") {
-            setToastMessage(`✂️ ${amount} pts deducted from ${who}`);
+            setToastMessage(`${amount} pts deducted from ${who}`);
           } else {
-            setToastMessage(`✨ ${amount} pts given to ${who}!`);
+            setToastMessage(`${amount} pts given to ${who}`);
           }
           const r = await getCoupleState();
           if (r.success && r.data) setData(r.data as UsData);

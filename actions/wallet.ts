@@ -66,6 +66,17 @@ export async function giveBonus(
           },
         });
       }
+
+      if (ctx.partner && targetUserId === ctx.partner.id) {
+        await tx.notification.create({
+          data: {
+            userId: ctx.partner.id,
+            type: "POINTS_GIFTED",
+            title: "Points Surprise ✨",
+            body: `${ctx.user.name} sent you +${pts} points! "${note}"`,
+          },
+        });
+      }
     });
 
     revalidatePath("/us");

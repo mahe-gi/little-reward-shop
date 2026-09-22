@@ -40,7 +40,7 @@ export function RewardDetailSheet({
         <div>
           <div className="flex items-center justify-center gap-2 mb-1.5">
             <span className="px-2.5 py-0.5 rounded-full bg-[#FCEBEE] text-[#AB3B46] font-bold text-xs border border-[#FAD4DA]">
-              ✨ {reward.cost} pts
+              {reward.cost} pts
             </span>
             {reward.category && (
               <span className="px-2.5 py-0.5 rounded-full bg-[#FAF7F2] border border-[#EAE6DE] text-[#756963] font-semibold text-[11px] uppercase tracking-wider">
@@ -59,7 +59,7 @@ export function RewardDetailSheet({
             Perks &amp; Intention
           </div>
           <p className="text-xs text-[#1E1A18] leading-relaxed">
-            {reward.description?.trim() ? reward.description : "A thoughtful treat handcrafted with love."}
+            {reward.description?.trim() ? reward.description : "A thoughtful treat handcrafted for you."}
           </p>
         </div>
 
@@ -73,7 +73,7 @@ export function RewardDetailSheet({
               onClose();
             }}
           >
-            Add to Wishes ❤️
+            Add to Wishes
           </PillButton>
 
           <PillButton

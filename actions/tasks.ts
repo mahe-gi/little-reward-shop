@@ -37,7 +37,7 @@ export async function getTasks() {
 
 export async function completeTask(taskId: string) {
   try {
-    const { user, couple } = await requireCouple();
+    const { user, couple, partner } = await requireCouple();
 
     const task = await prisma.task.findUnique({
       where: { id: taskId },
@@ -57,7 +57,7 @@ export async function completeTask(taskId: string) {
       return { success: false, error: "Task is already completed today!" };
     }
 
-    // Atomic transaction: mark completed, earn points, update streak, log activity
+    // Atomic transaction: mark completed, earn points, update streak, log activity, notify partner
     const updatedUser = await prisma.$transaction(async (tx) => {
       // 1. Mark task completed
       await tx.task.update({
@@ -90,6 +90,18 @@ export async function completeTask(taskId: string) {
           referenceId: taskId,
         },
       });
+
+      // 5. Notify Partner
+      if (partner) {
+        await tx.notification.create({
+          data: {
+            userId: partner.id,
+            type: "TASK_COMPLETED",
+            title: "Habit Completed! 🎉",
+            body: `${user.name} completed "${task.title}" (+${task.points} pts)`,
+          },
+        });
+      }
 
       return updated;
     });
@@ -150,6 +162,15 @@ export async function giveTask(
           type: "TASK_CREATED",
           description: `gave task "${title.trim()}" (+${validPoints} pts) to ${partner.name}`,
           referenceId: created.id,
+        },
+      });
+
+      await tx.notification.create({
+        data: {
+          userId: partner.id,
+          type: "TASK_GIFTED",
+          title: "New Habit Gifted ✨",
+          body: `${user.name} gifted you a habit: "${title.trim()}" (+${validPoints} pts)`,
         },
       });
 
