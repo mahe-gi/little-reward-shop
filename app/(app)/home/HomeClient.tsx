@@ -63,31 +63,44 @@ export function HomeClient({ initialData, initialTasks }: HomeClientProps) {
         </div>
       </div>
 
-      {/* Hero Points Card */}
-      <div className="rounded-3xl bg-linear-to-br from-[#E06D75] via-[#D05D66] to-[#BA3F4A] p-5 text-white shadow-[0_12px_32px_-8px_rgba(224,109,117,0.38)] relative overflow-hidden">
+      {/* Hero Dual Presence Card */}
+      <div className="rounded-3xl bg-linear-to-br from-[#E06D75] via-[#D05D66] to-[#BA3F4A] p-5 text-white shadow-[0_14px_36px_-8px_rgba(224,109,117,0.42)] relative overflow-hidden">
         {/* Subtle decorative circles */}
         <div className="absolute -right-8 -top-8 w-32 h-32 rounded-full bg-white/10 pointer-events-none" />
         <div className="absolute -left-6 -bottom-6 w-24 h-24 rounded-full bg-white/5 pointer-events-none" />
 
-        <div className="relative z-10 flex flex-col justify-between h-full min-h-[110px]">
-          <div>
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-white/80">
-              Your Wallet
-            </span>
-            <div className="flex items-baseline gap-2 mt-1">
-              <span className="font-serif text-4xl sm:text-5xl font-extrabold tracking-tight">
-                {data.user.pointBalance}
+        <div className="relative z-10 flex flex-col justify-between h-full space-y-4">
+          <div className="flex items-start justify-between">
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-white/80">
+                Shared Wallet
               </span>
-              <span className="text-sm font-semibold text-white/80">points earned</span>
+              <div className="flex items-baseline gap-2 mt-0.5">
+                <span className="font-serif text-4xl sm:text-5xl font-extrabold tracking-tight">
+                  {data.user.pointBalance}
+                </span>
+                <span className="text-xs font-semibold text-white/85">points available</span>
+              </div>
+            </div>
+
+            {/* Partner quick indicator */}
+            <div className="text-right bg-white/15 backdrop-blur-xs px-3 py-1.5 rounded-2xl border border-white/20">
+              <div className="text-[10px] font-semibold text-white/80">{partnerName}</div>
+              <div className="font-serif text-sm font-bold text-white">
+                {data.partner?.pointBalance ?? 0} <span className="text-[10px] font-sans font-normal opacity-85">pts</span>
+              </div>
             </div>
           </div>
 
-          <div className="pt-3 border-t border-white/15 flex items-center justify-between text-xs text-white/90">
-            <span>+{data.pointsEarnedToday} pts earned today</span>
+          <div className="pt-2.5 border-t border-white/20 flex items-center justify-between text-xs text-white/95">
+            <span className="flex items-center gap-1.5 font-medium">
+              <span className="w-1.5 h-1.5 rounded-full bg-white/90 animate-ping" />
+              +{data.pointsEarnedToday} pts earned today
+            </span>
             <Link
               href="/rewards"
               prefetch={false}
-              className="px-2.5 py-1 rounded-full bg-white/20 hover:bg-white/30 text-white font-medium text-[11px] backdrop-blur-xs transition-colors"
+              className="px-3 py-1 rounded-full bg-white text-[#AB3B46] hover:bg-white/90 font-bold text-[11px] shadow-sm transition-transform active:scale-95"
             >
               Treat Yourself →
             </Link>
@@ -127,7 +140,11 @@ export function HomeClient({ initialData, initialTasks }: HomeClientProps) {
               return (
                 <div
                   key={task.id}
-                  className="flex items-center justify-between p-2.5 rounded-2xl bg-[#FAF7F2] border border-[#EAE6DE]/60 transition-all hover:border-[#E06D75]/30"
+                  className={`flex items-center justify-between p-2.5 rounded-2xl border transition-all ${
+                    isDone
+                      ? "bg-[#FAF7F2]/60 border-[#EAE6DE]/50"
+                      : "bg-[#FAF7F2] border-[#EAE6DE] hover:border-[#E06D75]/40 hover:shadow-2xs"
+                  }`}
                 >
                   <div className="flex items-center gap-2.5 min-w-0 flex-1">
                     <span className="text-lg shrink-0">{task.icon}</span>
@@ -146,14 +163,14 @@ export function HomeClient({ initialData, initialTasks }: HomeClientProps) {
                   </div>
 
                   {isDone ? (
-                    <span className="text-[11px] font-bold text-[#557567] bg-[#F4F7F5] px-2 py-0.5 rounded-lg border border-[#E5EEE9] shrink-0">
+                    <span className="text-[11px] font-bold text-[#557567] bg-[#F4F7F5] px-2.5 py-0.5 rounded-lg border border-[#E5EEE9] shrink-0 animate-pop-check">
                       Done ✓
                     </span>
                   ) : (
                     <button
                       type="button"
                       onClick={() => handleComplete(task)}
-                      className="px-2.5 py-1 rounded-xl bg-[#FCEBEE] hover:bg-[#E06D75] hover:text-white text-[#C85A63] font-semibold text-[11px] transition-all shadow-2xs shrink-0"
+                      className="px-3 py-1 rounded-xl bg-[#FCEBEE] hover:bg-[#E06D75] hover:text-white text-[#C85A63] font-bold text-[11px] transition-all active:scale-95 shadow-2xs shrink-0"
                     >
                       Done +{task.points}
                     </button>

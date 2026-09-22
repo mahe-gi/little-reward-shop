@@ -72,6 +72,42 @@ export function TasksClient({
         </PillButton>
       </div>
 
+      {/* Quick 1-Tap Habit Bar */}
+      <div className="space-y-1.5">
+        <div className="flex items-center justify-between px-1">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-[#807770]">
+            ⚡ 1-Tap Habit Gifting
+          </span>
+          <span className="text-[10px] text-[#A89F99]">Send to {partnerName}</span>
+        </div>
+        <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar py-0.5 px-0.5">
+          {[
+            { title: "6k Steps 👟", pts: 6 },
+            { title: "2.5L Water 💧", pts: 1 },
+            { title: "Eat Fruit 🍎", pts: 10 },
+            { title: "Eat Veggies 🥗", pts: 5 },
+          ].map((preset) => (
+            <button
+              key={preset.title}
+              type="button"
+              onClick={async () => {
+                const res = await (await import("@/actions/tasks")).giveTask(preset.title, preset.pts);
+                if (res.success) {
+                  setToastMessage(`Sent "${preset.title}" (+${preset.pts} pts) to ${partnerName}! ✨`);
+                  refreshTasks();
+                } else {
+                  setToastMessage(res.error || "Failed to give task");
+                }
+              }}
+              className="px-3 py-1.5 rounded-2xl bg-white border border-[#EAE6DE] hover:border-[#E06D75] hover:bg-[#FCEBEE]/40 text-[#24201D] text-xs font-semibold shrink-0 transition-all active:scale-95 shadow-2xs flex items-center gap-1.5"
+            >
+              <span>{preset.title}</span>
+              <span className="text-[10px] text-[#AB3B46] font-bold">+{preset.pts}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Bilateral 2-Segment Switcher */}
       <div className="p-1 bg-[#F5F2EB] rounded-2xl flex text-xs font-semibold border border-[#EAE6DE]">
         <button
@@ -136,14 +172,14 @@ export function TasksClient({
                   </div>
 
                   {isDone ? (
-                    <span className="text-xs font-bold text-[#557567] bg-[#F4F7F5] px-2.5 py-1 rounded-xl border border-[#E5EEE9] shrink-0">
+                    <span className="text-xs font-bold text-[#557567] bg-[#F4F7F5] px-2.5 py-1 rounded-xl border border-[#E5EEE9] shrink-0 animate-pop-check">
                       ✓ +{task.points} pts
                     </span>
                   ) : (
                     <button
                       type="button"
                       onClick={() => handleComplete(task)}
-                      className="px-3 py-1.5 bg-[#FCEBEE] hover:bg-[#E06D75] hover:text-white text-[#C85A63] font-semibold text-xs rounded-xl transition-all shadow-2xs shrink-0"
+                      className="px-3 py-1.5 bg-[#FCEBEE] hover:bg-[#E06D75] hover:text-white text-[#C85A63] font-bold text-xs rounded-xl transition-all active:scale-95 shadow-2xs shrink-0"
                     >
                       Done +{task.points} pts
                     </button>

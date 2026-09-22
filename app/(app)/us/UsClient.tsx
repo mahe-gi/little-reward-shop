@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { getCoupleState } from "@/actions/couple";
-import { giveBonus } from "@/actions/wallet";
 import { signOut } from "@/lib/auth-client";
 import { Avatar } from "@/components/ui/Avatar";
 import { EditProfileModal } from "@/components/modals/EditProfileModal";
@@ -11,19 +10,38 @@ import { StreakModal } from "@/components/modals/StreakModal";
 import { PointsAdjustModal } from "@/components/modals/PointsAdjustModal";
 import { Toast } from "@/components/ui/Toast";
 
-function formatLastActive(isoString: string | null | undefined): string {
-  if (!isoString) return "Never";
-  const diffMs = Date.now() - new Date(isoString).getTime();
+function formatPresence(isoString: string | null | undefined): { isOnline: boolean; text: string } {
+  if (!isoString) return { isOnline: false, text: "Offline" };
+  const date = new Date(isoString);
+  if (isNaN(date.getTime())) return { isOnline: false, text: "Offline" };
+
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
   const diffSec = Math.floor(diffMs / 1000);
-  if (diffSec < 60) return "Just now";
+
+  // Active within 2.5 minutes
+  if (diffSec < 150) {
+    return { isOnline: true, text: "Active now" };
+  }
+
   const diffMin = Math.floor(diffSec / 60);
-  if (diffMin < 60) return `${diffMin} min${diffMin === 1 ? "" : "s"} ago`;
+  if (diffMin < 60) {
+    return { isOnline: false, text: `${diffMin}m ago` };
+  }
+
   const diffHr = Math.floor(diffMin / 60);
-  if (diffHr < 24) return `${diffHr} hr${diffHr === 1 ? "" : "s"} ago`;
+  if (diffHr < 24) {
+    return { isOnline: false, text: `${diffHr}h ago` };
+  }
+
   const diffDay = Math.floor(diffHr / 24);
-  if (diffDay === 1) return "Yesterday";
-  if (diffDay < 7) return `${diffDay} days ago`;
-  return new Date(isoString).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  if (diffDay === 1) return { isOnline: false, text: "Yesterday" };
+  if (diffDay < 7) return { isOnline: false, text: `${diffDay}d ago` };
+
+  return {
+    isOnline: false,
+    text: date.toLocaleDateString(undefined, { month: "short", day: "numeric" }),
+  };
 }
 
 export interface UsData {
@@ -44,6 +62,20 @@ export function UsClient({ initialData }: UsClientProps) {
   const [streakModalOpen, setStreakModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  // Periodic polling every 20 seconds to keep WhatsApp-style online status live
+  React.useEffect(() => {
+    const interval = setInterval(async () => {
+      if (typeof document !== "undefined" && document.visibilityState === "visible") {
+        const res = await getCoupleState();
+        if (res.success && res.data) {
+          setData(res.data as UsData);
+        }
+      }
+    }, 20000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   // Give / Adjust Points modal state
   const [bonusModalOpen, setBonusModalOpen] = useState(false);
   const [bonusTarget, setBonusTarget] = useState<"self" | "partner">("self");
@@ -59,83 +91,142 @@ export function UsClient({ initialData }: UsClientProps) {
   };
 
   const partnerName = data.partner?.name || "Partner";
+  const userPresence = formatPresence(data.user.lastActiveAt);
+  const partnerPresence = formatPresence(data.partner?.lastActiveAt);
 
   return (
-    <div className="flex-1 p-4 sm:p-5 pb-24 space-y-4">
+    <div className="flex-1 p-4 sm:p-5 pb-28 space-y-4">
       {/* Top Header */}
-      <div className="px-1">
-        <h1 className="font-serif text-2xl font-bold text-[#24201D]">
-          Us
-        </h1>
-        <p className="text-xs text-[#756963]">
-          Our shared space.
+      <div className="px-1 flex items-baseline justify-between">
+        <div>
+          <span className="text-[10px] font-bold uppercase tracking-widest text-[#AB3B46]">
+            Couple Sanctuary
+          </span>
+          <h1 className="font-serif text-2xl sm:text-3xl font-bold tracking-tight text-[#1E1A18] mt-0.5">
+            Us
+          </h1>
+        </div>
+        <p className="text-xs text-[#756963] font-medium hidden sm:block">
+          Our shared space &amp; journey
         </p>
       </div>
 
-      {/* Couple Card */}
-      <div className="p-4 rounded-3xl bg-white border border-[#EAE6DE] shadow-xs text-center space-y-2">
-        <div className="flex items-center justify-center -space-x-3 pt-1">
-          <Avatar
-            avatar={data.user.avatar}
-            name={data.user.name}
-            size="lg"
-            fallback="👤"
-            className="w-14 h-14 rounded-2xl bg-[#FDFBF7] border-2 border-white shadow-sm ring-1 ring-[#EAE6DE]"
-          />
-          <Avatar
-            avatar={data.partner?.avatar}
-            name={partnerName}
-            size="lg"
-            fallback="❤️"
-            className="w-14 h-14 rounded-2xl bg-[#FCEBEE] border-2 border-white shadow-sm ring-1 ring-[#FAD4DA]"
-          />
+      {/* Hero Couple Presence Card */}
+      <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-b from-white via-white to-[#FAF7F2]/60 border border-[#EAE6DE] shadow-xs text-center space-y-4 relative overflow-hidden">
+        {/* Subtle decorative mesh background glow */}
+        <div className="absolute -top-12 -right-12 w-40 h-40 bg-[#FCEBEE] rounded-full blur-2xl opacity-60 pointer-events-none" />
+        <div className="absolute -bottom-12 -left-12 w-40 h-40 bg-[#FFFBF0] rounded-full blur-2xl opacity-60 pointer-events-none" />
+
+        {/* Dual Avatars with Linked Connector */}
+        <div className="relative flex items-center justify-center pt-2">
+          {/* Connecting subtle line */}
+          <div className="absolute w-20 h-0.5 bg-gradient-to-r from-[#EAE6DE] via-[#D4AF37]/50 to-[#EAE6DE]" />
+
+          {/* User Avatar */}
+          <div className="relative z-10 flex flex-col items-center">
+            <div className="p-1 rounded-2xl bg-white shadow-sm ring-1 ring-[#EAE6DE]">
+              <Avatar
+                avatar={data.user.avatar}
+                name={data.user.name}
+                size="lg"
+                fallback="👤"
+                className="w-14 h-14 rounded-xl bg-[#FAF7F2]"
+              />
+            </div>
+            <span className="mt-1.5 text-[11px] font-bold text-[#1E1A18] max-w-[80px] truncate">
+              {data.user.name}
+            </span>
+          </div>
+
+          {/* Connector Badge */}
+          <div className="relative z-20 mx-2 w-8 h-8 rounded-full bg-white border border-[#EAE6DE] shadow-xs flex items-center justify-center text-xs text-[#D4AF37]">
+            ✨
+          </div>
+
+          {/* Partner Avatar */}
+          <div className="relative z-10 flex flex-col items-center">
+            <div className="p-1 rounded-2xl bg-white shadow-sm ring-1 ring-[#EAE6DE]">
+              <Avatar
+                avatar={data.partner?.avatar}
+                name={partnerName}
+                size="lg"
+                fallback="✨"
+                className="w-14 h-14 rounded-xl bg-[#FAF7F2]"
+              />
+            </div>
+            <span className="mt-1.5 text-[11px] font-bold text-[#1E1A18] max-w-[80px] truncate">
+              {partnerName}
+            </span>
+          </div>
         </div>
-        <div>
-          <h2 className="font-serif text-xl font-bold text-[#24201D]">
+
+        {/* Couple Title */}
+        <div className="space-y-0.5">
+          <h2 className="font-serif text-xl sm:text-2xl font-bold text-[#1E1A18] tracking-tight">
             {data.user.name} &amp; {partnerName}
           </h2>
-          <p className="text-xs text-[#756963] mt-0.5">
-            Just the two of us.
+          <p className="text-xs text-[#756963]">
+            Our shared space &amp; sanctuary.
           </p>
         </div>
 
-        {/* Last active rows */}
-        <div className="mt-1 pt-3 border-t border-[#EAE6DE] space-y-1.5 text-left">
-          {/* Me */}
-          <div className="flex items-center justify-between px-1">
-            <span className="text-[11px] text-[#807770] truncate max-w-[55%]">{data.user.name}</span>
-            <span className="flex items-center gap-1 text-[11px] font-medium text-[#557567]">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#7E9F85] inline-block shrink-0" />
-              {formatLastActive(data.user.lastActiveAt)}
+        {/* Simple & Clear Live Presence Sub-bar */}
+        <div className="pt-3 border-t border-[#EAE6DE]/80 grid grid-cols-2 gap-2 text-left">
+          <div className="p-2.5 rounded-2xl bg-[#FAF7F2]/80 border border-[#EAE6DE]/60 flex items-center justify-between">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#756963] truncate mr-1.5">
+              {data.user.name}
+            </span>
+            <span
+              className={`flex items-center gap-1.5 text-xs shrink-0 ${
+                userPresence.isOnline ? "text-[#557567] font-bold" : "text-[#756963] font-medium"
+              }`}
+            >
+              <span
+                className={`w-2 h-2 rounded-full shrink-0 ${
+                  userPresence.isOnline ? "bg-[#7E9F85] animate-pulse" : "bg-[#C5BCB5]"
+                }`}
+              />
+              <span>{userPresence.text}</span>
             </span>
           </div>
-          {/* Partner */}
-          <div className="flex items-center justify-between px-1">
-            <span className="text-[11px] text-[#807770] truncate max-w-[55%]">{partnerName}</span>
+
+          <div className="p-2.5 rounded-2xl bg-[#FAF7F2]/80 border border-[#EAE6DE]/60 flex items-center justify-between">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#756963] truncate mr-1.5">
+              {partnerName}
+            </span>
             {data.partner ? (
-              <span className="flex items-center gap-1 text-[11px] font-medium text-[#807770]">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#C5BCB5] inline-block shrink-0" />
-                {formatLastActive(data.partner.lastActiveAt)}
+              <span
+                className={`flex items-center gap-1.5 text-xs shrink-0 ${
+                  partnerPresence.isOnline ? "text-[#557567] font-bold" : "text-[#756963] font-medium"
+                }`}
+              >
+                <span
+                  className={`w-2 h-2 rounded-full shrink-0 ${
+                    partnerPresence.isOnline ? "bg-[#7E9F85] animate-pulse" : "bg-[#C5BCB5]"
+                  }`}
+                />
+                <span>{partnerPresence.text}</span>
               </span>
             ) : (
-              <span className="text-[11px] text-[#A89F99]">Not connected yet</span>
+              <span className="text-[11px] text-[#A89F99]">Not linked</span>
             )}
           </div>
         </div>
       </div>
 
-      {/* Points Snapshot with clean + / − action buttons */}
-      <div className="grid grid-cols-2 gap-2.5">
-        <div className="bg-white p-3.5 rounded-2xl border border-[#EAE6DE] shadow-2xs flex flex-col justify-between">
+      {/* Points Snapshot with Elevated Micro-Spring Action Buttons */}
+      <div className="grid grid-cols-2 gap-3">
+        {/* User Card */}
+        <div className="bg-white p-4 rounded-3xl border border-[#EAE6DE] shadow-2xs flex flex-col justify-between transition-all hover:border-[#AB3B46]/30">
           <div>
-            <div className="text-[10px] font-bold uppercase tracking-wider text-[#807770]">
+            <div className="text-[10px] font-bold uppercase tracking-widest text-[#756963]">
               My Points
             </div>
-            <div className="text-xl font-serif font-bold text-[#E06D75] mt-0.5">
+            <div className="text-2xl sm:text-3xl font-serif font-bold text-[#AB3B46] mt-0.5 tracking-tight">
               {data.user.pointBalance} <span className="text-xs font-sans font-medium text-[#756963]">pts</span>
             </div>
           </div>
-          <div className="mt-2.5 grid grid-cols-2 gap-1.5">
+          <div className="mt-3.5 grid grid-cols-2 gap-1.5">
             <button
               type="button"
               onClick={() => {
@@ -143,7 +234,7 @@ export function UsClient({ initialData }: UsClientProps) {
                 setBonusMode("add");
                 setBonusModalOpen(true);
               }}
-              className="py-1.5 rounded-xl bg-[#FAF7F2] hover:bg-[#FCEBEE] text-[#AB3B46] hover:text-[#BA3F4A] border border-[#EAE6DE] text-[11px] font-bold transition-all flex items-center justify-center shadow-2xs"
+              className="py-1.5 rounded-xl bg-[#FAF7F2] hover:bg-[#FCEBEE] text-[#AB3B46] hover:text-[#BA3F4A] border border-[#EAE6DE] text-xs font-bold transition-all flex items-center justify-center shadow-2xs active:scale-95"
             >
               + Add
             </button>
@@ -154,24 +245,25 @@ export function UsClient({ initialData }: UsClientProps) {
                 setBonusMode("remove");
                 setBonusModalOpen(true);
               }}
-              className="py-1.5 rounded-xl bg-[#FAF7F2] hover:bg-red-50 text-[#756963] hover:text-red-700 border border-[#EAE6DE] text-[11px] font-bold transition-all flex items-center justify-center shadow-2xs"
+              className="py-1.5 rounded-xl bg-[#FAF7F2] hover:bg-red-50 text-[#756963] hover:text-red-700 border border-[#EAE6DE] text-xs font-bold transition-all flex items-center justify-center shadow-2xs active:scale-95"
             >
-              − Remove
+              − Deduct
             </button>
           </div>
         </div>
 
-        <div className="bg-white p-3.5 rounded-2xl border border-[#EAE6DE] shadow-2xs flex flex-col justify-between">
+        {/* Partner Card */}
+        <div className="bg-white p-4 rounded-3xl border border-[#EAE6DE] shadow-2xs flex flex-col justify-between transition-all hover:border-[#1E1A18]/20">
           <div>
-            <div className="text-[10px] font-bold uppercase tracking-wider text-[#807770]">
+            <div className="text-[10px] font-bold uppercase tracking-widest text-[#756963] truncate">
               {partnerName}&apos;s Points
             </div>
-            <div className="text-xl font-serif font-bold text-[#24201D] mt-0.5">
+            <div className="text-2xl sm:text-3xl font-serif font-bold text-[#1E1A18] mt-0.5 tracking-tight">
               {data.partner?.pointBalance ?? 0} <span className="text-xs font-sans font-medium text-[#756963]">pts</span>
             </div>
           </div>
           {data.partner ? (
-            <div className="mt-2.5 grid grid-cols-2 gap-1.5">
+            <div className="mt-3.5 grid grid-cols-2 gap-1.5">
               <button
                 type="button"
                 onClick={() => {
@@ -179,7 +271,7 @@ export function UsClient({ initialData }: UsClientProps) {
                   setBonusMode("add");
                   setBonusModalOpen(true);
                 }}
-                className="py-1.5 rounded-xl bg-[#FAF7F2] hover:bg-[#FCEBEE] text-[#AB3B46] hover:text-[#BA3F4A] border border-[#EAE6DE] text-[11px] font-bold transition-all flex items-center justify-center shadow-2xs"
+                className="py-1.5 rounded-xl bg-[#FAF7F2] hover:bg-[#FCEBEE] text-[#AB3B46] hover:text-[#BA3F4A] border border-[#EAE6DE] text-xs font-bold transition-all flex items-center justify-center shadow-2xs active:scale-95"
               >
                 + Add
               </button>
@@ -190,86 +282,91 @@ export function UsClient({ initialData }: UsClientProps) {
                   setBonusMode("remove");
                   setBonusModalOpen(true);
                 }}
-                className="py-1.5 rounded-xl bg-[#FAF7F2] hover:bg-red-50 text-[#756963] hover:text-red-700 border border-[#EAE6DE] text-[11px] font-bold transition-all flex items-center justify-center shadow-2xs"
+                className="py-1.5 rounded-xl bg-[#FAF7F2] hover:bg-red-50 text-[#756963] hover:text-red-700 border border-[#EAE6DE] text-xs font-bold transition-all flex items-center justify-center shadow-2xs active:scale-95"
               >
-                − Remove
+                − Deduct
               </button>
             </div>
           ) : (
-            <div className="mt-2.5 py-1.5 text-center text-[10px] text-[#A89F99] font-medium">
+            <div className="mt-3.5 py-1.5 text-center text-[11px] text-[#A89F99] font-medium">
               Not linked
             </div>
           )}
         </div>
       </div>
 
-      {/* Couple Streak Card */}
+      {/* Couple Streak Card - Luxury Gold Foil Accent */}
       <div
         onClick={() => setStreakModalOpen(true)}
-        className="bg-white p-4 rounded-3xl border border-[#EAE6DE] shadow-xs cursor-pointer hover:border-[#E06D75]/40 transition-all flex items-center justify-between"
+        className="bg-gradient-to-r from-white via-white to-[#FFFBF0] p-4 sm:p-5 rounded-3xl border border-[#FEF3D6] shadow-xs cursor-pointer hover:border-[#D4AF37] transition-all flex items-center justify-between group active:scale-[0.99]"
       >
-        <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-2xl bg-[#FFFBF0] border border-[#FEF3D6] flex items-center justify-center text-2xl shrink-0">
+        <div className="flex items-center gap-3.5">
+          <div className="w-12 h-12 rounded-2xl bg-[#FFFBF0] border border-[#FEF3D6] flex items-center justify-center text-2xl shrink-0 group-hover:scale-105 transition-transform shadow-2xs">
             🔥
           </div>
           <div>
-            <div className="font-serif text-base font-bold text-[#24201D]">
-              {data.couple.streakCount}-Day Couple Streak
+            <div className="font-serif text-base sm:text-lg font-bold text-[#1E1A18] flex items-center gap-1.5">
+              <span>{data.couple.streakCount}-Day Couple Streak</span>
+              <span className="text-[10px] font-bold text-[#D4AF37] bg-[#FFFBF0] px-2 py-0.5 rounded-full border border-[#FEF3D6]">
+                Flourishing
+              </span>
             </div>
-            <p className="text-xs text-[#756963] mt-0.5">
+            <p className="text-xs text-[#756963] mt-0.5 leading-relaxed">
               Every day you do something for each other counts.
             </p>
           </div>
         </div>
-        <span className="text-[#807770] text-sm pr-1">›</span>
+        <span className="w-8 h-8 rounded-full bg-[#FAF7F2] text-[#756963] group-hover:text-[#1E1A18] flex items-center justify-center text-sm font-bold shrink-0 transition-colors">
+          ›
+        </span>
       </div>
 
-      {/* Connected Partner Status */}
+      {/* Connected Partner Space Status */}
       {data.partner ? (
-        <div className="bg-white rounded-2xl px-4 py-3 border border-[#EAE6DE] shadow-sm flex items-center justify-between text-xs">
-          <div className="flex items-center gap-2.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#7E9F85] shadow-xs" />
+        <div className="bg-white rounded-3xl px-4 py-3.5 border border-[#EAE6DE] shadow-2xs flex items-center justify-between text-xs">
+          <div className="flex items-center gap-3">
+            <span className="w-3 h-3 rounded-full bg-[#7E9F85] shadow-xs" />
             <div>
-              <div className="font-semibold text-[#24201D]">
+              <div className="font-bold text-[#1E1A18]">
                 Connected with {partnerName}
               </div>
-              <div className="text-[11px] text-[#807770]">
-                Space code: <span className="font-mono font-medium">{data.couple.inviteCode}</span>
+              <div className="text-[11px] text-[#756963]">
+                Space code: <span className="font-mono font-bold text-[#1E1A18]">{data.couple.inviteCode}</span>
               </div>
             </div>
           </div>
           <button
             type="button"
             onClick={handleCopyCode}
-            className="px-2.5 py-1 bg-[#F5F2EB] hover:bg-[#FCEBEE] hover:text-[#E06D75] rounded-xl text-xs font-semibold transition-all text-[#756963]"
+            className="px-3 py-1.5 bg-[#FAF7F2] hover:bg-[#FCEBEE] hover:text-[#AB3B46] rounded-xl text-xs font-bold transition-all text-[#756963] active:scale-95 border border-[#EAE6DE]"
           >
             {copied ? "Copied! ✓" : "Copy Code"}
           </button>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl p-4 border border-[#EAE6DE] shadow-sm space-y-2">
+        <div className="bg-white rounded-3xl p-5 border border-[#EAE6DE] shadow-xs space-y-3">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-xs font-bold text-[#24201D]">Pairing Sync Code</div>
-              <div className="text-[11px] text-[#756963]">Waiting for partner to link</div>
+              <div className="text-xs font-bold text-[#1E1A18]">Pairing Sync Code</div>
+              <div className="text-[11px] text-[#756963]">Waiting for your partner to link</div>
             </div>
             <button
               type="button"
               onClick={handleCopyCode}
-              className="px-3 py-1.5 bg-[#F5F2EB] hover:bg-[#FCEBEE] hover:text-[#E06D75] rounded-xl text-xs font-bold transition-all text-[#24201D]"
+              className="px-3 py-1.5 bg-[#FAF7F2] hover:bg-[#FCEBEE] hover:text-[#AB3B46] rounded-xl text-xs font-bold transition-all text-[#1E1A18] active:scale-95 border border-[#EAE6DE]"
             >
               {copied ? "Copied! ✓" : "Copy"}
             </button>
           </div>
-          <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-[#EAE6DE] font-mono text-center font-bold tracking-widest text-[#AB3B46] text-sm select-all">
+          <div className="p-3 rounded-2xl bg-[#FAF7F2] border border-[#EAE6DE] font-mono text-center font-bold tracking-widest text-[#AB3B46] text-base select-all">
             {data.couple.inviteCode}
           </div>
         </div>
       )}
 
       {/* Profile & Settings Details */}
-      <div className="bg-white rounded-2xl border border-[#EAE6DE] shadow-sm divide-y divide-[#EAE6DE]/60 text-xs">
-        <div className="p-3.5 flex items-center justify-between">
+      <div className="bg-white rounded-3xl border border-[#EAE6DE] shadow-2xs divide-y divide-[#EAE6DE]/60 text-xs overflow-hidden">
+        <div className="p-4 flex items-center justify-between">
           <div className="flex items-center gap-3 min-w-0">
             <Avatar
               avatar={data.user.avatar}
@@ -279,32 +376,34 @@ export function UsClient({ initialData }: UsClientProps) {
               className="w-10 h-10 rounded-xl bg-[#FAF7F2] border border-[#EAE6DE]"
             />
             <div className="min-w-0">
-              <div className="font-semibold text-[#24201D] truncate">{data.user.name}</div>
-              <div className="text-[10px] text-[#807770] truncate">{data.user.email}</div>
+              <div className="font-bold text-[#1E1A18] truncate">{data.user.name}</div>
+              <div className="text-[11px] text-[#756963] truncate">{data.user.email}</div>
             </div>
           </div>
           <button
             type="button"
             onClick={() => setEditModalOpen(true)}
-            className="px-3 py-1.5 bg-[#FAF7F2] hover:bg-[#FCEBEE] hover:text-[#E06D75] text-[#24201D] rounded-xl text-xs font-semibold border border-[#EAE6DE] transition-all shrink-0 ml-2"
+            className="px-3 py-1.5 bg-[#FAF7F2] hover:bg-[#FCEBEE] hover:text-[#AB3B46] text-[#1E1A18] rounded-xl text-xs font-bold border border-[#EAE6DE] transition-all shrink-0 ml-2 active:scale-95"
           >
             Edit Profile
           </button>
         </div>
 
         <div
-          className="p-3.5 flex items-center justify-between hover:bg-[#FAF7F2]/60 cursor-pointer"
+          className="p-4 flex items-center justify-between hover:bg-[#FAF7F2]/60 cursor-pointer transition-colors"
           onClick={() => setToastMessage("Daily 9:00 PM reminder is active ✨")}
         >
           <div className="flex items-center gap-2.5">
             <span className="text-base">🔔</span>
-            <span className="font-semibold text-[#24201D]">Daily Reminder</span>
+            <span className="font-semibold text-[#1E1A18]">Daily Reminder</span>
           </div>
-          <span className="text-[#557567] font-bold">9:00 PM</span>
+          <span className="text-[#557567] font-bold bg-[#F4F7F5] border border-[#E5EEE9] px-2 py-0.5 rounded-full text-[11px]">
+            9:00 PM
+          </span>
         </div>
 
         <div
-          className="p-3.5 flex items-center justify-between hover:bg-[#FAF7F2]/60 cursor-pointer text-red-600 font-semibold"
+          className="p-4 flex items-center justify-between hover:bg-red-50/60 cursor-pointer text-red-600 font-semibold transition-colors"
           onClick={async () => {
             document.cookie = "pairly_dev_user=; path=/; max-age=0";
             await signOut();
@@ -315,7 +414,7 @@ export function UsClient({ initialData }: UsClientProps) {
             <span className="text-base">🚪</span>
             <span>Sign Out</span>
           </div>
-          <span>›</span>
+          <span className="text-stone-400">›</span>
         </div>
       </div>
 
@@ -341,7 +440,7 @@ export function UsClient({ initialData }: UsClientProps) {
         streakCount={data.couple.streakCount}
       />
 
-      {/* Clean Points Adjust Modal (Add or Remove) */}
+      {/* Clean Points Adjust Modal (Add or Deduct) */}
       <PointsAdjustModal
         isOpen={bonusModalOpen}
         onClose={() => setBonusModalOpen(false)}

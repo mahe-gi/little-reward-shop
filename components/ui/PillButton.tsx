@@ -76,7 +76,11 @@ export function PillButton({
       ) : (
         icon && <span className="inline-flex shrink-0 items-center">{icon}</span>
       )}
-      <span>{children}</span>
+      {typeof children === "string" ? (
+        <span>{children}</span>
+      ) : (
+        <span className="inline-flex items-center gap-2">{children}</span>
+      )}
     </button>
   );
 }

@@ -17,60 +17,77 @@ export function StreakModal({ isOpen, onClose, streakCount }: StreakModalProps) 
 
   return (
     <ModalSheet isOpen={isOpen} onClose={onClose}>
-      <div className="text-center space-y-4 py-2">
-        <div className="w-14 h-14 rounded-2xl bg-[#FFFBF0] border border-[#FEF3D6] text-[#D99B26] text-3xl flex items-center justify-center mx-auto shadow-sm">
-          🔥
+      <div className="text-center space-y-5 py-2">
+        {/* Animated flame aura */}
+        <div className="relative w-20 h-20 mx-auto flex items-center justify-center">
+          <div className="absolute inset-0 rounded-3xl bg-[#FFFBF0] border border-[#FEF3D6] shadow-sm rotate-6" />
+          <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-b from-[#FFFBF0] to-[#FCEBEE] border border-[#FAD4DA] flex items-center justify-center text-3xl shadow-xs">
+            🔥
+          </div>
         </div>
 
-        <div>
-          <h3 className="font-serif text-xl font-bold text-[#24201D]">
-            {streakCount}-Day Couple Streak 🔥
+        <div className="space-y-1">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-[#D4AF37]">
+            Daily Devotion
+          </span>
+          <h3 className="font-serif text-2xl font-bold text-[#1E1A18] tracking-tight">
+            {streakCount}-Day Couple Streak
           </h3>
-          <p className="text-xs text-[#756963] mt-1 max-w-xs mx-auto">
-            You&apos;ve both shown up for {streakCount} {streakCount === 1 ? "day" : "days"}.
+          <p className="text-xs text-[#756963] max-w-xs mx-auto leading-relaxed">
+            Every day you show up and do something thoughtful for each other, your shared flame burns brighter.
           </p>
         </div>
 
-        {/* 7-Day Matrix */}
-        <div className="grid grid-cols-7 gap-1.5 py-2 max-w-xs mx-auto">
-          {days.map((day, idx) => {
-            const isToday = idx === todayDayOfWeek;
-            const isPast = idx < todayDayOfWeek;
-            const isFuture = idx > todayDayOfWeek;
-            const daysAgo = todayDayOfWeek - idx;
-            const isCompleted = (isToday || isPast) && daysAgo < streakCount;
+        {/* 7-Day Editorial Matrix */}
+        <div className="p-4 rounded-3xl bg-[#FAF7F2] border border-[#EAE6DE] max-w-xs mx-auto">
+          <div className="text-[10px] font-bold uppercase tracking-wider text-[#756963] mb-3">
+            This Week&apos;s Momentum
+          </div>
+          <div className="grid grid-cols-7 gap-1.5">
+            {days.map((day, idx) => {
+              const isToday = idx === todayDayOfWeek;
+              const isPast = idx < todayDayOfWeek;
+              const isFuture = idx > todayDayOfWeek;
+              const daysAgo = todayDayOfWeek - idx;
+              const isCompleted = (isToday || isPast) && daysAgo < streakCount;
 
-            return (
-              <div key={idx} className="text-center">
-                <span
-                  className={`text-[10px] font-semibold block mb-1 ${
-                    isToday ? "text-[#E06D75] font-bold" : "text-[#807770]"
-                  }`}
-                >
-                  {day}
-                </span>
-                <span
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold mx-auto transition-all ${
-                    isCompleted && isToday
-                      ? "bg-[#E06D75] text-white shadow-xs"
-                      : isCompleted
-                      ? "bg-[#7E9F85] text-white"
-                      : isToday
-                      ? "bg-white border-2 border-dashed border-[#E06D75] text-[#E06D75]"
-                      : isFuture
-                      ? "bg-stone-50 border border-stone-200 text-stone-300 font-normal"
-                      : "bg-[#F5F2EB] border border-[#EAE6DE] text-[#A89F99] font-normal"
-                  }`}
-                >
-                  {isCompleted ? "✓" : isToday ? "·" : isFuture ? "·" : "–"}
-                </span>
-              </div>
-            );
-          })}
+              return (
+                <div key={idx} className="text-center space-y-1">
+                  <span
+                    className={`text-[10px] font-bold block ${
+                      isToday ? "text-[#AB3B46]" : "text-[#756963]"
+                    }`}
+                  >
+                    {day}
+                  </span>
+                  <span
+                    className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold mx-auto transition-all ${
+                      isCompleted && isToday
+                        ? "bg-[#AB3B46] text-white shadow-xs scale-105"
+                        : isCompleted
+                        ? "bg-[#7E9F85] text-white shadow-2xs"
+                        : isToday
+                        ? "bg-white border-2 border-dashed border-[#AB3B46] text-[#AB3B46]"
+                        : isFuture
+                        ? "bg-white/60 border border-dashed border-[#EAE6DE] text-stone-300 font-normal"
+                        : "bg-white border border-[#EAE6DE] text-[#A89F99] font-normal"
+                    }`}
+                  >
+                    {isCompleted ? "✓" : isToday ? "·" : isFuture ? "·" : "–"}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
-        <PillButton variant="secondary" size="md" className="w-full" onClick={onClose}>
-          Back to Our Space
+        <PillButton
+          variant="secondary"
+          size="lg"
+          className="w-full font-bold active:scale-95 shadow-2xs"
+          onClick={onClose}
+        >
+          Return to Our Space
         </PillButton>
       </div>
     </ModalSheet>

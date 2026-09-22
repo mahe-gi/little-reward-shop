@@ -128,7 +128,7 @@ export function RewardsClient({
             return (
               <div
                 key={reward.id}
-                className="bg-white rounded-2xl p-3 border border-[#EAE6DE] hover:border-[#E06D75]/40 shadow-sm flex flex-col justify-between transition-all"
+                className="bg-white rounded-3xl p-3.5 border border-[#EAE6DE] hover:border-[#E06D75]/40 shadow-xs hover:shadow-md flex flex-col justify-between transition-all duration-200 group"
               >
                 <div
                   className="cursor-pointer"
@@ -137,15 +137,23 @@ export function RewardsClient({
                     setIsDetailOpen(true);
                   }}
                 >
-                  <div className="w-10 h-10 rounded-xl bg-[#FCEBEE] border border-[#FAD4DA] flex items-center justify-center text-xl mb-2">
-                    {reward.icon}
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="w-11 h-11 rounded-2xl bg-[#FCEBEE] border border-[#FAD4DA] flex items-center justify-center text-2xl group-hover:scale-105 transition-transform">
+                      {reward.icon}
+                    </div>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#FAF7F2] text-[#807770] uppercase tracking-wider border border-[#EAE6DE]">
+                      {reward.category}
+                    </span>
                   </div>
-                  <div className="text-xs font-bold text-[#24201D] truncate">
+
+                  <div className="text-xs font-bold text-[#24201D] truncate group-hover:text-[#E06D75] transition-colors">
                     {reward.title}
                   </div>
+
                   <div className="text-xs font-bold text-[#E06D75] mt-0.5">
                     {reward.cost} pts
                   </div>
+
                   {reward.description && (
                     <div className="text-[10px] text-[#807770] mt-1 leading-relaxed line-clamp-2">
                       {reward.description}
@@ -156,13 +164,13 @@ export function RewardsClient({
                 <button
                   type="button"
                   onClick={() => handleAddReward(reward)}
-                  className={`mt-2.5 w-full py-1.5 rounded-lg font-semibold text-xs transition-colors flex items-center justify-center gap-1 shadow-xs ${
+                  className={`mt-3 w-full py-1.5 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1 active:scale-95 shadow-2xs ${
                     isAdded
                       ? "bg-[#F0ECE1] text-[#756963] hover:bg-[#EAE6DE]"
-                      : "bg-[#F5F2EB] hover:bg-[#E06D75] hover:text-white text-[#24201D]"
+                      : "bg-[#FAF7F2] hover:bg-[#E06D75] hover:text-white text-[#24201D] border border-[#EAE6DE] hover:border-transparent"
                   }`}
                 >
-                  <span>{isAdded ? "Added" : "Add"}</span>
+                  <span>{isAdded ? "Added to Wishes ✓" : "+ Add to Wish"}</span>
                 </button>
               </div>
             );

@@ -5,13 +5,32 @@ import { prisma } from "@/lib/prisma";
 import { requireAuth, requireCouple } from "@/lib/permissions";
 import { generateUniqueInviteCode, joinCoupleAtomic } from "@/lib/couple";
 
+export async function touchPresence() {
+  try {
+    const { user } = await requireCouple();
+    const now = new Date();
+    await prisma.session.updateMany({
+      where: { userId: user.id },
+      data: { updatedAt: now },
+    });
+    return { success: true, lastActiveAt: now.toISOString() };
+  } catch {
+    return { success: false };
+  }
+}
+
 export async function getCoupleState() {
   try {
     const ctx = await requireCouple();
 
-    // Fetch last-active time for both users from their most-recent session.
-    // Better Auth touches session.updatedAt on every authenticated request,
-    // making it a reliable "last seen" signal.
+    // Touch active user's session right now so their live status is current
+    const now = new Date();
+    await prisma.session.updateMany({
+      where: { userId: ctx.user.id },
+      data: { updatedAt: now },
+    }).catch(() => {});
+
+    // Fetch last-active time for both users from their most-recent session
     const userIds = [ctx.user.id, ctx.partner?.id].filter(Boolean) as string[];
     const latestSessions = await prisma.session.findMany({
       where: { userId: { in: userIds } },
@@ -23,13 +42,36 @@ export async function getCoupleState() {
       latestSessions.map((s) => [s.userId, s.updatedAt.toISOString()])
     );
 
+    // Ensure current active user is registered with current time
+    sessionMap[ctx.user.id] = now.toISOString();
+
+    // If partner has no explicit session record yet, check latest activity or user timestamp as fallback
+    if (ctx.partner && !sessionMap[ctx.partner.id]) {
+      const [latestAct, partnerUser] = await Promise.all([
+        prisma.activity.findFirst({
+          where: { actorUserId: ctx.partner.id },
+          orderBy: { createdAt: "desc" },
+          select: { createdAt: true },
+        }),
+        prisma.user.findUnique({
+          where: { id: ctx.partner.id },
+          select: { updatedAt: true, createdAt: true },
+        }),
+      ]);
+
+      const fallbackTime = latestAct?.createdAt || partnerUser?.updatedAt || partnerUser?.createdAt;
+      if (fallbackTime) {
+        sessionMap[ctx.partner.id] = fallbackTime.toISOString();
+      }
+    }
+
     return {
       success: true,
       data: {
         ...ctx,
         user: {
           ...ctx.user,
-          lastActiveAt: sessionMap[ctx.user.id] ?? null,
+          lastActiveAt: sessionMap[ctx.user.id] ?? now.toISOString(),
         },
         partner: ctx.partner
           ? {
