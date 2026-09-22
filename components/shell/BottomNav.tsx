@@ -130,6 +130,7 @@ export function BottomNav({
             <Link
               key={tab.id}
               href={tab.href}
+              prefetch={false}
               className="focus:outline-none"
             >
               {content}

@@ -127,7 +127,7 @@ export async function giveTask(
       return { success: false, error: "Please enter a task title." };
     }
 
-    const validPoints = Math.max(1, Math.min(points, 20));
+    const validPoints = Math.max(1, Math.min(points, 100));
 
     const task = await prisma.$transaction(async (tx) => {
       const created = await tx.task.create({

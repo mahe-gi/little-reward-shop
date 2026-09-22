@@ -1,4 +1,5 @@
 import { headers } from "next/headers";
+import { cache } from "react";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -29,9 +30,11 @@ export interface AuthenticatedContext {
 }
 
 /**
- * Validates authenticated session against database.
+ * Validates authenticated session and loads user with their couple space in ONE single DB query.
+ * Cached per request with React.cache() so multiple actions or components in the same render
+ * make zero duplicate queries.
  */
-export async function requireAuth(): Promise<AuthenticatedUser> {
+export const requireAuth = cache(async (): Promise<AuthenticatedUser> => {
   const reqHeaders = await headers();
 
   try {
@@ -42,16 +45,17 @@ export async function requireAuth(): Promise<AuthenticatedUser> {
     if (session?.user) {
       const dbUser = await prisma.user.findUnique({
         where: { id: session.user.id },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          avatar: true,
+          pointBalance: true,
+        },
       });
 
       if (dbUser) {
-        return {
-          id: dbUser.id,
-          name: dbUser.name,
-          email: dbUser.email,
-          avatar: dbUser.avatar,
-          pointBalance: dbUser.pointBalance,
-        };
+        return dbUser;
       }
     }
   } catch {
@@ -59,22 +63,49 @@ export async function requireAuth(): Promise<AuthenticatedUser> {
   }
 
   throw new Error("UNAUTHORIZED: Session is required to perform this action.");
-}
+});
 
 /**
- * Validates that user belongs to an active couple space.
+ * Validates that user belongs to an active couple space in a single optimized DB query.
+ * Cached per request with React.cache().
  */
-export async function requireCouple(): Promise<AuthenticatedContext> {
-  const user = await requireAuth();
+export const requireCouple = cache(async (): Promise<AuthenticatedContext> => {
+  const reqHeaders = await headers();
 
-  const membership = await prisma.coupleMember.findUnique({
-    where: { userId: user.id },
-    include: {
-      couple: {
+  const session = await auth.api.getSession({
+    headers: reqHeaders,
+  });
+
+  if (!session?.user?.id) {
+    throw new Error("UNAUTHORIZED: Session is required to perform this action.");
+  }
+
+  // Combined Single Join: Fetch user + couple membership + partner in 1 query
+  const dbUser = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      avatar: true,
+      pointBalance: true,
+      coupleMember: {
         include: {
-          members: {
+          couple: {
             include: {
-              user: true,
+              members: {
+                include: {
+                  user: {
+                    select: {
+                      id: true,
+                      name: true,
+                      email: true,
+                      avatar: true,
+                      pointBalance: true,
+                    },
+                  },
+                },
+              },
             },
           },
         },
@@ -82,24 +113,27 @@ export async function requireCouple(): Promise<AuthenticatedContext> {
     },
   });
 
+  if (!dbUser) {
+    throw new Error("UNAUTHORIZED: User not found.");
+  }
+
+  const membership = dbUser.coupleMember;
   if (!membership || !membership.couple) {
     throw new Error("NO_COUPLE: You are not part of an active couple space yet.");
   }
 
   const couple = membership.couple;
-  const partnerMember = couple.members.find((m: { userId: string }) => m.userId !== user.id);
-  const partner = partnerMember?.user
-    ? {
-        id: partnerMember.user.id,
-        name: partnerMember.user.name,
-        email: partnerMember.user.email,
-        avatar: partnerMember.user.avatar,
-        pointBalance: partnerMember.user.pointBalance,
-      }
-    : null;
+  const partnerMember = couple.members.find((m) => m.userId !== dbUser.id);
+  const partner = partnerMember?.user ?? null;
 
   return {
-    user,
+    user: {
+      id: dbUser.id,
+      name: dbUser.name,
+      email: dbUser.email,
+      avatar: dbUser.avatar,
+      pointBalance: dbUser.pointBalance,
+    },
     couple: {
       id: couple.id,
       name: couple.name || "Our Space",
@@ -115,7 +149,7 @@ export async function requireCouple(): Promise<AuthenticatedContext> {
     },
     partner,
   };
-}
+});
 
 /**
  * Validates that the task is assigned to the current user.

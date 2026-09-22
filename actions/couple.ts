@@ -8,7 +8,37 @@ import { generateUniqueInviteCode, joinCoupleAtomic } from "@/lib/couple";
 export async function getCoupleState() {
   try {
     const ctx = await requireCouple();
-    return { success: true, data: ctx };
+
+    // Fetch last-active time for both users from their most-recent session.
+    // Better Auth touches session.updatedAt on every authenticated request,
+    // making it a reliable "last seen" signal.
+    const userIds = [ctx.user.id, ctx.partner?.id].filter(Boolean) as string[];
+    const latestSessions = await prisma.session.findMany({
+      where: { userId: { in: userIds } },
+      orderBy: { updatedAt: "desc" },
+      distinct: ["userId"],
+      select: { userId: true, updatedAt: true },
+    });
+    const sessionMap = Object.fromEntries(
+      latestSessions.map((s) => [s.userId, s.updatedAt.toISOString()])
+    );
+
+    return {
+      success: true,
+      data: {
+        ...ctx,
+        user: {
+          ...ctx.user,
+          lastActiveAt: sessionMap[ctx.user.id] ?? null,
+        },
+        partner: ctx.partner
+          ? {
+              ...ctx.partner,
+              lastActiveAt: sessionMap[ctx.partner.id] ?? null,
+            }
+          : null,
+      },
+    };
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : "Unknown error";
     return { success: false, error: msg };

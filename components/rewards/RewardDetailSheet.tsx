@@ -13,6 +13,7 @@ export interface RewardDetailSheetProps {
     description: string;
     cost: number;
     icon: string;
+    category?: string;
   } | null;
   onAddToCart?: (reward: { id: string; title: string; cost: number; icon: string }) => void;
 }
@@ -37,14 +38,27 @@ export function RewardDetailSheet({
           <h3 className="font-serif text-xl font-bold text-[#24201D] tracking-tight">
             {reward.title}
           </h3>
-          <div className="inline-block mt-1.5 px-3 py-0.5 rounded-full bg-[#FCEBEE] text-[#AB3B46] font-bold text-xs">
-            {reward.cost} points
+          <div className="flex items-center justify-center gap-2 mt-2">
+            <span className="px-3 py-0.5 rounded-full bg-[#FCEBEE] text-[#AB3B46] font-bold text-xs">
+              {reward.cost} points
+            </span>
+            {reward.category && (
+              <span className="px-2.5 py-0.5 rounded-full bg-[#FAF7F2] border border-[#EAE6DE] text-[#756963] font-medium text-[11px] uppercase tracking-wide">
+                {reward.category}
+              </span>
+            )}
           </div>
         </div>
 
-        <p className="text-xs text-[#756963] leading-relaxed px-4 max-w-xs mx-auto">
-          {reward.description}
-        </p>
+        {/* Detailed description section */}
+        <div className="bg-[#FAF7F2] border border-[#EAE6DE] rounded-2xl p-3.5 text-left max-w-sm mx-auto space-y-1">
+          <div className="text-[10px] font-bold uppercase tracking-wider text-[#807770]">
+            Details &amp; Perks
+          </div>
+          <p className="text-xs text-[#24201D] leading-relaxed">
+            {reward.description?.trim() ? reward.description : "No specific details provided for this reward."}
+          </p>
+        </div>
 
         <div className="pt-3 space-y-2">
           <PillButton
