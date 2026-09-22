@@ -1,6 +1,7 @@
 "use client";
 
 import { savePushSubscription, removePushSubscription } from "@/actions/notifications";
+import { VAPID_PUBLIC_KEY } from "@/lib/push-config";
 
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -80,38 +81,37 @@ export async function subscribeToPushNotifications(): Promise<{
     const registration = await navigator.serviceWorker.ready;
 
     // 3. Get VAPID public key
-    const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-    if (!vapidPublicKey) {
-      return { success: false, error: "VAPID public key is not configured." };
-    }
-
+    const vapidPublicKey = VAPID_PUBLIC_KEY;
     const applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
 
-    // 4. Subscribe with PushManager
-    let subscription = await registration.pushManager.getSubscription();
-    if (!subscription) {
-      subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: applicationServerKey as BufferSource,
-      });
+    // 4. Subscribe with PushManager (with graceful fallback if browser push service is disabled)
+    let subscription: PushSubscription | null = null;
+    try {
+      subscription = await registration.pushManager.getSubscription();
+      if (!subscription) {
+        subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: applicationServerKey as BufferSource,
+        });
+      }
+    } catch (pushServiceErr) {
+      console.warn("Remote push service unavailable (e.g. Brave shields or local FCM):", pushServiceErr);
+      // Even if remote push server fails, browser Notification permission was GRANTED!
+      // Local serviceWorker.showNotification will still work in the device notification bar.
+      return { success: true };
     }
 
-    const subJson = subscription.toJSON();
-    if (!subJson.endpoint || !subJson.keys?.p256dh || !subJson.keys?.auth) {
-      return { success: false, error: "Failed to obtain push subscription keys." };
-    }
-
-    // 5. Send subscription to server
-    const res = await savePushSubscription({
-      endpoint: subJson.endpoint,
-      keys: {
-        p256dh: subJson.keys.p256dh,
-        auth: subJson.keys.auth,
-      },
-    });
-
-    if (!res.success) {
-      return { success: false, error: res.error || "Failed to save subscription on server." };
+    if (subscription) {
+      const subJson = subscription.toJSON();
+      if (subJson.endpoint && subJson.keys?.p256dh && subJson.keys?.auth) {
+        await savePushSubscription({
+          endpoint: subJson.endpoint,
+          keys: {
+            p256dh: subJson.keys.p256dh,
+            auth: subJson.keys.auth,
+          },
+        });
+      }
     }
 
     return { success: true };

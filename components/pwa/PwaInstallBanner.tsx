@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { PillButton } from "@/components/ui/PillButton";
+import { subscribeToPushNotifications } from "@/lib/web-push-client";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -53,6 +54,10 @@ export function PwaInstallBanner({ className = "" }: { className?: string }) {
       const choice = await deferredPrompt.userChoice;
       if (choice.outcome === "accepted") {
         setIsStandalone(true);
+        // Ask for phone notification bar permission right upon installation!
+        if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "default") {
+          subscribeToPushNotifications().catch(() => {});
+        }
       }
       setDeferredPrompt(null);
     } else if (isIOS) {
@@ -86,8 +91,8 @@ export function PwaInstallBanner({ className = "" }: { className?: string }) {
         <div className="flex items-start justify-between gap-3 relative z-10">
           <div className="flex items-center gap-3.5 min-w-0">
             {/* App Icon badge */}
-            <div className="w-12 h-12 rounded-2xl bg-white border border-[#FAD4DA] shadow-xs flex items-center justify-center text-2xl shrink-0">
-              📲
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#FFFBF0] to-[#FCEBEE] border border-[#FAD4DA] shadow-xs flex items-center justify-center font-serif font-bold text-lg text-[#E06D75] shrink-0">
+              P
             </div>
 
             <div className="min-w-0">

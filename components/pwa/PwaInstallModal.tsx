@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { ModalSheet } from "@/components/ui/ModalSheet";
 import { PillButton } from "@/components/ui/PillButton";
+import { subscribeToPushNotifications } from "@/lib/web-push-client";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -46,6 +47,10 @@ export function PwaInstallModal({ isOpen, onClose, onInstalled }: PwaInstallModa
         await deferredPrompt.prompt();
         const choice = await deferredPrompt.userChoice;
         if (choice.outcome === "accepted") {
+          // Immediately prompt for phone notification bar permission
+          if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "default") {
+            await subscribeToPushNotifications().catch(() => {});
+          }
           onInstalled?.();
           onClose();
         }

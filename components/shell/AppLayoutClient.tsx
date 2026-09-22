@@ -9,12 +9,29 @@ import { FloatingCartBar } from "@/components/shell/FloatingCartBar";
 import { Toast } from "@/components/ui/Toast";
 import { touchPresence } from "@/actions/couple";
 import { getNotifications } from "@/actions/notifications";
+import { subscribeToPushNotifications } from "@/lib/web-push-client";
 
 function AppShellContent({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const { items, totalCount, totalCost } = useCart();
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [showNotificationPrompt, setShowNotificationPrompt] = useState(false);
+
+  // Check standalone mode for prompt
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const isStandalone =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      (window.navigator as unknown as { standalone?: boolean }).standalone === true;
+
+    if (isStandalone && "Notification" in window && Notification.permission === "default") {
+      const dismissed = sessionStorage.getItem("pairly_standalone_notif_prompt");
+      if (!dismissed) {
+        setShowNotificationPrompt(true);
+      }
+    }
+  }, []);
 
   // Register Service Worker & Heartbeat
   useEffect(() => {
@@ -129,6 +146,37 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
         ) : undefined
       }
     >
+      {showNotificationPrompt && (
+        <div className="bg-[#FFFBF0] border-b border-[#FEF3D6] px-4 py-2.5 flex items-center justify-between text-xs text-[#24201D] transition-all">
+          <div className="flex items-center gap-2">
+            <span className="text-[#D4AF37] font-bold">✦</span>
+            <span>Enable phone notification bar alerts?</span>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={async () => {
+                setShowNotificationPrompt(false);
+                const res = await subscribeToPushNotifications();
+                if (res.success) {
+                  setToastMessage("Notification bar alerts enabled");
+                }
+              }}
+              className="px-2.5 py-1 bg-[#24201D] text-white rounded-lg text-[11px] font-bold shadow-2xs hover:bg-black transition-colors"
+            >
+              Enable
+            </button>
+            <button
+              onClick={() => {
+                setShowNotificationPrompt(false);
+                sessionStorage.setItem("pairly_standalone_notif_prompt", "true");
+              }}
+              className="text-[11px] text-[#756963] hover:text-[#1E1A18]"
+            >
+              Later
+            </button>
+          </div>
+        </div>
+      )}
       {children}
 
       <Toast
