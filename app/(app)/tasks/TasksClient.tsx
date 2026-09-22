@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { completeTask, getTasks } from "@/actions/tasks";
+import { completeTask, getTasks, giveTask } from "@/actions/tasks";
 import { GiveTaskSheet } from "@/components/tasks/GiveTaskSheet";
 import { PillButton } from "@/components/ui/PillButton";
 import { Toast } from "@/components/ui/Toast";
@@ -33,6 +33,7 @@ export function TasksClient({
   const [givenTasks, setGivenTasks] = useState<TaskItem[]>(initialGivenTasks);
   const [isGiveSheetOpen, setIsGiveSheetOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [completingIds, setCompletingIds] = useState<Record<string, boolean>>({});
 
   const refreshTasks = async () => {
     const res = await getTasks();
@@ -43,15 +44,24 @@ export function TasksClient({
   };
 
   const handleComplete = async (task: TaskItem) => {
-    if (task.status === "COMPLETED") return;
+    if (task.status === "COMPLETED" || completingIds[task.id]) return;
+
+    setCompletingIds((prev) => ({ ...prev, [task.id]: true }));
+    // Optimistic instant feedback
+    setMyTasks((prev) =>
+      prev.map((t) => (t.id === task.id ? { ...t, status: "COMPLETED" } : t))
+    );
+    setToastMessage(`Habit completed! +${task.points} pts added to wallet.`);
 
     const res = await completeTask(task.id);
-    if (res.success) {
+    if (!res.success) {
+      // Revert if server failed
       setMyTasks((prev) =>
-        prev.map((t) => (t.id === task.id ? { ...t, status: "COMPLETED" } : t))
+        prev.map((t) => (t.id === task.id ? { ...t, status: task.status } : t))
       );
-      setToastMessage(`🎉 Habit completed! +${task.points} pts added to your wallet.`);
+      setToastMessage(res.error || "Failed to complete habit");
     }
+    setCompletingIds((prev) => ({ ...prev, [task.id]: false }));
   };
 
   return (
@@ -91,9 +101,9 @@ export function TasksClient({
               key={preset.title}
               type="button"
               onClick={async () => {
-                const res = await (await import("@/actions/tasks")).giveTask(preset.title, preset.pts);
+                setToastMessage(`Sent "${preset.title}" (+${preset.pts} pts) to ${partnerName}`);
+                const res = await giveTask(preset.title, preset.pts);
                 if (res.success) {
-                  setToastMessage(`Sent "${preset.title}" (+${preset.pts} pts) to ${partnerName}! ✨`);
                   refreshTasks();
                 } else {
                   setToastMessage(res.error || "Failed to give task");

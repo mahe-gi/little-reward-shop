@@ -10,6 +10,7 @@ import { Toast } from "@/components/ui/Toast";
 import { touchPresence } from "@/actions/couple";
 import { getNotifications } from "@/actions/notifications";
 import { subscribeToPushNotifications } from "@/lib/web-push-client";
+import { NavigationProgress } from "@/components/ui/NavigationProgress";
 
 function AppShellContent({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -41,18 +42,29 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
     }
 
     // 2. Initial touch presence
-    touchPresence().catch(() => {});
+    let isTouching = false;
+    const doTouch = () => {
+      if (isTouching) return;
+      isTouching = true;
+      touchPresence()
+        .catch(() => {})
+        .finally(() => {
+          isTouching = false;
+        });
+    };
+
+    doTouch();
 
     // Heartbeat every 45s
     const heartbeatInterval = setInterval(() => {
       if (typeof document !== "undefined" && document.visibilityState === "visible") {
-        touchPresence().catch(() => {});
+        doTouch();
       }
     }, 45000);
 
     const handleVisibility = () => {
       if (document.visibilityState === "visible") {
-        touchPresence().catch(() => {});
+        doTouch();
       }
     };
     document.addEventListener("visibilitychange", handleVisibility);
@@ -67,11 +79,15 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let latestKnownId: string | null = null;
     let initialized = false;
+    let isChecking = false;
 
     const checkNotifications = async () => {
+      if (isChecking) return;
       if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
 
-      const res = await getNotifications();
+      isChecking = true;
+      try {
+        const res = await getNotifications();
       if (res.success && res.data && res.data.notifications.length > 0) {
         const newest = res.data.notifications[0];
 
@@ -113,9 +129,12 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
       } else if (!initialized) {
         initialized = true;
       }
-    };
+    } finally {
+      isChecking = false;
+    }
+  };
 
-    checkNotifications();
+  checkNotifications();
     const notifInterval = setInterval(checkNotifications, 20000);
 
     return () => clearInterval(notifInterval);
@@ -146,6 +165,7 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
         ) : undefined
       }
     >
+      <NavigationProgress />
       {showNotificationPrompt && (
         <div className="bg-[#FFFBF0] border-b border-[#FEF3D6] px-4 py-2.5 flex items-center justify-between text-xs text-[#24201D] transition-all">
           <div className="flex items-center gap-2">

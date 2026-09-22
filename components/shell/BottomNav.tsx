@@ -42,8 +42,14 @@ export function BottomNav({
   className = "",
 }: BottomNavProps) {
   const pathname = usePathname();
+  const [optimisticTab, setOptimisticTab] = React.useState<NavTabId | null>(null);
+
+  React.useEffect(() => {
+    setOptimisticTab(null);
+  }, [pathname]);
 
   const getIsActive = (tab: NavTabItem) => {
+    if (optimisticTab) return optimisticTab === tab.id;
     if (activeTab) return activeTab === tab.id;
     if (!pathname) return tab.id === "home";
     if (tab.href === "/home") return pathname === "/" || pathname === "/home";
@@ -137,7 +143,7 @@ export function BottomNav({
               <Link
                 key={tab.id}
                 href={tab.href}
-                prefetch={false}
+                onClick={() => setOptimisticTab(tab.id)}
                 className="focus:outline-none flex-1 flex justify-center"
               >
                 {content}

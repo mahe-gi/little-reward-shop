@@ -130,7 +130,6 @@ export function HomeClient({ initialData, initialTasks }: HomeClientProps) {
             </span>
             <Link
               href="/rewards"
-              prefetch={false}
               className="px-3 py-1 rounded-full bg-white text-[#AB3B46] hover:bg-white/90 font-bold text-[11px] shadow-sm transition-transform active:scale-95"
             >
               Treat Yourself →
@@ -150,7 +149,6 @@ export function HomeClient({ initialData, initialTasks }: HomeClientProps) {
           </h2>
           <Link
             href="/tasks"
-            prefetch={false}
             className="text-xs font-semibold text-[#AB3B46] hover:text-[#BA3F4A] transition-colors"
           >
             See All →

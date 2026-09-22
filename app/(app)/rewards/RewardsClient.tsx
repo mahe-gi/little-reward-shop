@@ -45,24 +45,21 @@ export function RewardsClient({
 }: RewardsClientProps) {
   const { items, addItem } = useCart();
   const [selectedCategory, setSelectedCategory] = useState("ALL");
-  const [partnerRewards, setPartnerRewards] = useState<RewardItem[]>(initialPartnerRewards);
+  const [allPartnerRewards, setAllPartnerRewards] = useState<RewardItem[]>(initialPartnerRewards);
   const [myOfferedRewards, setMyOfferedRewards] = useState<OfferedRewardItem[]>(initialMyOfferedRewards);
   const [availablePoints, setAvailablePoints] = useState(initialAvailablePoints);
   const [selectedReward, setSelectedReward] = useState<RewardItem | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isMyRewardsOpen, setIsMyRewardsOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [filterLoading, setFilterLoading] = useState(false);
 
-  const handleCategoryChange = async (cat: string) => {
+  const displayedRewards =
+    selectedCategory === "ALL"
+      ? allPartnerRewards
+      : allPartnerRewards.filter((r) => r.category === selectedCategory);
+
+  const handleCategoryChange = (cat: string) => {
     setSelectedCategory(cat);
-    setFilterLoading(true);
-    const res = await getRewards(cat);
-    if (res.success && res.data) {
-      setPartnerRewards(res.data.partnerRewards as unknown as RewardItem[]);
-      setMyOfferedRewards(res.data.myOfferedRewards as unknown as OfferedRewardItem[]);
-    }
-    setFilterLoading(false);
   };
 
   const handleAddReward = (reward: { id: string; title: string; cost: number; icon: string }) => {
@@ -107,13 +104,11 @@ export function RewardsClient({
       </div>
 
       {/* 2-Column Reward Grid */}
-      {filterLoading ? (
-        <div className="py-12 flex justify-center">
-          <div className="w-6 h-6 rounded-full border-2 border-[#E06D75] border-t-transparent animate-spin" />
-        </div>
-      ) : partnerRewards.length === 0 ? (
+      {displayedRewards.length === 0 ? (
         <div className="p-8 text-center bg-white rounded-3xl border border-[#EAE6DE] space-y-2 mt-2">
-          <div className="text-3xl">🎁</div>
+          <div className="w-12 h-12 rounded-2xl bg-[#FAF7F2] border border-[#EAE6DE] flex items-center justify-center text-xl text-[#756963] mx-auto">
+            ✦
+          </div>
           <div className="font-serif text-base font-bold text-[#24201D]">
             No rewards in this category
           </div>
@@ -123,7 +118,7 @@ export function RewardsClient({
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-2.5 px-1">
-          {partnerRewards.map((reward) => {
+          {displayedRewards.map((reward) => {
             const isAdded = items.some((i) => i.rewardId === reward.id);
             return (
               <div
@@ -206,7 +201,7 @@ export function RewardsClient({
         onRewardCreated={async () => {
           const res = await getRewards(selectedCategory);
           if (res.success && res.data) {
-            setPartnerRewards(res.data.partnerRewards as unknown as RewardItem[]);
+            setAllPartnerRewards(res.data.partnerRewards as unknown as RewardItem[]);
             setMyOfferedRewards(res.data.myOfferedRewards as unknown as OfferedRewardItem[]);
           }
         }}
