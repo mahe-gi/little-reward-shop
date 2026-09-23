@@ -4,7 +4,11 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireCouple } from "@/lib/permissions";
 import { sendPushNotification } from "@/lib/push";
-import { getQuestionForDate, getTodayDateString } from "@/lib/daily-spark-questions";
+import {
+  getQuestionForDate,
+  getRandomSparkQuestion,
+  getTodayDateString,
+} from "@/lib/daily-spark-questions";
 
 export interface SparkAnswerSummary {
   id: string;
@@ -43,22 +47,30 @@ export async function getTodaySpark(): Promise<{
   try {
     const { user, couple, partner } = await requireCouple();
     const todayDate = getTodayDateString();
+    const newCategories = ["Cute & Flirty", "This or That", "Fun & Silly", "Food & Mood", "Little Moments"];
 
     // 1. Find or create today's question deterministically from the curated questions library
     let question = await prisma.dailyQuestion.findUnique({
       where: { date: todayDate },
     });
 
+    const def = getQuestionForDate(todayDate);
     if (!question) {
-      const def = getQuestionForDate(todayDate);
-      question = await prisma.dailyQuestion.upsert({
-        where: { date: todayDate },
-        create: {
+      question = await prisma.dailyQuestion.create({
+        data: {
           date: todayDate,
           question: def.question,
           category: def.category,
         },
-        update: {},
+      });
+    } else if (!newCategories.includes(question.category)) {
+      // Auto-upgrade legacy question to new relationship questions
+      question = await prisma.dailyQuestion.update({
+        where: { id: question.id },
+        data: {
+          question: def.question,
+          category: def.category,
+        },
       });
     }
 
@@ -368,3 +380,74 @@ export async function getSparkHistory(): Promise<{
     return { success: false, error: msg };
   }
 }
+
+export async function shuffleTodayQuestion(): Promise<{
+  success: boolean;
+  question?: { id: string; question: string; category: string; date: string };
+  error?: string;
+}> {
+  try {
+    const { couple } = await requireCouple();
+    const todayDate = getTodayDateString();
+
+    const existingQuestion = await prisma.dailyQuestion.findUnique({
+      where: { date: todayDate },
+      include: {
+        answers: {
+          where: { coupleId: couple.id, pointsAwarded: true },
+        },
+      },
+    });
+
+    if (existingQuestion && existingQuestion.answers.length >= 2) {
+      return {
+        success: false,
+        error: "Today's question is already completed and unlocked!",
+      };
+    }
+
+    const newDef = getRandomSparkQuestion(existingQuestion?.question);
+
+    let updatedQuestion;
+    if (existingQuestion) {
+      await prisma.dailyAnswer.deleteMany({
+        where: {
+          questionId: existingQuestion.id,
+          coupleId: couple.id,
+          pointsAwarded: false,
+        },
+      });
+
+      updatedQuestion = await prisma.dailyQuestion.update({
+        where: { id: existingQuestion.id },
+        data: {
+          question: newDef.question,
+          category: newDef.category,
+        },
+      });
+    } else {
+      updatedQuestion = await prisma.dailyQuestion.create({
+        data: {
+          date: todayDate,
+          question: newDef.question,
+          category: newDef.category,
+        },
+      });
+    }
+
+    revalidatePath("/home");
+    return {
+      success: true,
+      question: {
+        id: updatedQuestion.id,
+        question: updatedQuestion.question,
+        category: updatedQuestion.category,
+        date: updatedQuestion.date,
+      },
+    };
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "Failed to shuffle question";
+    return { success: false, error: msg };
+  }
+}
+

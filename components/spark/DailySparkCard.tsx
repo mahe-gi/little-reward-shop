@@ -5,6 +5,7 @@ import {
   TodaySparkData,
   getTodaySpark,
   submitSparkAnswer,
+  shuffleTodayQuestion,
 } from "@/actions/spark";
 import { SparkHistoryModal } from "./SparkHistoryModal";
 
@@ -23,6 +24,7 @@ export function DailySparkCard({
   const [loading, setLoading] = useState(!initialData);
   const [answerInput, setAnswerInput] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [shuffling, setShuffling] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
 
   useEffect(() => {
@@ -63,6 +65,26 @@ export function DailySparkCard({
     }
   };
 
+  const handleShuffle = async () => {
+    if (shuffling || isUnlocked) return;
+    setShuffling(true);
+    try {
+      const res = await shuffleTodayQuestion();
+      if (res.success && res.question) {
+        setAnswerInput("");
+        onToast?.("Swapped to a fresh question! 🔀");
+        const refreshed = await getTodaySpark();
+        if (refreshed.success && refreshed.data) {
+          setData(refreshed.data);
+        }
+      } else {
+        onToast?.(res.error || "Could not swap question");
+      }
+    } finally {
+      setShuffling(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="rounded-3xl bg-white p-5 border border-[#EAE6DE] shadow-2xs animate-pulse space-y-3">
@@ -100,14 +122,29 @@ export function DailySparkCard({
             </span>
           </div>
 
-          <button
-            type="button"
-            onClick={() => setHistoryOpen(true)}
-            className="text-[11px] font-bold text-[#756963] hover:text-[#AB3B46] flex items-center gap-1 transition-colors cursor-pointer"
-          >
-            <span>Memories</span>
-            <span>📖</span>
-          </button>
+          <div className="flex items-center gap-2.5">
+            {!isUnlocked && (
+              <button
+                type="button"
+                disabled={shuffling}
+                onClick={handleShuffle}
+                title="Swap to a different cute question"
+                className="text-[11px] font-semibold text-[#756963] hover:text-[#AB3B46] flex items-center gap-1 transition-colors cursor-pointer disabled:opacity-50"
+              >
+                <span>{shuffling ? "..." : "Swap"}</span>
+                <span>🔀</span>
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={() => setHistoryOpen(true)}
+              className="text-[11px] font-bold text-[#756963] hover:text-[#AB3B46] flex items-center gap-1 transition-colors cursor-pointer"
+            >
+              <span>Memories</span>
+              <span>📖</span>
+            </button>
+          </div>
         </div>
 
         {/* The Daily Question */}
@@ -117,10 +154,10 @@ export function DailySparkCard({
           </h3>
           <p className="text-[11px] text-[#756963]">
             {isUnlocked
-              ? "Both answered! Answers are unlocked below ✨"
+              ? "Both answered! See your answers below ✨"
               : hasMyAnswer
-              ? `Waiting for ${partnerName} to answer... Answers will unlock automatically!`
-              : `Answer blindly — ${partnerName}'s response stays locked until you submit.`}
+              ? `Waiting for ${partnerName} to answer... It will unlock automatically!`
+              : `Answer to see what ${partnerName} wrote! ✨`}
           </p>
         </div>
 
@@ -137,7 +174,7 @@ export function DailySparkCard({
                       {partnerName} has already answered!
                     </div>
                     <div className="text-[11px] text-[#756963]">
-                      Submit your response below to unlock what they wrote.
+                      Submit your answer below to see what they wrote!
                     </div>
                   </div>
                 </div>
@@ -164,7 +201,7 @@ export function DailySparkCard({
                 onChange={(e) => setAnswerInput(e.target.value)}
                 maxLength={500}
                 rows={2}
-                placeholder="Write your honest, loving answer here..."
+                placeholder="Type your answer here..."
                 className="w-full p-3 bg-white border border-[#EAE6DE] rounded-2xl text-xs text-[#1E1A18] placeholder:text-[#A89F99] focus:outline-hidden focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] shadow-2xs transition-all resize-none leading-relaxed"
               />
 
@@ -177,7 +214,7 @@ export function DailySparkCard({
                   disabled={!answerInput.trim() || submitting}
                   className="px-4 py-2 bg-[#1E1A18] hover:bg-[#AB3B46] text-white rounded-xl text-xs font-bold shadow-2xs transition-all active:scale-95 disabled:opacity-40 disabled:hover:bg-[#1E1A18] cursor-pointer flex items-center gap-1.5"
                 >
-                  <span>{submitting ? "Locking in..." : "Lock In & Reveal"}</span>
+                  <span>{submitting ? "Saving..." : "Lock In & Reveal"}</span>
                   <span>✨</span>
                 </button>
               </div>
