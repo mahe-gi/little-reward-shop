@@ -50,7 +50,20 @@ function formatPresence(isoString: string | null | undefined): { isOnline: boole
 export interface UsData {
   user: { id: string; name: string; email: string; avatar: string | null; pointBalance: number; lastActiveAt: string | null };
   couple: { id: string; name: string; inviteCode: string; streakCount: number };
-  partner: { id: string; name: string; email: string; avatar: string | null; pointBalance: number; lastActiveAt: string | null } | null;
+  partner: {
+    id: string;
+    name: string;
+    email: string;
+    avatar: string | null;
+    pointBalance: number;
+    lastActiveAt: string | null;
+    hasPushEnabled?: boolean;
+    latestNotification?: {
+      title: string;
+      createdAt: string;
+      readAt: string | null;
+    } | null;
+  } | null;
 }
 
 interface UsClientProps {
@@ -337,25 +350,54 @@ export function UsClient({ initialData }: UsClientProps) {
 
       {/* Connected Partner Space Status */}
       {data.partner ? (
-        <div className="bg-white rounded-3xl px-4 py-3.5 border border-[#EAE6DE] shadow-2xs flex items-center justify-between text-xs">
-          <div className="flex items-center gap-3">
-            <span className="w-3 h-3 rounded-full bg-[#7E9F85] shadow-xs" />
-            <div>
-              <div className="font-bold text-[#1E1A18]">
-                Connected with {partnerName}
-              </div>
-              <div className="text-[11px] text-[#756963]">
-                Space code: <span className="font-mono font-bold text-[#1E1A18]">{data.couple.inviteCode}</span>
+        <div className="bg-white rounded-3xl p-4 border border-[#EAE6DE] shadow-2xs space-y-3 text-xs">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="w-3 h-3 rounded-full bg-[#7E9F85] shadow-xs shrink-0" />
+              <div>
+                <div className="font-bold text-[#1E1A18]">
+                  Connected with {partnerName}
+                </div>
+                <div className="text-[11px] text-[#756963]">
+                  Space code: <span className="font-mono font-bold text-[#1E1A18]">{data.couple.inviteCode}</span>
+                </div>
               </div>
             </div>
+            <button
+              type="button"
+              onClick={handleCopyCode}
+              className="px-3 py-1.5 bg-[#FAF7F2] hover:bg-[#FCEBEE] hover:text-[#AB3B46] rounded-xl text-xs font-bold transition-all text-[#756963] active:scale-95 border border-[#EAE6DE]"
+            >
+              {copied ? "Copied! ✓" : "Copy Code"}
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={handleCopyCode}
-            className="px-3 py-1.5 bg-[#FAF7F2] hover:bg-[#FCEBEE] hover:text-[#AB3B46] rounded-xl text-xs font-bold transition-all text-[#756963] active:scale-95 border border-[#EAE6DE]"
-          >
-            {copied ? "Copied! ✓" : "Copy Code"}
-          </button>
+
+          <div className="pt-2.5 border-t border-[#EAE6DE]/60 flex items-center justify-between text-[11px]">
+            <div className="flex items-center gap-1.5 text-[#756963]">
+              <span>Phone Alerts:</span>
+              {data.partner.hasPushEnabled ? (
+                <span className="inline-flex items-center gap-1 font-bold text-[#557567] bg-[#F4F7F5] border border-[#E5EEE9] px-2 py-0.5 rounded-full">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#7E9F85]" />
+                  Active 🔔
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 font-medium text-[#A89F99] bg-[#FAF7F2] border border-[#EAE6DE] px-2 py-0.5 rounded-full" title="Partner hasn't enabled phone notifications in Pairly yet">
+                  Not enabled yet 🔕
+                </span>
+              )}
+            </div>
+
+            {data.partner.latestNotification && (
+              <div className="text-[#756963] truncate max-w-[170px]" title={data.partner.latestNotification.title}>
+                Last alert:{" "}
+                {data.partner.latestNotification.readAt ? (
+                  <span className="text-[#557567] font-semibold">Seen ✓</span>
+                ) : (
+                  <span className="text-[#D4AF37] font-semibold">Delivered</span>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       ) : (
         <div className="bg-white rounded-3xl p-5 border border-[#EAE6DE] shadow-xs space-y-3">

@@ -65,6 +65,35 @@ export async function getCoupleState() {
       }
     }
 
+    let partnerPushEnabled = false;
+    let partnerLatestNotification: {
+      title: string;
+      createdAt: string;
+      readAt: string | null;
+    } | null = null;
+
+    if (ctx.partner) {
+      const [pushCount, latestNotif] = await Promise.all([
+        prisma.pushSubscription.count({
+          where: { userId: ctx.partner.id },
+        }),
+        prisma.notification.findFirst({
+          where: { userId: ctx.partner.id },
+          orderBy: { createdAt: "desc" },
+          select: { title: true, createdAt: true, readAt: true },
+        }),
+      ]);
+
+      partnerPushEnabled = pushCount > 0;
+      if (latestNotif) {
+        partnerLatestNotification = {
+          title: latestNotif.title,
+          createdAt: latestNotif.createdAt.toISOString(),
+          readAt: latestNotif.readAt ? latestNotif.readAt.toISOString() : null,
+        };
+      }
+    }
+
     return {
       success: true,
       data: {
@@ -77,6 +106,8 @@ export async function getCoupleState() {
           ? {
               ...ctx.partner,
               lastActiveAt: sessionMap[ctx.partner.id] ?? null,
+              hasPushEnabled: partnerPushEnabled,
+              latestNotification: partnerLatestNotification,
             }
           : null,
       },
