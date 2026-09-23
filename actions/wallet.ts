@@ -4,6 +4,7 @@ import { requireCouple } from "@/lib/permissions";
 import { calculateAvailablePoints as calcDomainPoints } from "@/lib/points";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { sendPushNotification } from "@/lib/push";
 
 export async function calculateAvailablePoints() {
   try {
@@ -78,6 +79,14 @@ export async function giveBonus(
         });
       }
     });
+
+    if (ctx.partner && targetUserId === ctx.partner.id) {
+      sendPushNotification(ctx.partner.id, {
+        title: "Points Surprise ✨",
+        body: `${ctx.user.name} sent you +${pts} points! "${note}"`,
+        url: "/us",
+      }).catch((err) => console.error("[Push] Bonus points push failed:", err));
+    }
 
     revalidatePath("/us");
     revalidatePath("/home");

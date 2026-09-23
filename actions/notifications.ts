@@ -102,8 +102,12 @@ function getRouteForNotificationType(type: string): string {
     case "REWARD_ADDED":
       return "/rewards";
     case "WISH_REQUESTED":
+    case "WISH_APPROVED":
+    case "WISH_DECLINED":
     case "WISH_FULFILLED":
       return "/requests";
+    case "POINTS_GIFTED":
+      return "/us";
     default:
       return "/home";
   }

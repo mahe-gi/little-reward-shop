@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireCouple } from "@/lib/permissions";
+import { sendPushNotification } from "@/lib/push";
 
 export async function getRewards(category?: string) {
   try {
@@ -80,6 +81,12 @@ export async function createReward(
           body: `${user.name} added a new treat: "${title.trim()}" (${validCost} pts)`,
         },
       });
+
+      sendPushNotification(partner.id, {
+        title: "New Boutique Reward 🎁",
+        body: `${user.name} added a new treat: "${title.trim()}" (${validCost} pts)`,
+        url: "/rewards",
+      }).catch((err) => console.error("[Push] Reward added push failed:", err));
     }
 
     revalidatePath("/rewards");

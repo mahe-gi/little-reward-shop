@@ -23,6 +23,10 @@ function getNotificationIcon(type: string) {
       return "✦";
     case "WISH_REQUESTED":
       return "✧";
+    case "WISH_APPROVED":
+      return "❤️";
+    case "WISH_DECLINED":
+      return "↩";
     case "WISH_FULFILLED":
       return "✓";
     case "POINTS_GIFTED":
@@ -40,6 +44,8 @@ function getNotificationRoute(type: string) {
     case "REWARD_ADDED":
       return "/rewards";
     case "WISH_REQUESTED":
+    case "WISH_APPROVED":
+    case "WISH_DECLINED":
     case "WISH_FULFILLED":
       return "/requests";
     case "POINTS_GIFTED":

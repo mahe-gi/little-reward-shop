@@ -51,6 +51,16 @@ export async function checkNotificationPermission(): Promise<{
   }
 }
 
+function arrayBuffersEqual(buf: ArrayBuffer | null, target: Uint8Array): boolean {
+  if (!buf) return false;
+  const u1 = new Uint8Array(buf);
+  if (u1.length !== target.length) return false;
+  for (let i = 0; i < u1.length; i++) {
+    if (u1[i] !== target[i]) return false;
+  }
+  return true;
+}
+
 export async function subscribeToPushNotifications(): Promise<{
   success: boolean;
   error?: string;
@@ -88,6 +98,13 @@ export async function subscribeToPushNotifications(): Promise<{
     let subscription: PushSubscription | null = null;
     try {
       subscription = await registration.pushManager.getSubscription();
+      if (subscription && subscription.options?.applicationServerKey) {
+        if (!arrayBuffersEqual(subscription.options.applicationServerKey, applicationServerKey)) {
+          console.log("[PushClient] Existing subscription key differs from current VAPID key. Re-subscribing...");
+          await subscription.unsubscribe().catch(() => {});
+          subscription = null;
+        }
+      }
       if (!subscription) {
         subscription = await registration.pushManager.subscribe({
           userVisibleOnly: true,

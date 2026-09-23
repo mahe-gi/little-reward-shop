@@ -26,8 +26,8 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
       window.matchMedia("(display-mode: standalone)").matches ||
       (window.navigator as unknown as { standalone?: boolean }).standalone === true;
 
-    if (isStandalone && "Notification" in window && Notification.permission === "default") {
-      const dismissed = sessionStorage.getItem("pairly_standalone_notif_prompt");
+    if ("Notification" in window && Notification.permission === "default") {
+      const dismissed = sessionStorage.getItem("pairly_notif_prompt_dismissed");
       if (!dismissed) {
         setShowNotificationPrompt(true);
       }
@@ -188,7 +188,7 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
             <button
               onClick={() => {
                 setShowNotificationPrompt(false);
-                sessionStorage.setItem("pairly_standalone_notif_prompt", "true");
+                sessionStorage.setItem("pairly_notif_prompt_dismissed", "true");
               }}
               className="text-[11px] text-[#756963] hover:text-[#1E1A18]"
             >

@@ -1,12 +1,26 @@
 import webpush from "web-push";
 import { prisma } from "./prisma";
+import { VAPID_PUBLIC_KEY } from "./push-config";
 
-const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY;
-const vapidSubject = process.env.VAPID_SUBJECT || "mailto:support@pairly.app";
+const DEFAULT_VAPID_PUBLIC_KEY = VAPID_PUBLIC_KEY;
+const DEFAULT_VAPID_PRIVATE_KEY = "ctU8i2o8CYB7fKq0ySLqWaqEL_PCxQaMoordoZTfv2E";
+const DEFAULT_VAPID_SUBJECT = "mailto:support@pairly.app";
 
-if (vapidPublicKey && vapidPrivateKey) {
-  webpush.setVapidDetails(vapidSubject, vapidPublicKey, vapidPrivateKey);
+function initVapid() {
+  const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || DEFAULT_VAPID_PUBLIC_KEY;
+  const privateKey = process.env.VAPID_PRIVATE_KEY || DEFAULT_VAPID_PRIVATE_KEY;
+  const subject = process.env.VAPID_SUBJECT || DEFAULT_VAPID_SUBJECT;
+
+  if (publicKey && privateKey) {
+    try {
+      webpush.setVapidDetails(subject, publicKey, privateKey);
+      return true;
+    } catch (err) {
+      console.error("[WebPush] Failed to set VAPID details:", err);
+      return false;
+    }
+  }
+  return false;
 }
 
 export interface PushPayload {
@@ -17,8 +31,8 @@ export interface PushPayload {
 }
 
 export async function sendPushNotification(userId: string, payload: PushPayload) {
-  if (!vapidPublicKey || !vapidPrivateKey) {
-    console.warn("VAPID keys not configured, skipping web push");
+  if (!initVapid()) {
+    console.warn("[WebPush] VAPID keys not configured, skipping web push");
     return;
   }
 
@@ -51,22 +65,27 @@ export async function sendPushNotification(userId: string, payload: PushPayload)
           payloadString
         );
       } catch (err: unknown) {
-        const error = err as { statusCode?: number };
-        // 410 Gone or 404 Not Found means subscription expired or uninstalled
-        if (error?.statusCode === 410 || error?.statusCode === 404) {
+        const error = err as { statusCode?: number; message?: string };
+        // 410 Gone, 404 Not Found, 401 Unauthorized, or 403 Forbidden means subscription is invalid or expired
+        if (
+          error?.statusCode === 410 ||
+          error?.statusCode === 404 ||
+          error?.statusCode === 401 ||
+          error?.statusCode === 403
+        ) {
           await prisma.pushSubscription
             .delete({
               where: { endpoint: sub.endpoint },
             })
             .catch(() => {});
         } else {
-          console.error("Failed to send push notification to endpoint:", sub.endpoint, err);
+          console.error("[WebPush] Failed to send push notification to endpoint:", sub.endpoint, err);
         }
       }
     });
 
     await Promise.allSettled(sendPromises);
   } catch (error) {
-    console.error("Error in sendPushNotification:", error);
+    console.error("[WebPush] Error in sendPushNotification:", error);
   }
 }

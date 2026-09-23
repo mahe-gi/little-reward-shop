@@ -13,6 +13,7 @@ import {
   spendPoints,
   releasePoints,
 } from "@/lib/points";
+import { sendPushNotification } from "@/lib/push";
 
 export async function submitRewardRequest(
   items: { rewardId: string; quantity: number }[],
@@ -135,6 +136,13 @@ export async function submitRewardRequest(
       return req;
     });
 
+    const summaryTitles = requestItemData.map((i) => i.title).join(", ");
+    sendPushNotification(partner.id, {
+      title: "New Wish Received 💌",
+      body: `${user.name} wished for: ${summaryTitles} (${totalCost} pts)`,
+      url: "/requests",
+    }).catch((err) => console.error("[Push] Wish request push failed:", err));
+
     revalidatePath("/");
     revalidatePath("/requests");
     revalidatePath("/rewards");
@@ -252,7 +260,23 @@ export async function approveRewardRequest(requestId: string) {
           referenceId: request.id,
         },
       });
+
+      // 4. In-App Notification
+      await tx.notification.create({
+        data: {
+          userId: request.userId,
+          type: "WISH_APPROVED",
+          title: "Wish Approved! ❤️",
+          body: `${user.name} approved your wish and is working on fulfilling it!`,
+        },
+      });
     });
+
+    sendPushNotification(request.userId, {
+      title: "Wish Approved! ❤️",
+      body: `${user.name} approved your wish!`,
+      url: "/requests",
+    }).catch((err) => console.error("[Push] Wish approved push failed:", err));
 
     revalidatePath("/");
     revalidatePath("/requests");
@@ -302,7 +326,23 @@ export async function rejectRewardRequest(requestId: string, reason?: string) {
           referenceId: request.id,
         },
       });
+
+      // Notification
+      await tx.notification.create({
+        data: {
+          userId: request.userId,
+          type: "WISH_DECLINED",
+          title: "Wish Update 💌",
+          body: `${user.name} declined your wish${reason ? `: "${reason}"` : ""}. Your ${request.totalCost} points were refunded!`,
+        },
+      });
     });
+
+    sendPushNotification(request.userId, {
+      title: "Wish Update 💌",
+      body: `${user.name} declined your wish${reason ? `: "${reason}"` : ""}. Points refunded.`,
+      url: "/requests",
+    }).catch((err) => console.error("[Push] Wish declined push failed:", err));
 
     revalidatePath("/");
     revalidatePath("/requests");
@@ -448,6 +488,12 @@ export async function fulfillRewardRequest(requestId: string) {
         },
       });
     });
+
+    sendPushNotification(request.userId, {
+      title: "Wish Fulfilled! ✨",
+      body: `${user.name} delivered and fulfilled your wish!`,
+      url: "/requests",
+    }).catch((err) => console.error("[Push] Wish fulfilled push failed:", err));
 
     revalidatePath("/");
     revalidatePath("/requests");

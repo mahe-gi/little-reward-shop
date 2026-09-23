@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { requireCouple, verifyTaskAssignee } from "@/lib/permissions";
 import { earnPoints } from "@/lib/points";
 import { recordTaskStreakDay } from "@/lib/streaks";
+import { sendPushNotification } from "@/lib/push";
 
 export async function getTasks() {
   try {
@@ -106,6 +107,14 @@ export async function completeTask(taskId: string) {
       return updated;
     });
 
+    if (partner) {
+      sendPushNotification(partner.id, {
+        title: "Habit Completed! 🎉",
+        body: `${user.name} completed "${task.title}" (+${task.points} pts)`,
+        url: "/tasks",
+      }).catch((err) => console.error("[Push] Task completion push failed:", err));
+    }
+
     revalidatePath("/");
     revalidatePath("/tasks");
     return {
@@ -176,6 +185,12 @@ export async function giveTask(
 
       return created;
     });
+
+    sendPushNotification(partner.id, {
+      title: "New Habit Gifted ✨",
+      body: `${user.name} gifted you a habit: "${title.trim()}" (+${validPoints} pts)`,
+      url: "/tasks",
+    }).catch((err) => console.error("[Push] Habit gifted push failed:", err));
 
     revalidatePath("/tasks");
     return { success: true, task };
