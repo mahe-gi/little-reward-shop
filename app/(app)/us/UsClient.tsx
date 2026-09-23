@@ -12,6 +12,7 @@ import { Toast } from "@/components/ui/Toast";
 import { FlameIcon } from "@/components/ui/Icons";
 import { PwaInstallModal } from "@/components/pwa/PwaInstallModal";
 import { DeviceNotificationToggle } from "@/components/notifications/DeviceNotificationToggle";
+import { WhispersSheet } from "@/components/nudges/WhispersSheet";
 
 function formatPresence(isoString: string | null | undefined): { isOnline: boolean; text: string } {
   if (!isoString) return { isOnline: false, text: "Offline" };
@@ -79,6 +80,7 @@ export function UsClient({ initialData }: UsClientProps) {
   const [installModalOpen, setInstallModalOpen] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [whispersOpen, setWhispersOpen] = useState(false);
 
   React.useEffect(() => {
     if (typeof window !== "undefined") {
@@ -398,6 +400,17 @@ export function UsClient({ initialData }: UsClientProps) {
               </div>
             )}
           </div>
+
+          <div className="pt-2 border-t border-[#EAE6DE]/60">
+            <button
+              type="button"
+              onClick={() => setWhispersOpen(true)}
+              className="w-full py-2 bg-gradient-to-r from-[#FFF5F6] via-white to-[#FFFBF0] hover:border-[#E06D75]/40 border border-[#FEF3D6] rounded-2xl text-xs font-bold text-[#E06D75] flex items-center justify-center gap-1.5 shadow-2xs hover:shadow-xs transition-all active:scale-[0.98] cursor-pointer"
+            >
+              <span>💌</span>
+              <span>Send Whisper or Nudge to {partnerName}</span>
+            </button>
+          </div>
         </div>
       ) : (
         <div className="bg-white rounded-3xl p-5 border border-[#EAE6DE] shadow-xs space-y-3">
@@ -553,6 +566,14 @@ export function UsClient({ initialData }: UsClientProps) {
           setIsStandalone(true);
           setToastMessage("Pairly installed on your device");
         }}
+      />
+
+      {/* Whispers & Nudges Sheet */}
+      <WhispersSheet
+        isOpen={whispersOpen}
+        onClose={() => setWhispersOpen(false)}
+        partnerName={partnerName}
+        onNudgeSent={setToastMessage}
       />
 
       <Toast

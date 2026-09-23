@@ -108,6 +108,8 @@ function getRouteForNotificationType(type: string): string {
       return "/requests";
     case "POINTS_GIFTED":
       return "/us";
+    case "NUDGE_RECEIVED":
+      return "/home?sheet=whispers";
     default:
       return "/home";
   }

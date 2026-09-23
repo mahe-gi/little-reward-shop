@@ -31,6 +31,8 @@ function getNotificationIcon(type: string) {
       return "✓";
     case "POINTS_GIFTED":
       return "+";
+    case "NUDGE_RECEIVED":
+      return "💌";
     default:
       return "•";
   }
@@ -50,6 +52,8 @@ function getNotificationRoute(type: string) {
       return "/requests";
     case "POINTS_GIFTED":
       return "/us";
+    case "NUDGE_RECEIVED":
+      return "/home?sheet=whispers";
     default:
       return "/home";
   }
