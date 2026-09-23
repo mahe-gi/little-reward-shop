@@ -57,14 +57,6 @@ enum ActivityType {
   REQUEST_FULFILLED
 }
 
-enum NudgeType {
-  HEARTBEAT
-  KISS
-  HUG
-  MISS_YOU
-  WHISPER
-}
-
 // ------------------------------------------------------
 // AUTH MODELS (Better Auth standard + app extensions)
 // ------------------------------------------------------
@@ -96,8 +88,6 @@ model User {
   activities         Activity[]          @relation("ActorActivities")
   notifications      Notification[]
   pushSubscriptions  PushSubscription[]
-  sentNudges         Nudge[]             @relation("SentNudges")
-  receivedNudges     Nudge[]             @relation("ReceivedNudges")
 
   @@map("user")
 }
@@ -169,7 +159,6 @@ model Couple {
   requests   RewardRequest[]
   streakDays StreakDay[]
   activities Activity[]
-  nudges     Nudge[]
 
   @@map("couple")
 }
@@ -396,27 +385,4 @@ model PushSubscription {
   @@index([userId])
   @@map("push_subscription")
 }
-
-// ------------------------------------------------------
-// LIVE WHISPERS & NUDGES
-// ------------------------------------------------------
-
-model Nudge {
-  id         String    @id @default(cuid())
-  coupleId   String
-  couple     Couple    @relation(fields: [coupleId], references: [id], onDelete: Cascade)
-  senderId   String
-  sender     User      @relation("SentNudges", fields: [senderId], references: [id], onDelete: Cascade)
-  receiverId String
-  receiver   User      @relation("ReceivedNudges", fields: [receiverId], references: [id], onDelete: Cascade)
-  type       NudgeType @default(HEARTBEAT)
-  message    String?
-  seenAt     DateTime?
-  createdAt  DateTime  @default(now())
-
-  @@index([coupleId, createdAt])
-  @@index([receiverId, seenAt])
-  @@map("nudge")
-}
-
 

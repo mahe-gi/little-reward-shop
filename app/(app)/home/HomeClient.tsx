@@ -8,7 +8,6 @@ import { StreakModal } from "@/components/modals/StreakModal";
 import { PairlyLogo } from "@/components/ui/PairlyLogo";
 import { Toast } from "@/components/ui/Toast";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
-import { WhispersButton } from "@/components/nudges/WhispersButton";
 import { PwaInstallBanner } from "@/components/pwa/PwaInstallBanner";
 
 interface TaskItem {
@@ -73,8 +72,7 @@ export function HomeClient({ initialData, initialTasks }: HomeClientProps) {
       {/* App Header / Brand Greeting & Notification Bell */}
       <div className="flex items-center justify-between px-1">
         <PairlyLogo variant="horizontal" size="sm" />
-        <div className="flex items-center gap-2">
-          <WhispersButton partnerName={partnerName} onToast={setToastMessage} />
+        <div className="flex items-center gap-2.5">
           <NotificationBell />
           <div className="text-right">
             <div className="text-[10px] text-[#756963]">Good day,</div>

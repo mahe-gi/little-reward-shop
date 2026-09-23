@@ -9,11 +9,8 @@ import { FloatingCartBar } from "@/components/shell/FloatingCartBar";
 import { Toast } from "@/components/ui/Toast";
 import { touchPresence } from "@/actions/couple";
 import { getNotifications } from "@/actions/notifications";
-import { checkUnseenNudge, NudgeItem } from "@/actions/nudges";
 import { subscribeToPushNotifications } from "@/lib/web-push-client";
 import { NavigationProgress } from "@/components/ui/NavigationProgress";
-import { LiveNudgeOverlay } from "@/components/nudges/LiveNudgeOverlay";
-import { WhispersSheet } from "@/components/nudges/WhispersSheet";
 
 function AppShellContent({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -21,18 +18,6 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
   const { items, totalCount, totalCost } = useCart();
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [showNotificationPrompt, setShowNotificationPrompt] = useState(false);
-  const [liveNudge, setLiveNudge] = useState<NudgeItem | null>(null);
-  const [whispersSheetOpen, setWhispersSheetOpen] = useState(false);
-
-  // Check URL query for direct sheet navigation (e.g. from Web Push click)
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      if (params.get("sheet") === "whispers") {
-        setWhispersSheetOpen(true);
-      }
-    }
-  }, [pathname]);
 
   // Check standalone mode for prompt
   useEffect(() => {
@@ -102,17 +87,9 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
 
       isChecking = true;
       try {
-        const [res, nudgeRes] = await Promise.all([
-          getNotifications(),
-          checkUnseenNudge(),
-        ]);
-
-        if (nudgeRes.success && nudgeRes.nudge) {
-          setLiveNudge(nudgeRes.nudge);
-        }
-
-        if (res.success && res.data && res.data.notifications.length > 0) {
-          const newest = res.data.notifications[0];
+        const res = await getNotifications();
+      if (res.success && res.data && res.data.notifications.length > 0) {
+        const newest = res.data.notifications[0];
 
         // On first run, just record the latest ID without alert spam
         if (!initialized) {
@@ -226,18 +203,6 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
         title={toastMessage || ""}
         isOpen={Boolean(toastMessage)}
         onClose={() => setToastMessage(null)}
-      />
-
-      <LiveNudgeOverlay
-        nudge={liveNudge}
-        onDismiss={() => setLiveNudge(null)}
-        onOpenWhispers={() => setWhispersSheetOpen(true)}
-      />
-
-      <WhispersSheet
-        isOpen={whispersSheetOpen}
-        onClose={() => setWhispersSheetOpen(false)}
-        onNudgeSent={(msg) => setToastMessage(msg)}
       />
     </ResponsiveAppShell>
   );
