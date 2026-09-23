@@ -88,6 +88,7 @@ model User {
   activities         Activity[]          @relation("ActorActivities")
   notifications      Notification[]
   pushSubscriptions  PushSubscription[]
+  dailyAnswers       DailyAnswer[]
 
   @@map("user")
 }
@@ -157,8 +158,9 @@ model Couple {
   tasks      Task[]
   rewards    Reward[]
   requests   RewardRequest[]
-  streakDays StreakDay[]
-  activities Activity[]
+  streakDays   StreakDay[]
+  activities   Activity[]
+  dailyAnswers DailyAnswer[]
 
   @@map("couple")
 }
@@ -385,4 +387,40 @@ model PushSubscription {
   @@index([userId])
   @@map("push_subscription")
 }
+
+// ------------------------------------------------------
+// DAILY SPARK (BLIND QUESTION & REVEAL)
+// ------------------------------------------------------
+
+model DailyQuestion {
+  id        String        @id @default(cuid())
+  date      String        @unique // Format: "YYYY-MM-DD"
+  question  String
+  category  String        @default("Romantic") // Romantic, Memories, Deep, Fun, Future
+  createdAt DateTime      @default(now())
+
+  answers   DailyAnswer[]
+
+  @@map("daily_question")
+}
+
+model DailyAnswer {
+  id            String        @id @default(cuid())
+  questionId    String
+  question      DailyQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  coupleId      String
+  couple        Couple        @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  answerText    String
+  pointsAwarded Boolean       @default(false)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@unique([questionId, userId])
+  @@index([coupleId, questionId])
+  @@index([userId])
+  @@map("daily_answer")
+}
+
 

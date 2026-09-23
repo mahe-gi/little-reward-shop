@@ -9,6 +9,7 @@ import { PairlyLogo } from "@/components/ui/PairlyLogo";
 import { Toast } from "@/components/ui/Toast";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { PwaInstallBanner } from "@/components/pwa/PwaInstallBanner";
+import { DailySparkCard } from "@/components/spark/DailySparkCard";
 
 interface TaskItem {
   id: string;
@@ -137,6 +138,20 @@ export function HomeClient({ initialData, initialTasks }: HomeClientProps) {
           </div>
         </div>
       </div>
+
+      {/* Daily Spark (Blind Question & Reveal) */}
+      <DailySparkCard
+        onToast={setToastMessage}
+        onPointsEarned={() => {
+          setData((prev) => ({
+            ...prev,
+            user: {
+              ...prev.user,
+              pointBalance: prev.user.pointBalance + 15,
+            },
+          }));
+        }}
+      />
 
       {/* PWA App Download Option in Middle */}
       <PwaInstallBanner />

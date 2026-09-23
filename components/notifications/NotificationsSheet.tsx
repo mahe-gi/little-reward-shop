@@ -31,6 +31,10 @@ function getNotificationIcon(type: string) {
       return "✓";
     case "POINTS_GIFTED":
       return "+";
+    case "DAILY_SPARK_ANSWERED":
+      return "✨";
+    case "DAILY_SPARK_UNLOCKED":
+      return "🎉";
     default:
       return "•";
   }
