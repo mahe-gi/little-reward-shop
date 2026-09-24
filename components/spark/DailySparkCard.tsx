@@ -27,15 +27,31 @@ export function DailySparkCard({
   const [submitting, setSubmitting] = useState(false);
   const [shuffling, setShuffling] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isDismissed, setIsDismissed] = useState(false);
 
   useEffect(() => {
     if (!initialData) {
       getTodaySpark().then((res) => {
         if (res.success && res.data) {
           setData(res.data);
+          // Check if previously dismissed in this session
+          if (
+            typeof window !== "undefined" &&
+            sessionStorage.getItem(`spark_dismissed_${res.data.question.id}`) === "true"
+          ) {
+            setIsDismissed(true);
+          }
         }
         setLoading(false);
       });
+    } else {
+      if (
+        typeof window !== "undefined" &&
+        sessionStorage.getItem(`spark_dismissed_${initialData.question.id}`) === "true"
+      ) {
+        setIsDismissed(true);
+      }
     }
   }, [initialData]);
 
@@ -48,6 +64,7 @@ export function DailySparkCard({
       const res = await submitSparkAnswer(data.question.id, answerInput.trim());
       if (res.success) {
         if (res.isUnlocked) {
+          setIsExpanded(true);
           triggerHaptic("sparkUnlock");
           onToast?.("🎉 Daily Spark Unlocked! +15 bonus points awarded to both of you!");
           onPointsEarned?.();
@@ -107,6 +124,76 @@ export function DailySparkCard({
   const partnerAnswered = Boolean(data.partnerAnswer?.answered);
   const isUnlocked = data.isUnlocked;
 
+  // Fully dismissed for the session
+  if (isDismissed && isUnlocked) {
+    return (
+      <SparkHistoryModal
+        isOpen={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        partnerName={partnerName}
+      />
+    );
+  }
+
+  // State 3 (Completed & Collapsed): Space-saving clean micro-card
+  if (isUnlocked && !isExpanded) {
+    return (
+      <>
+        <div className="rounded-2xl bg-white border border-[#EAE6DE] px-3.5 py-2.5 flex items-center justify-between shadow-2xs gap-2.5 transition-all">
+          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+            <span className="w-6 h-6 rounded-full bg-[#F4F7F5] border border-[#E5EEE9] flex items-center justify-center text-xs text-[#557567] font-bold shrink-0">
+              ✓
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs font-bold text-[#1E1A18]">Daily Spark</span>
+                <span className="text-[10px] font-bold text-[#557567] bg-[#F4F7F5] px-1.5 py-0.2 rounded-md border border-[#E5EEE9]">
+                  Done (+15 pts)
+                </span>
+              </div>
+              <p className="text-[11px] text-[#756963] truncate">
+                &ldquo;{data.question.question}&rdquo;
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              type="button"
+              onClick={() => {
+                triggerHaptic("selection");
+                setIsExpanded(true);
+              }}
+              className="px-2.5 py-1 rounded-xl bg-[#FAF7F2] hover:bg-[#FCEBEE] text-[#AB3B46] hover:text-[#BA3F4A] text-xs font-bold transition-all border border-[#EAE6DE] active:scale-95"
+            >
+              Answers ›
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                triggerHaptic("light");
+                setIsDismissed(true);
+                if (typeof window !== "undefined") {
+                  sessionStorage.setItem(`spark_dismissed_${data.question.id}`, "true");
+                }
+              }}
+              title="Hide for today"
+              className="w-7 h-7 rounded-xl hover:bg-[#FAF7F2] flex items-center justify-center text-[#A89F99] hover:text-[#1E1A18] text-xs transition-colors"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+
+        <SparkHistoryModal
+          isOpen={historyOpen}
+          onClose={() => setHistoryOpen(false)}
+          partnerName={partnerName}
+        />
+      </>
+    );
+  }
+
   return (
     <>
       <div className="rounded-3xl bg-gradient-to-br from-white via-[#FFFDF9] to-[#FFFBF0] p-4 sm:p-5 border border-[#FEF3D6] shadow-2xs space-y-3.5 relative overflow-hidden transition-all">
@@ -138,6 +225,19 @@ export function DailySparkCard({
               >
                 <span>{shuffling ? "..." : "Swap"}</span>
                 <span>🔀</span>
+              </button>
+            )}
+
+            {isUnlocked && (
+              <button
+                type="button"
+                onClick={() => {
+                  triggerHaptic("selection");
+                  setIsExpanded(false);
+                }}
+                className="text-[11px] font-bold text-[#AB3B46] hover:text-[#BA3F4A] px-2.5 py-0.5 rounded-lg bg-white border border-[#EAE6DE] shadow-2xs transition-all active:scale-95"
+              >
+                Hide ▴
               </button>
             )}
 
@@ -232,31 +332,27 @@ export function DailySparkCard({
 
         {/* State 2: Answered by User, Waiting for Partner */}
         {hasMyAnswer && !isUnlocked && (
-          <div className="relative z-10 space-y-2.5 pt-1">
-            {/* My Submitted Answer */}
-            <div className="p-3.5 rounded-2xl bg-white border border-[#EAE6DE] shadow-2xs space-y-1">
+          <div className="relative z-10 space-y-2 pt-1">
+            <div className="p-3 rounded-2xl bg-white border border-[#EAE6DE] shadow-2xs space-y-1">
               <div className="flex items-center justify-between text-[10px]">
                 <span className="font-bold uppercase tracking-wider text-[#756963]">
-                  Your Answer (Locked In)
+                  Your Answer
                 </span>
-                <span className="text-[#557567] font-bold">Submitted ✓</span>
+                <span className="text-[#557567] font-bold">Locked in ✓</span>
               </div>
               <p className="text-xs text-[#1E1A18] leading-relaxed italic">
                 &ldquo;{data.myAnswer?.answerText}&rdquo;
               </p>
             </div>
 
-            {/* Partner Blurred Lock Box */}
-            <div className="p-4 rounded-2xl bg-gradient-to-r from-[#FFFBF0] via-white to-[#FAF7F2] border border-[#FEF3D6] shadow-2xs text-center space-y-1 relative overflow-hidden">
-              <div className="w-8 h-8 rounded-full bg-white border border-[#FEF3D6] flex items-center justify-center mx-auto text-sm shadow-2xs">
-                🔒
+            <div className="p-2.5 rounded-xl bg-gradient-to-r from-[#FFFBF0] to-white border border-[#FEF3D6] flex items-center justify-between text-xs">
+              <div className="flex items-center gap-1.5 text-[#756963] text-[11px]">
+                <span>🔒</span>
+                <span>Waiting for {partnerName}&apos;s answer</span>
               </div>
-              <div className="font-bold text-xs text-[#1E1A18]">
-                Waiting for {partnerName}&apos;s answer
-              </div>
-              <p className="text-[11px] text-[#756963] max-w-[260px] mx-auto leading-relaxed">
-                As soon as {partnerName} answers, you&apos;ll both receive a notification and unlock +15 streak points!
-              </p>
+              <span className="text-[10px] font-bold text-[#D4AF37]">
+                +15 pts on unlock
+              </span>
             </div>
           </div>
         )}
@@ -297,6 +393,17 @@ export function DailySparkCard({
                 </p>
               </div>
             </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                triggerHaptic("selection");
+                setIsExpanded(false);
+              }}
+              className="w-full py-2 text-center text-xs font-bold text-[#756963] hover:text-[#1E1A18] bg-white hover:bg-[#FAF7F2] rounded-xl border border-[#EAE6DE] shadow-2xs transition-colors"
+            >
+              Hide Answers ▴
+            </button>
           </div>
         )}
       </div>
