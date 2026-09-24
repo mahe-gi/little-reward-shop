@@ -72,6 +72,7 @@ model User {
   batteryLevel      Int?
   isCharging        Boolean?
   batteryUpdatedAt  DateTime?
+  thumbKissActiveAt DateTime?
   createdAt         DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 

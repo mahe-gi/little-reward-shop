@@ -12,6 +12,7 @@ import { PwaInstallBanner } from "@/components/pwa/PwaInstallBanner";
 import { DailySparkCard } from "@/components/spark/DailySparkCard";
 import { triggerHaptic } from "@/lib/haptics";
 import { PartnerBatteryBadge } from "@/components/battery/PartnerBatteryBadge";
+import { ThumbKissButton } from "@/components/thumbkiss/ThumbKissButton";
 
 interface TaskItem {
   id: string;
@@ -150,6 +151,9 @@ export function HomeClient({ initialData, initialTasks }: HomeClientProps) {
           </div>
         </div>
       </div>
+
+      {/* ThumbKiss (Synchronized Screen Touch) */}
+      <ThumbKissButton partnerName={partnerName} />
 
       {/* Daily Spark (Blind Question & Reveal) */}
       <DailySparkCard

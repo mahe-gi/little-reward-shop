@@ -12,6 +12,7 @@ export type HapticStyle =
   | "medium"
   | "success"
   | "sparkUnlock"
+  | "heartbeat"
   | "warning"
   | "error";
 
@@ -30,6 +31,9 @@ const HAPTIC_PATTERNS: Record<HapticStyle, number | number[]> = {
 
   /** Celebratory rhythmic burst [35ms, 60ms pause, 45ms, 60ms pause, 90ms] for Daily Spark Blind Reveal */
   sparkUnlock: [35, 60, 45, 60, 90],
+
+  /** Synchronized lub-dub cardiac rhythm [60ms, 70ms pause, 100ms] for ThumbKiss */
+  heartbeat: [60, 70, 100],
 
   /** Dual vibration for cautions */
   warning: [30, 40, 30],

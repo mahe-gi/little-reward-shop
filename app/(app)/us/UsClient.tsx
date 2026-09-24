@@ -13,6 +13,7 @@ import { FlameIcon } from "@/components/ui/Icons";
 import { PwaInstallModal } from "@/components/pwa/PwaInstallModal";
 import { DeviceNotificationToggle } from "@/components/notifications/DeviceNotificationToggle";
 import { PartnerBatteryBadge } from "@/components/battery/PartnerBatteryBadge";
+import { ThumbKissButton } from "@/components/thumbkiss/ThumbKissButton";
 
 function formatPresence(isoString: string | null | undefined): { isOnline: boolean; text: string } {
   if (!isoString) return { isOnline: false, text: "Offline" };
@@ -268,6 +269,9 @@ export function UsClient({ initialData }: UsClientProps) {
           </div>
         </div>
       </div>
+
+      {/* ThumbKiss (Synchronized Screen Touch) */}
+      <ThumbKissButton partnerName={partnerName} />
 
       {/* Points Snapshot with Elevated Micro-Spring Action Buttons */}
       <div className="grid grid-cols-2 gap-3">
