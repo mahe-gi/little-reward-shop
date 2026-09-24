@@ -68,8 +68,11 @@ model User {
   emailVerified Boolean   @default(false)
   image         String?
   avatar        String?
-  pointBalance  Int       @default(0)
-  createdAt     DateTime  @default(now())
+  pointBalance      Int       @default(0)
+  batteryLevel      Int?
+  isCharging        Boolean?
+  batteryUpdatedAt  DateTime?
+  createdAt         DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
   // Better Auth relations

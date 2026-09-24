@@ -12,6 +12,7 @@ import { Toast } from "@/components/ui/Toast";
 import { FlameIcon } from "@/components/ui/Icons";
 import { PwaInstallModal } from "@/components/pwa/PwaInstallModal";
 import { DeviceNotificationToggle } from "@/components/notifications/DeviceNotificationToggle";
+import { PartnerBatteryBadge } from "@/components/battery/PartnerBatteryBadge";
 
 function formatPresence(isoString: string | null | undefined): { isOnline: boolean; text: string } {
   if (!isoString) return { isOnline: false, text: "Offline" };
@@ -48,7 +49,17 @@ function formatPresence(isoString: string | null | undefined): { isOnline: boole
 }
 
 export interface UsData {
-  user: { id: string; name: string; email: string; avatar: string | null; pointBalance: number; lastActiveAt: string | null };
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    avatar: string | null;
+    pointBalance: number;
+    lastActiveAt: string | null;
+    batteryLevel?: number | null;
+    isCharging?: boolean | null;
+    batteryUpdatedAt?: string | null;
+  };
   couple: { id: string; name: string; inviteCode: string; streakCount: number };
   partner: {
     id: string;
@@ -57,6 +68,9 @@ export interface UsData {
     avatar: string | null;
     pointBalance: number;
     lastActiveAt: string | null;
+    batteryLevel?: number | null;
+    isCharging?: boolean | null;
+    batteryUpdatedAt?: string | null;
     hasPushEnabled?: boolean;
     latestNotification?: {
       title: string;
@@ -199,43 +213,65 @@ export function UsClient({ initialData }: UsClientProps) {
 
         {/* Simple & Clear Live Presence Sub-bar */}
         <div className="pt-3 border-t border-[#EAE6DE]/80 grid grid-cols-2 gap-2 text-left">
-          <div className="p-2.5 rounded-2xl bg-[#FAF7F2]/80 border border-[#EAE6DE]/60 flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#756963] truncate mr-1.5">
-              {data.user.name}
-            </span>
-            <span
-              className={`flex items-center gap-1.5 text-xs shrink-0 ${
-                userPresence.isOnline ? "text-[#557567] font-bold" : "text-[#756963] font-medium"
-              }`}
-            >
-              <span
-                className={`w-2 h-2 rounded-full shrink-0 ${
-                  userPresence.isOnline ? "bg-[#7E9F85] animate-pulse" : "bg-[#C5BCB5]"
-                }`}
-              />
-              <span>{userPresence.text}</span>
-            </span>
-          </div>
-
-          <div className="p-2.5 rounded-2xl bg-[#FAF7F2]/80 border border-[#EAE6DE]/60 flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#756963] truncate mr-1.5">
-              {partnerName}
-            </span>
-            {data.partner ? (
+          <div className="p-2.5 rounded-2xl bg-[#FAF7F2]/80 border border-[#EAE6DE]/60 space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#756963] truncate mr-1">
+                {data.user.name}
+              </span>
               <span
                 className={`flex items-center gap-1.5 text-xs shrink-0 ${
-                  partnerPresence.isOnline ? "text-[#557567] font-bold" : "text-[#756963] font-medium"
+                  userPresence.isOnline ? "text-[#557567] font-bold" : "text-[#756963] font-medium"
                 }`}
               >
                 <span
                   className={`w-2 h-2 rounded-full shrink-0 ${
-                    partnerPresence.isOnline ? "bg-[#7E9F85] animate-pulse" : "bg-[#C5BCB5]"
+                    userPresence.isOnline ? "bg-[#7E9F85] animate-pulse" : "bg-[#C5BCB5]"
                   }`}
                 />
-                <span>{partnerPresence.text}</span>
+                <span>{userPresence.text}</span>
               </span>
-            ) : (
-              <span className="text-[11px] text-[#A89F99]">Not linked</span>
+            </div>
+            {typeof data.user.batteryLevel === "number" && (
+              <PartnerBatteryBadge
+                variant="pill"
+                batteryLevel={data.user.batteryLevel}
+                isCharging={data.user.isCharging}
+                batteryUpdatedAt={data.user.batteryUpdatedAt}
+                partnerName="You"
+              />
+            )}
+          </div>
+
+          <div className="p-2.5 rounded-2xl bg-[#FAF7F2]/80 border border-[#EAE6DE]/60 space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#756963] truncate mr-1">
+                {partnerName}
+              </span>
+              {data.partner ? (
+                <span
+                  className={`flex items-center gap-1.5 text-xs shrink-0 ${
+                    partnerPresence.isOnline ? "text-[#557567] font-bold" : "text-[#756963] font-medium"
+                  }`}
+                >
+                  <span
+                    className={`w-2 h-2 rounded-full shrink-0 ${
+                      partnerPresence.isOnline ? "bg-[#7E9F85] animate-pulse" : "bg-[#C5BCB5]"
+                    }`}
+                  />
+                  <span>{partnerPresence.text}</span>
+                </span>
+              ) : (
+                <span className="text-[11px] text-[#A89F99]">Not linked</span>
+              )}
+            </div>
+            {data.partner && (
+              <PartnerBatteryBadge
+                variant="pill"
+                batteryLevel={data.partner.batteryLevel}
+                isCharging={data.partner.isCharging}
+                batteryUpdatedAt={data.partner.batteryUpdatedAt}
+                partnerName={partnerName}
+              />
             )}
           </div>
         </div>

@@ -9,6 +9,9 @@ export interface AuthenticatedUser {
   email: string;
   avatar: string | null;
   pointBalance: number;
+  batteryLevel?: number | null;
+  isCharging?: boolean | null;
+  batteryUpdatedAt?: string | null;
 }
 
 export interface AuthenticatedContext {
@@ -89,6 +92,9 @@ export const requireCouple = cache(async (): Promise<AuthenticatedContext> => {
       email: true,
       avatar: true,
       pointBalance: true,
+      batteryLevel: true,
+      isCharging: true,
+      batteryUpdatedAt: true,
       coupleMember: {
         include: {
           couple: {
@@ -102,6 +108,9 @@ export const requireCouple = cache(async (): Promise<AuthenticatedContext> => {
                       email: true,
                       avatar: true,
                       pointBalance: true,
+                      batteryLevel: true,
+                      isCharging: true,
+                      batteryUpdatedAt: true,
                     },
                   },
                 },
@@ -133,6 +142,9 @@ export const requireCouple = cache(async (): Promise<AuthenticatedContext> => {
       email: dbUser.email,
       avatar: dbUser.avatar,
       pointBalance: dbUser.pointBalance,
+      batteryLevel: dbUser.batteryLevel,
+      isCharging: dbUser.isCharging,
+      batteryUpdatedAt: dbUser.batteryUpdatedAt ? dbUser.batteryUpdatedAt.toISOString() : null,
     },
     couple: {
       id: couple.id,
@@ -147,7 +159,18 @@ export const requireCouple = cache(async (): Promise<AuthenticatedContext> => {
       coupleId: membership.coupleId,
       userId: membership.userId,
     },
-    partner,
+    partner: partner
+      ? {
+          id: partner.id,
+          name: partner.name,
+          email: partner.email,
+          avatar: partner.avatar,
+          pointBalance: partner.pointBalance,
+          batteryLevel: partner.batteryLevel,
+          isCharging: partner.isCharging,
+          batteryUpdatedAt: partner.batteryUpdatedAt ? partner.batteryUpdatedAt.toISOString() : null,
+        }
+      : null,
   };
 });
 

@@ -11,6 +11,7 @@ import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { PwaInstallBanner } from "@/components/pwa/PwaInstallBanner";
 import { DailySparkCard } from "@/components/spark/DailySparkCard";
 import { triggerHaptic } from "@/lib/haptics";
+import { PartnerBatteryBadge } from "@/components/battery/PartnerBatteryBadge";
 
 interface TaskItem {
   id: string;
@@ -118,8 +119,19 @@ export function HomeClient({ initialData, initialTasks }: HomeClientProps) {
             </div>
 
             {/* Partner quick indicator */}
-            <div className="text-right bg-white/15 backdrop-blur-xs px-3 py-1.5 rounded-2xl border border-white/20">
-              <div className="text-[10px] font-semibold text-white/80">{partnerName}</div>
+            <div className="text-right bg-white/15 backdrop-blur-xs px-3 py-1.5 rounded-2xl border border-white/20 flex flex-col items-end gap-0.5">
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] font-semibold text-white/80">{partnerName}</span>
+                {data.partner && (
+                  <PartnerBatteryBadge
+                    variant="hero"
+                    batteryLevel={data.partner.batteryLevel}
+                    isCharging={data.partner.isCharging}
+                    batteryUpdatedAt={data.partner.batteryUpdatedAt}
+                    partnerName={partnerName}
+                  />
+                )}
+              </div>
               <div className="font-serif text-sm font-bold text-white">
                 {data.partner?.pointBalance ?? 0} <span className="text-[10px] font-sans font-normal opacity-85">pts</span>
               </div>

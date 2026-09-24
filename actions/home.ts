@@ -22,6 +22,9 @@ export interface HomeDashboardData {
     name: string;
     avatar: string | null;
     pointBalance: number;
+    batteryLevel?: number | null;
+    isCharging?: boolean | null;
+    batteryUpdatedAt?: string | null;
   };
   couple: {
     id: string;
@@ -34,6 +37,9 @@ export interface HomeDashboardData {
     name: string;
     avatar: string | null;
     pointBalance: number;
+    batteryLevel?: number | null;
+    isCharging?: boolean | null;
+    batteryUpdatedAt?: string | null;
   } | null;
   pointsEarnedToday: number;
   partnerTasksCompletedThisWeek: number;

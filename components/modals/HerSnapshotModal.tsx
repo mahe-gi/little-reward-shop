@@ -12,6 +12,9 @@ export interface HerSnapshotModalProps {
     name: string;
     avatar: string | null;
     pointBalance: number;
+    batteryLevel?: number | null;
+    isCharging?: boolean | null;
+    batteryUpdatedAt?: string | null;
   } | null;
   tasksCompletedThisWeek?: number;
 }
@@ -40,6 +43,14 @@ export function HerSnapshotModal({
           </h3>
           <p className="text-xs text-[#756963] mt-0.5">Connected Partner</p>
         </div>
+
+        {typeof partner.batteryLevel === "number" && (
+          <div className="inline-flex items-center gap-1.5 py-1 px-3 rounded-full bg-[#FAF7F2] border border-[#EAE6DE] text-xs font-semibold text-[#554B45]">
+            <span>{partner.isCharging ? "⚡" : partner.batteryLevel <= 20 ? "🪫" : "🔋"}</span>
+            <span>Phone: {partner.batteryLevel}%</span>
+            {partner.isCharging && <span className="text-[#D4AF37] font-bold">· Charging</span>}
+          </div>
+        )}
 
         <div className="grid grid-cols-2 gap-2 text-left bg-white p-3.5 rounded-2xl border border-[#EAE6DE]">
           <div>
