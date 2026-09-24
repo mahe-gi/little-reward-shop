@@ -4,6 +4,7 @@ import React from "react";
 import { ModalSheet } from "@/components/ui/ModalSheet";
 import { PillButton } from "@/components/ui/PillButton";
 import { Avatar } from "@/components/ui/Avatar";
+import { PartnerBatteryBadge } from "@/components/battery/PartnerBatteryBadge";
 
 export interface HerSnapshotModalProps {
   isOpen: boolean;
@@ -45,10 +46,12 @@ export function HerSnapshotModal({
         </div>
 
         {typeof partner.batteryLevel === "number" && (
-          <div className="inline-flex items-center gap-1.5 py-1 px-3 rounded-full bg-[#FAF7F2] border border-[#EAE6DE] text-xs font-semibold text-[#554B45]">
-            <span>{partner.isCharging ? "⚡" : partner.batteryLevel <= 20 ? "🪫" : "🔋"}</span>
-            <span>Phone: {partner.batteryLevel}%</span>
-            {partner.isCharging && <span className="text-[#D4AF37] font-bold">· Charging</span>}
+          <div className="inline-flex items-center gap-1.5 py-0.5 px-2.5 rounded-full bg-[#FAF7F2] border border-[#EAE6DE] text-xs font-semibold text-[#554B45]">
+            <PartnerBatteryBadge
+              batteryLevel={partner.batteryLevel}
+              isCharging={partner.isCharging}
+              partnerName={partner.name}
+            />
           </div>
         )}
 

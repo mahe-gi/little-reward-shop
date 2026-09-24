@@ -124,10 +124,8 @@ export function HomeClient({ initialData, initialTasks }: HomeClientProps) {
                 <span className="text-[10px] font-semibold text-white/80">{partnerName}</span>
                 {data.partner && (
                   <PartnerBatteryBadge
-                    variant="hero"
                     batteryLevel={data.partner.batteryLevel}
                     isCharging={data.partner.isCharging}
-                    batteryUpdatedAt={data.partner.batteryUpdatedAt}
                     partnerName={partnerName}
                   />
                 )}
