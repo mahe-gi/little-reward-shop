@@ -13,6 +13,7 @@ import { DailySparkCard } from "@/components/spark/DailySparkCard";
 import { triggerHaptic } from "@/lib/haptics";
 import { PartnerBatteryBadge } from "@/components/battery/PartnerBatteryBadge";
 import { ThumbKissButton } from "@/components/thumbkiss/ThumbKissButton";
+import { WalkieTalkieWidget } from "@/components/whisper/WalkieTalkieWidget";
 
 interface TaskItem {
   id: string;
@@ -152,8 +153,11 @@ export function HomeClient({ initialData, initialTasks }: HomeClientProps) {
         </div>
       </div>
 
-      {/* ThumbKiss (Synchronized Screen Touch) */}
-      <ThumbKissButton partnerName={partnerName} />
+      {/* Intimate Micro-Interactions: Touch Screen & Walkie-Talkie */}
+      <div className="grid grid-cols-2 gap-2.5">
+        <ThumbKissButton partnerName={partnerName} />
+        <WalkieTalkieWidget partnerName={partnerName} />
+      </div>
 
       {/* Daily Spark (Blind Question & Reveal) */}
       <DailySparkCard

@@ -93,6 +93,8 @@ model User {
   notifications      Notification[]
   pushSubscriptions  PushSubscription[]
   dailyAnswers       DailyAnswer[]
+  sentWhispers       VoiceWhisper[]      @relation("SentWhispers")
+  receivedWhispers   VoiceWhisper[]      @relation("ReceivedWhispers")
 
   @@map("user")
 }
@@ -165,6 +167,7 @@ model Couple {
   streakDays   StreakDay[]
   activities   Activity[]
   dailyAnswers DailyAnswer[]
+  voiceWhispers VoiceWhisper[]
 
   @@map("couple")
 }
@@ -425,6 +428,29 @@ model DailyAnswer {
   @@index([coupleId, questionId])
   @@index([userId])
   @@map("daily_answer")
+}
+
+// ------------------------------------------------------
+// WALKIE-TALKIE (VOICE WHISPERS)
+// ------------------------------------------------------
+
+model VoiceWhisper {
+  id          String    @id @default(cuid())
+  coupleId    String
+  couple      Couple    @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  senderId    String
+  sender      User      @relation("SentWhispers", fields: [senderId], references: [id], onDelete: Cascade)
+  receiverId  String
+  receiver    User      @relation("ReceivedWhispers", fields: [receiverId], references: [id], onDelete: Cascade)
+  audioData   String    @db.Text
+  durationSec Int       @default(0)
+  isListened  Boolean   @default(false)
+  listenedAt  DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([coupleId])
+  @@index([receiverId, isListened])
+  @@map("voice_whisper")
 }
 
 
