@@ -8,6 +8,7 @@ import {
   shuffleTodayQuestion,
 } from "@/actions/spark";
 import { SparkHistoryModal } from "./SparkHistoryModal";
+import { triggerHaptic } from "@/lib/haptics";
 
 export interface DailySparkCardProps {
   initialData?: TodaySparkData | null;
@@ -47,9 +48,11 @@ export function DailySparkCard({
       const res = await submitSparkAnswer(data.question.id, answerInput.trim());
       if (res.success) {
         if (res.isUnlocked) {
+          triggerHaptic("sparkUnlock");
           onToast?.("🎉 Daily Spark Unlocked! +15 bonus points awarded to both of you!");
           onPointsEarned?.();
         } else {
+          triggerHaptic("medium");
           onToast?.("Answer submitted! Your partner has been notified to answer ✨");
         }
         // Refresh data to reflect state
@@ -58,6 +61,7 @@ export function DailySparkCard({
           setData(refreshed.data);
         }
       } else {
+        triggerHaptic("error");
         onToast?.(res.error || "Failed to submit answer");
       }
     } finally {
@@ -67,6 +71,7 @@ export function DailySparkCard({
 
   const handleShuffle = async () => {
     if (shuffling || isUnlocked) return;
+    triggerHaptic("light");
     setShuffling(true);
     try {
       const res = await shuffleTodayQuestion();
@@ -138,7 +143,10 @@ export function DailySparkCard({
 
             <button
               type="button"
-              onClick={() => setHistoryOpen(true)}
+              onClick={() => {
+                triggerHaptic("selection");
+                setHistoryOpen(true);
+              }}
               className="text-[11px] font-bold text-[#756963] hover:text-[#AB3B46] flex items-center gap-1 transition-colors cursor-pointer"
             >
               <span>Memories</span>

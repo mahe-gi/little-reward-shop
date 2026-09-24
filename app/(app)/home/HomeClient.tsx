@@ -10,6 +10,7 @@ import { Toast } from "@/components/ui/Toast";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { PwaInstallBanner } from "@/components/pwa/PwaInstallBanner";
 import { DailySparkCard } from "@/components/spark/DailySparkCard";
+import { triggerHaptic } from "@/lib/haptics";
 
 interface TaskItem {
   id: string;
@@ -49,6 +50,7 @@ export function HomeClient({ initialData, initialTasks }: HomeClientProps) {
   const handleComplete = async (task: TaskItem) => {
     if (task.status === "COMPLETED") return;
 
+    triggerHaptic("success");
     const res = await completeTask(task.id);
     if (res.success && res.newBalance !== undefined) {
       setData((prev) => ({

@@ -5,6 +5,7 @@ import { completeTask, getTasks, giveTask } from "@/actions/tasks";
 import { GiveTaskSheet } from "@/components/tasks/GiveTaskSheet";
 import { PillButton } from "@/components/ui/PillButton";
 import { Toast } from "@/components/ui/Toast";
+import { triggerHaptic } from "@/lib/haptics";
 
 interface TaskItem {
   id: string;
@@ -46,6 +47,7 @@ export function TasksClient({
   const handleComplete = async (task: TaskItem) => {
     if (task.status === "COMPLETED" || completingIds[task.id]) return;
 
+    triggerHaptic("success");
     setCompletingIds((prev) => ({ ...prev, [task.id]: true }));
     // Optimistic instant feedback
     setMyTasks((prev) =>

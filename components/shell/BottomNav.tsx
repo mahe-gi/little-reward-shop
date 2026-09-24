@@ -10,6 +10,7 @@ import {
   RequestsIcon,
   UsIcon,
 } from "../ui/Icons";
+import { triggerHaptic } from "@/lib/haptics";
 
 export type NavTabId = "home" | "tasks" | "rewards" | "requests" | "us";
 
@@ -131,7 +132,10 @@ export function BottomNav({
                 <button
                   key={tab.id}
                   type="button"
-                  onClick={() => onTabChange(tab.id)}
+                  onClick={() => {
+                    triggerHaptic("selection");
+                    onTabChange(tab.id);
+                  }}
                   className="focus:outline-none flex-1 flex justify-center"
                 >
                   {content}
@@ -143,7 +147,10 @@ export function BottomNav({
               <Link
                 key={tab.id}
                 href={tab.href}
-                onClick={() => setOptimisticTab(tab.id)}
+                onClick={() => {
+                  triggerHaptic("selection");
+                  setOptimisticTab(tab.id);
+                }}
                 className="focus:outline-none flex-1 flex justify-center"
               >
                 {content}
