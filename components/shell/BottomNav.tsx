@@ -12,7 +12,7 @@ import {
 } from "../ui/Icons";
 import { triggerHaptic } from "@/lib/haptics";
 
-export type NavTabId = "home" | "tasks" | "rewards" | "requests" | "us";
+export type NavTabId = "home" | "tasks" | "rewards" | "us";
 
 export interface NavTabItem {
   id: NavTabId;
@@ -31,8 +31,7 @@ export interface BottomNavProps {
 const TABS: NavTabItem[] = [
   { id: "home", label: "Home", href: "/home", icon: HomeIcon },
   { id: "tasks", label: "Habits", href: "/tasks", icon: TasksIcon },
-  { id: "rewards", label: "Boutique", href: "/rewards", icon: RewardsIcon },
-  { id: "requests", label: "Wishes", href: "/requests", icon: RequestsIcon },
+  { id: "rewards", label: "Rewards", href: "/rewards", icon: RewardsIcon },
   { id: "us", label: "Us", href: "/us", icon: UsIcon },
 ];
 
@@ -68,8 +67,8 @@ export function BottomNav({
           {TABS.map((tab) => {
             const isActive = getIsActive(tab);
             const IconComponent = tab.icon;
-            const isRequestsTab = tab.id === "requests";
-            const hasPending = isRequestsTab && pendingRequestsCount > 0;
+            const isRewardsTab = tab.id === "rewards";
+            const hasPending = isRewardsTab && pendingRequestsCount > 0;
 
             const content = (
               <div

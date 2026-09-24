@@ -67,12 +67,12 @@ export function TasksClient({
   };
 
   return (
-    <div className="flex-1 p-5 pb-24 space-y-4">
+    <div className="flex-1 p-4 sm:p-5 pb-28 space-y-4">
       {/* Top Header & Give Task CTA */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between px-1">
         <div>
-          <h1 className="font-serif text-2xl font-bold text-[#24201D]">Tasks</h1>
-          <p className="text-xs text-[#756963]">Yours and the ones you give.</p>
+          <h1 className="font-serif text-2xl font-bold text-[#1E1A18]">Habits &amp; Missions</h1>
+          <p className="text-xs text-[#756963]">Daily moments of care &amp; consistency.</p>
         </div>
         <PillButton
           variant="primary"
@@ -80,7 +80,7 @@ export function TasksClient({
           className="shadow-2xs font-semibold"
           onClick={() => setIsGiveSheetOpen(true)}
         >
-          <span>+ Give Task</span>
+          <span>+ Gift a Habit</span>
         </PillButton>
       </div>
 
@@ -111,7 +111,7 @@ export function TasksClient({
                   setToastMessage(res.error || "Failed to give task");
                 }
               }}
-              className="px-3 py-1.5 rounded-2xl bg-white border border-[#EAE6DE] hover:border-[#E06D75] hover:bg-[#FCEBEE]/40 text-[#24201D] text-xs font-semibold shrink-0 transition-all active:scale-95 shadow-2xs flex items-center gap-1.5"
+              className="px-3 py-1.5 rounded-2xl bg-white border border-[#EAE6DE] hover:border-[#E06D75] hover:bg-[#FCEBEE]/40 text-[#24201D] text-xs font-semibold shrink-0 transition-all active:scale-95 shadow-2xs flex items-center gap-1.5 cursor-pointer"
             >
               <span>{preset.title}</span>
               <span className="text-[10px] text-[#AB3B46] font-bold">+{preset.pts}</span>
@@ -121,25 +121,25 @@ export function TasksClient({
       </div>
 
       {/* Bilateral 2-Segment Switcher */}
-      <div className="p-1 bg-[#F5F2EB] rounded-2xl flex text-xs font-semibold border border-[#EAE6DE]">
+      <div className="p-1 bg-white rounded-2xl flex text-xs font-semibold border border-[#EAE6DE] shadow-2xs">
         <button
           type="button"
           onClick={() => setTab("mine")}
-          className={`flex-1 py-1.5 rounded-xl transition-all ${
+          className={`flex-1 py-2 rounded-xl transition-all cursor-pointer ${
             tab === "mine"
-              ? "bg-white text-[#24201D] shadow-xs"
-              : "text-[#756963] hover:text-[#24201D]"
+              ? "bg-[#1E1A18] text-white shadow-xs"
+              : "text-[#756963] hover:text-[#1E1A18]"
           }`}
         >
-          My Tasks
+          My Habits
         </button>
         <button
           type="button"
           onClick={() => setTab("given")}
-          className={`flex-1 py-1.5 rounded-xl transition-all ${
+          className={`flex-1 py-2 rounded-xl transition-all cursor-pointer ${
             tab === "given"
-              ? "bg-white text-[#24201D] shadow-xs"
-              : "text-[#756963] hover:text-[#24201D]"
+              ? "bg-[#1E1A18] text-white shadow-xs"
+              : "text-[#756963] hover:text-[#1E1A18]"
           }`}
         >
           Given to {partnerName}

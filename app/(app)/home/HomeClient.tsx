@@ -12,6 +12,7 @@ import { PwaInstallBanner } from "@/components/pwa/PwaInstallBanner";
 import { DailySparkCard } from "@/components/spark/DailySparkCard";
 import { triggerHaptic } from "@/lib/haptics";
 import { PartnerBatteryBadge } from "@/components/battery/PartnerBatteryBadge";
+import { Avatar } from "@/components/ui/Avatar";
 import { ThumbKissButton } from "@/components/thumbkiss/ThumbKissButton";
 import { WalkieTalkieWidget } from "@/components/whisper/WalkieTalkieWidget";
 
@@ -74,7 +75,7 @@ export function HomeClient({ initialData, initialTasks }: HomeClientProps) {
   const partnerName = data.partner?.name || "Partner";
 
   return (
-    <div className="flex-1 p-4 sm:p-5 pb-24 space-y-4">
+    <div className="flex-1 p-4 sm:p-5 pb-28 space-y-4">
       {/* App Header / Brand Greeting & Notification Bell */}
       <div className="flex items-center justify-between px-1">
         <PairlyLogo variant="horizontal" size="sm" />
@@ -89,41 +90,43 @@ export function HomeClient({ initialData, initialTasks }: HomeClientProps) {
         </div>
       </div>
 
-      {/* Hero Dual Presence Card */}
-      <div className="rounded-3xl bg-linear-to-br from-[#E06D75] via-[#D05D66] to-[#BA3F4A] p-5 text-white shadow-[0_14px_36px_-8px_rgba(224,109,117,0.42)] relative overflow-hidden">
+      {/* Unified Intimate Couple Sanctuary Card */}
+      <div className="rounded-3xl bg-linear-to-br from-[#E06D75] via-[#D05D66] to-[#BA3F4A] p-5 text-white shadow-[0_14px_36px_-8px_rgba(224,109,117,0.4)] relative overflow-hidden">
         {/* Subtle decorative circles */}
         <div className="absolute -right-8 -top-8 w-32 h-32 rounded-full bg-white/10 pointer-events-none" />
         <div className="absolute -left-6 -bottom-6 w-24 h-24 rounded-full bg-white/5 pointer-events-none" />
 
-        <div className="relative z-10 flex flex-col justify-between h-full space-y-4">
-          <div className="flex items-start justify-between">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-white/80">
-                  Shared Wallet
+        <div className="relative z-10 space-y-4">
+          {/* Top Row: Duo Avatars + Streak */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {/* User Avatar */}
+              <div className="flex items-center gap-1.5 bg-white/15 backdrop-blur-xs px-2.5 py-1 rounded-2xl border border-white/20">
+                <Avatar
+                  avatar={data.user.avatar}
+                  name={data.user.name}
+                  size="xs"
+                  className="rounded-full bg-white/30 text-white"
+                />
+                <span className="text-xs font-semibold text-white truncate max-w-[80px]">
+                  {data.user.name}
                 </span>
-                {data.couple.streakCount > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => setStreakModalOpen(true)}
-                    className="px-2 py-0.5 rounded-full bg-white/20 hover:bg-white/30 text-white text-[10px] font-semibold backdrop-blur-xs transition-colors"
-                  >
-                    {data.couple.streakCount}d streak ›
-                  </button>
-                )}
               </div>
-              <div className="flex items-baseline gap-2 mt-0.5">
-                <span className="font-serif text-4xl sm:text-5xl font-extrabold tracking-tight">
-                  {data.user.pointBalance}
-                </span>
-                <span className="text-xs font-semibold text-white/85">points available</span>
-              </div>
-            </div>
 
-            {/* Partner quick indicator */}
-            <div className="text-right bg-white/15 backdrop-blur-xs px-3 py-1.5 rounded-2xl border border-white/20 flex flex-col items-end gap-0.5">
-              <div className="flex items-center gap-1.5">
-                <span className="text-[10px] font-semibold text-white/80">{partnerName}</span>
+              {/* Knot */}
+              <span className="text-white/60 font-serif italic text-xs">&amp;</span>
+
+              {/* Partner Avatar + Battery */}
+              <div className="flex items-center gap-1.5 bg-white/15 backdrop-blur-xs px-2.5 py-1 rounded-2xl border border-white/20">
+                <Avatar
+                  avatar={data.partner?.avatar}
+                  name={partnerName}
+                  size="xs"
+                  className="rounded-full bg-white/30 text-white"
+                />
+                <span className="text-xs font-semibold text-white truncate max-w-[80px]">
+                  {partnerName}
+                </span>
                 {data.partner && (
                   <PartnerBatteryBadge
                     batteryLevel={data.partner.batteryLevel}
@@ -132,14 +135,37 @@ export function HomeClient({ initialData, initialTasks }: HomeClientProps) {
                   />
                 )}
               </div>
-              <div className="font-serif text-sm font-bold text-white">
-                {data.partner?.pointBalance ?? 0} <span className="text-[10px] font-sans font-normal opacity-85">pts</span>
-              </div>
+            </div>
+
+            {/* Streak Pill */}
+            {data.couple.streakCount > 0 && (
+              <button
+                type="button"
+                onClick={() => setStreakModalOpen(true)}
+                className="px-2.5 py-1 rounded-full bg-white/20 hover:bg-white/30 text-white text-[11px] font-bold backdrop-blur-xs transition-colors flex items-center gap-1 shadow-2xs cursor-pointer active:scale-95"
+              >
+                <span>🔥</span>
+                <span>{data.couple.streakCount}d</span>
+              </button>
+            )}
+          </div>
+
+          {/* Middle: Shared Points */}
+          <div>
+            <div className="text-[10px] font-bold uppercase tracking-wider text-white/80">
+              Shared Wallet
+            </div>
+            <div className="flex items-baseline gap-2 mt-0.5">
+              <span className="font-serif text-4xl sm:text-5xl font-extrabold tracking-tight">
+                {data.user.pointBalance}
+              </span>
+              <span className="text-xs font-semibold text-white/85">points available</span>
             </div>
           </div>
 
+          {/* Bottom Bar: Earned Today + Rewards link */}
           <div className="pt-2.5 border-t border-white/20 flex items-center justify-between text-xs text-white/95">
-            <span className="flex items-center gap-1.5 font-medium">
+            <span className="flex items-center gap-1.5 font-medium text-[11px]">
               <span className="w-1.5 h-1.5 rounded-full bg-white/90 animate-ping" />
               +{data.pointsEarnedToday} pts earned today
             </span>
@@ -147,7 +173,7 @@ export function HomeClient({ initialData, initialTasks }: HomeClientProps) {
               href="/rewards"
               className="px-3 py-1 rounded-full bg-white text-[#AB3B46] hover:bg-white/90 font-bold text-[11px] shadow-sm transition-transform active:scale-95"
             >
-              Treat Yourself →
+              Love Coupons →
             </Link>
           </div>
         </div>
