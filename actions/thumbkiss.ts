@@ -33,19 +33,20 @@ export async function pingThumbKiss(
 
     const now = new Date();
 
-    // Update current user touch timestamp
-    await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        thumbKissActiveAt: isTouching ? now : null,
-      },
-    });
-
-    // Check partner's latest touch timestamp
-    const partnerData = await prisma.user.findUnique({
-      where: { id: partner.id },
-      select: { thumbKissActiveAt: true },
-    });
+    // Concurrently update current user touch and query partner's touch state
+    const [, partnerData] = await Promise.all([
+      prisma.user.update({
+        where: { id: user.id },
+        data: {
+          thumbKissActiveAt: isTouching ? now : null,
+        },
+        select: { id: true },
+      }),
+      prisma.user.findUnique({
+        where: { id: partner.id },
+        select: { thumbKissActiveAt: true },
+      }),
+    ]);
 
     const partnerActiveAt = partnerData?.thumbKissActiveAt;
     const partnerTouching = Boolean(
