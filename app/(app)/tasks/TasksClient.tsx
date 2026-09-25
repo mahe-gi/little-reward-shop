@@ -6,6 +6,7 @@ import { GiveTaskSheet } from "@/components/tasks/GiveTaskSheet";
 import { PillButton } from "@/components/ui/PillButton";
 import { Toast } from "@/components/ui/Toast";
 import { triggerHaptic } from "@/lib/haptics";
+import { triggerCelebration } from "@/components/ui/CelebrationConfetti";
 
 interface TaskItem {
   id: string;
@@ -48,6 +49,7 @@ export function TasksClient({
     if (task.status === "COMPLETED" || completingIds[task.id]) return;
 
     triggerHaptic("success");
+    triggerCelebration({ type: "hearts", count: 35 });
     setCompletingIds((prev) => ({ ...prev, [task.id]: true }));
     // Optimistic instant feedback
     setMyTasks((prev) =>
@@ -72,12 +74,12 @@ export function TasksClient({
       <div className="flex items-center justify-between px-1">
         <div>
           <h1 className="font-serif text-2xl font-bold text-[#1E1A18]">Habits &amp; Missions</h1>
-          <p className="text-xs text-[#756963]">Daily moments of care &amp; consistency.</p>
+          <p className="text-xs text-[#554B45] font-medium">Daily moments of care &amp; consistency.</p>
         </div>
         <PillButton
           variant="primary"
           size="sm"
-          className="shadow-2xs font-semibold"
+          className="shadow-2xs font-semibold cursor-pointer"
           onClick={() => setIsGiveSheetOpen(true)}
         >
           <span>+ Gift a Habit</span>
@@ -87,10 +89,10 @@ export function TasksClient({
       {/* Quick 1-Tap Habit Bar */}
       <div className="space-y-1.5">
         <div className="flex items-center justify-between px-1">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-[#807770]">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-[#554B45]">
             ⚡ 1-Tap Habit Gifting
           </span>
-          <span className="text-[10px] text-[#A89F99]">Send to {partnerName}</span>
+          <span className="text-[10px] text-[#6B615A]">Send to {partnerName}</span>
         </div>
         <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar py-0.5 px-0.5">
           {[
@@ -128,7 +130,7 @@ export function TasksClient({
           className={`flex-1 py-2 rounded-xl transition-all cursor-pointer ${
             tab === "mine"
               ? "bg-[#1E1A18] text-white shadow-xs"
-              : "text-[#756963] hover:text-[#1E1A18]"
+              : "text-[#554B45] hover:text-[#1E1A18]"
           }`}
         >
           My Habits
@@ -139,7 +141,7 @@ export function TasksClient({
           className={`flex-1 py-2 rounded-xl transition-all cursor-pointer ${
             tab === "given"
               ? "bg-[#1E1A18] text-white shadow-xs"
-              : "text-[#756963] hover:text-[#1E1A18]"
+              : "text-[#554B45] hover:text-[#1E1A18]"
           }`}
         >
           Given to {partnerName}
@@ -150,8 +152,8 @@ export function TasksClient({
         <div className="space-y-2.5">
           {myTasks.length === 0 ? (
             <div className="p-8 text-center bg-white rounded-3xl border border-[#EAE6DE] space-y-1.5">
-              <div className="font-serif text-base font-bold text-[#24201D]">Nothing here yet.</div>
-              <p className="text-xs text-[#756963]">
+              <div className="font-serif text-base font-bold text-[#1E1A18]">Nothing here yet.</div>
+              <p className="text-xs text-[#554B45]">
                 Ask {partnerName} to give you a task.
               </p>
             </div>
@@ -170,13 +172,13 @@ export function TasksClient({
                     <div className="min-w-0 flex-1">
                       <div
                         className={`text-xs font-bold truncate ${
-                          isDone ? "line-through text-[#807770]" : "text-[#24201D]"
+                          isDone ? "line-through text-[#6B615A]" : "text-[#1E1A18]"
                         }`}
                       >
                         {task.title}
                       </div>
                       {task.description && (
-                        <div className="text-[11px] text-[#756963] truncate">
+                        <div className="text-[11px] text-[#554B45] truncate">
                           {task.description}
                         </div>
                       )}
@@ -206,20 +208,20 @@ export function TasksClient({
           {givenTasks.length === 0 ? (
             <div className="p-8 text-center bg-white rounded-3xl border border-[#EAE6DE] space-y-3">
               <div className="space-y-1">
-                <div className="font-serif text-base font-bold text-[#24201D]">
-                  You haven&apos;t given {partnerName} a task yet.
+                <div className="font-serif text-base font-bold text-[#1E1A18]">
+                  You haven&apos;t given {partnerName} a habit yet.
                 </div>
-                <p className="text-xs text-[#756963]">
+                <p className="text-xs text-[#554B45]">
                   Give them something nice to accomplish.
                 </p>
               </div>
               <PillButton
                 variant="primary"
                 size="sm"
-                className="font-semibold shadow-2xs"
+                className="font-semibold shadow-2xs cursor-pointer"
                 onClick={() => setIsGiveSheetOpen(true)}
               >
-                + Give Task
+                + Give Habit
               </PillButton>
             </div>
           ) : (
@@ -235,9 +237,9 @@ export function TasksClient({
                       {task.icon}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="text-xs font-bold text-[#24201D] truncate">{task.title}</div>
+                      <div className="text-xs font-bold text-[#1E1A18] truncate">{task.title}</div>
                       {task.description && (
-                        <div className="text-[11px] text-[#756963] truncate">
+                        <div className="text-[11px] text-[#554B45] truncate">
                           {task.description}
                         </div>
                       )}
@@ -245,7 +247,7 @@ export function TasksClient({
                   </div>
 
                   <div className="shrink-0 flex items-center gap-1.5">
-                    <span className="text-[11px] font-semibold text-[#807770]">
+                    <span className="text-[11px] font-semibold text-[#554B45]">
                       +{task.points} pts
                     </span>
                     {isDone ? (

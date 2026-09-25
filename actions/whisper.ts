@@ -77,13 +77,14 @@ export async function sendVoiceWhisper(
 export async function getLatestVoiceWhisper(): Promise<{
   success: boolean;
   whisper: VoiceWhisperItem | null;
+  sentWhisper?: VoiceWhisperItem | null;
   unreadCount: number;
   error?: string;
 }> {
   try {
     const { user, couple } = await requireCouple();
 
-    const [unreadCount, unlistened, latest] = await Promise.all([
+    const [unreadCount, unlistenedReceived, latestReceived, latestSent] = await Promise.all([
       prisma.voiceWhisper.count({
         where: { coupleId: couple.id, receiverId: user.id, isListened: false },
       }),
@@ -97,27 +98,46 @@ export async function getLatestVoiceWhisper(): Promise<{
         orderBy: { createdAt: "desc" },
         include: { sender: { select: { id: true, name: true, avatar: true } } },
       }),
+      prisma.voiceWhisper.findFirst({
+        where: { coupleId: couple.id, senderId: user.id },
+        orderBy: { createdAt: "desc" },
+        include: { sender: { select: { id: true, name: true, avatar: true } } },
+      }),
     ]);
 
-    const activeWhisper = unlistened || latest;
+    const activeReceived = unlistenedReceived || latestReceived;
 
-    if (!activeWhisper) {
-      return { success: true, whisper: null, unreadCount: 0 };
-    }
+    const formattedReceived: VoiceWhisperItem | null = activeReceived
+      ? {
+          id: activeReceived.id,
+          senderId: activeReceived.sender.id,
+          senderName: activeReceived.sender.name,
+          senderAvatar: activeReceived.sender.avatar,
+          audioData: activeReceived.audioData,
+          durationSec: activeReceived.durationSec,
+          isListened: activeReceived.isListened,
+          createdAt: activeReceived.createdAt.toISOString(),
+        }
+      : null;
+
+    const formattedSent: VoiceWhisperItem | null = latestSent
+      ? {
+          id: latestSent.id,
+          senderId: latestSent.sender.id,
+          senderName: "You",
+          senderAvatar: latestSent.sender.avatar,
+          audioData: latestSent.audioData,
+          durationSec: latestSent.durationSec,
+          isListened: latestSent.isListened,
+          createdAt: latestSent.createdAt.toISOString(),
+        }
+      : null;
 
     return {
       success: true,
       unreadCount,
-      whisper: {
-        id: activeWhisper.id,
-        senderId: activeWhisper.sender.id,
-        senderName: activeWhisper.sender.name,
-        senderAvatar: activeWhisper.sender.avatar,
-        audioData: activeWhisper.audioData,
-        durationSec: activeWhisper.durationSec,
-        isListened: activeWhisper.isListened,
-        createdAt: activeWhisper.createdAt.toISOString(),
-      },
+      whisper: formattedReceived,
+      sentWhisper: formattedSent,
     };
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : "Failed to load voice whisper";

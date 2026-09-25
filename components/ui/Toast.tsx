@@ -56,14 +56,14 @@ export function Toast({
       role="alert"
       className={`fixed top-5 left-1/2 -translate-x-1/2 z-50 max-w-[92vw] sm:max-w-md w-full px-3 animate-in fade-in slide-in-from-top-4 duration-300 pointer-events-auto ${className}`}
     >
-      <div className="flex items-center gap-3 bg-[#FDFBF7]/95 backdrop-blur-md px-4 py-3 rounded-full border border-[#EAE6DE] shadow-[0_12px_32px_-4px_rgba(44,32,28,0.14)] text-[#24201D]">
+      <div className="flex items-center gap-3 bg-[#FDFBF7]/95 backdrop-blur-md px-4 py-3 rounded-full border border-[#EAE6DE] shadow-[0_12px_32px_-4px_rgba(44,32,28,0.14)] text-[#1E1A18]">
         <div className="shrink-0 flex items-center justify-center p-1 rounded-full bg-[#FAF7F2]">
           {iconMap[type]}
         </div>
 
         <div className="flex-1 min-w-0 pr-1">
           <div className="flex items-center gap-2">
-            <p className="text-sm font-semibold text-[#24201D] truncate leading-tight">
+            <p className="text-sm font-semibold text-[#1E1A18] truncate leading-tight">
               {title}
             </p>
             {points !== undefined && (
@@ -73,7 +73,7 @@ export function Toast({
             )}
           </div>
           {description && (
-            <p className="text-xs text-[#756963] truncate mt-0.5 leading-snug">
+            <p className="text-xs text-[#554B45] truncate mt-0.5 leading-snug">
               {description}
             </p>
           )}
@@ -82,7 +82,7 @@ export function Toast({
         {action && (
           <button
             onClick={action.onClick}
-            className="shrink-0 text-xs font-semibold text-[#E06D75] hover:underline px-2 py-1 cursor-pointer"
+            className="shrink-0 text-xs font-semibold text-[#BA3F4A] hover:underline px-2 py-1 cursor-pointer"
           >
             {action.label}
           </button>
@@ -90,7 +90,7 @@ export function Toast({
 
         <button
           onClick={onClose}
-          className="shrink-0 p-1 text-[#756963] hover:text-[#24201D] rounded-full hover:bg-[#EAE6DE]/40 transition-colors cursor-pointer"
+          className="shrink-0 p-1 text-[#554B45] hover:text-[#1E1A18] rounded-full hover:bg-[#EAE6DE]/40 transition-colors cursor-pointer"
           aria-label="Close notification"
         >
           <CloseIcon size={16} />

@@ -74,14 +74,14 @@ export function BottomNav({
               <div
                 className={`relative flex flex-col items-center justify-center py-1.5 px-3 rounded-2xl transition-all duration-300 group cursor-pointer select-none active:scale-90 ${
                   isActive
-                    ? "text-[#E06D75]"
-                    : "text-[#756963] hover:text-[#1E1A18]"
+                    ? "text-[#BA3F4A]"
+                    : "text-[#554B45] hover:text-[#1E1A18]"
                 }`}
               >
                 {/* Active Soft Glow Capsule */}
                 {isActive && (
                   <div
-                    className="absolute inset-0 bg-[#E06D75]/12 rounded-2xl -z-10 scale-95 shadow-inner"
+                    className="absolute inset-0 bg-[#BA3F4A]/10 rounded-2xl -z-10 scale-95 shadow-inner"
                     aria-hidden="true"
                   />
                 )}
@@ -92,7 +92,7 @@ export function BottomNav({
                     size={21}
                     className={`transition-all duration-300 ${
                       isActive
-                        ? "scale-110 stroke-[2.4] drop-shadow-[0_2px_8px_rgba(224,109,117,0.35)]"
+                        ? "scale-110 stroke-[2.4] drop-shadow-[0_2px_8px_rgba(186,63,74,0.3)]"
                         : "group-hover:scale-105 stroke-[1.8]"
                     }`}
                   />
@@ -100,7 +100,7 @@ export function BottomNav({
                   {/* Badge */}
                   {hasPending && (
                     <span
-                      className="absolute -top-1 -right-2 min-w-[16px] h-[16px] px-1 bg-[#E06D75] text-white text-[9px] font-extrabold rounded-full flex items-center justify-center border border-white shadow-xs"
+                      className="absolute -top-1 -right-2 min-w-[16px] h-[16px] px-1 bg-[#BA3F4A] text-white text-[9px] font-extrabold rounded-full flex items-center justify-center border border-white shadow-xs"
                       aria-label={`${pendingRequestsCount} pending requests`}
                     >
                       {pendingRequestsCount > 9 ? "9+" : pendingRequestsCount}
@@ -112,8 +112,8 @@ export function BottomNav({
                 <span
                   className={`text-[10px] mt-1 tracking-tight leading-none transition-all duration-200 ${
                     isActive
-                      ? "font-bold text-[#E06D75] scale-100"
-                      : "font-medium text-[#756963] opacity-80 group-hover:opacity-100"
+                      ? "font-bold text-[#BA3F4A] scale-100"
+                      : "font-semibold text-[#554B45] opacity-90 group-hover:opacity-100"
                   }`}
                 >
                   {tab.label}
@@ -121,7 +121,7 @@ export function BottomNav({
 
                 {/* Micro Active Dot */}
                 {isActive && (
-                  <span className="w-1 h-1 rounded-full bg-[#E06D75] mt-0.5 animate-pulse" />
+                  <span className="w-1 h-1 rounded-full bg-[#BA3F4A] mt-0.5 animate-pulse" />
                 )}
               </div>
             );

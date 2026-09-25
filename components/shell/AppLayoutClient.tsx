@@ -12,6 +12,7 @@ import { getNotifications } from "@/actions/notifications";
 import { subscribeToPushNotifications } from "@/lib/web-push-client";
 import { NavigationProgress } from "@/components/ui/NavigationProgress";
 import { BatterySyncListener } from "@/components/battery/BatterySyncListener";
+import { CelebrationConfetti } from "@/components/ui/CelebrationConfetti";
 
 function AppShellContent({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -168,6 +169,7 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
     >
       <NavigationProgress />
       <BatterySyncListener />
+      <CelebrationConfetti />
       {showNotificationPrompt && (
         <div className="bg-[#FFFBF0] border-b border-[#FEF3D6] px-4 py-2.5 flex items-center justify-between text-xs text-[#24201D] transition-all">
           <div className="flex items-center gap-2">

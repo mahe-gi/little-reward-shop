@@ -4,3 +4,4 @@ export * from "./ModalSheet";
 export * from "./Toast";
 export * from "./PointsBadge";
 export * from "./Icons";
+export * from "./CelebrationConfetti";

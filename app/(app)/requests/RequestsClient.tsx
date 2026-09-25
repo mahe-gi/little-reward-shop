@@ -12,6 +12,8 @@ import {
 } from "@/actions/requests";
 import { PillButton } from "@/components/ui/PillButton";
 import { Toast } from "@/components/ui/Toast";
+import { triggerHaptic } from "@/lib/haptics";
+import { triggerCelebration } from "@/components/ui/CelebrationConfetti";
 
 export interface RequestItem {
   id: string;
@@ -80,6 +82,8 @@ export function RequestsClient({
 
   const handleApprove = async (requestId: string) => {
     setActionLoadingId(requestId);
+    triggerHaptic("success");
+    triggerCelebration({ type: "hearts", count: 35 });
     const res = await approveRewardRequest(requestId);
     setActionLoadingId(null);
     if (res.success) {
@@ -92,6 +96,7 @@ export function RequestsClient({
 
   const handleReject = async (requestId: string) => {
     setActionLoadingId(requestId);
+    triggerHaptic("light");
     const res = await rejectRewardRequest(requestId, "Rescheduled with love");
     setActionLoadingId(null);
     if (res.success) {
@@ -104,6 +109,7 @@ export function RequestsClient({
 
   const handleCancel = async (requestId: string) => {
     setActionLoadingId(requestId);
+    triggerHaptic("light");
     const res = await cancelRewardRequest(requestId);
     setActionLoadingId(null);
     if (res.success) {
@@ -119,6 +125,7 @@ export function RequestsClient({
     itemId: string,
     completed: boolean
   ) => {
+    triggerHaptic("selection");
     // Optimistic update
     setReceivedRequests((prev) =>
       prev.map((r) =>
@@ -142,6 +149,8 @@ export function RequestsClient({
 
   const handleFulfill = async (requestId: string) => {
     setActionLoadingId(requestId);
+    triggerHaptic("sparkUnlock");
+    triggerCelebration({ type: "all", count: 65 });
     const res = await fulfillRewardRequest(requestId);
     setActionLoadingId(null);
     if (res.success) {

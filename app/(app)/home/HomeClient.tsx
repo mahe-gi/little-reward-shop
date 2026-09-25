@@ -15,6 +15,7 @@ import { PartnerBatteryBadge } from "@/components/battery/PartnerBatteryBadge";
 import { Avatar } from "@/components/ui/Avatar";
 import { ThumbKissButton } from "@/components/thumbkiss/ThumbKissButton";
 import { WalkieTalkieWidget } from "@/components/whisper/WalkieTalkieWidget";
+import { triggerCelebration } from "@/components/ui/CelebrationConfetti";
 
 interface TaskItem {
   id: string;
@@ -55,6 +56,7 @@ export function HomeClient({ initialData, initialTasks }: HomeClientProps) {
     if (task.status === "COMPLETED") return;
 
     triggerHaptic("success");
+    triggerCelebration({ type: "hearts", count: 35 });
     const res = await completeTask(task.id);
     if (res.success && res.newBalance !== undefined) {
       setData((prev) => ({
@@ -82,7 +84,7 @@ export function HomeClient({ initialData, initialTasks }: HomeClientProps) {
         <div className="flex items-center gap-2.5">
           <NotificationBell />
           <div className="text-right">
-            <div className="text-[10px] text-[#756963]">Good day,</div>
+            <div className="text-[10px] text-[#554B45] font-medium">Good day,</div>
             <div className="font-serif text-xs sm:text-sm font-bold text-[#1E1A18] truncate max-w-[120px]">
               {data.user.name}
             </div>
@@ -217,9 +219,9 @@ export function HomeClient({ initialData, initialTasks }: HomeClientProps) {
         </div>
 
         {tasks.length === 0 ? (
-          <div className="py-6 text-center text-xs text-[#756963] space-y-1">
+          <div className="py-6 text-center text-xs text-[#554B45] space-y-1">
             <p>No habits scheduled for today.</p>
-            <p className="text-[11px] text-[#A89F99]">
+            <p className="text-[11px] text-[#6B615A]">
               Ask {partnerName} to gift you a habit!
             </p>
           </div>
@@ -241,12 +243,12 @@ export function HomeClient({ initialData, initialTasks }: HomeClientProps) {
                     <div className="min-w-0 flex-1">
                       <div
                         className={`text-xs font-semibold truncate ${
-                          isDone ? "line-through text-[#807770]" : "text-[#1E1A18]"
+                          isDone ? "line-through text-[#6B615A]" : "text-[#1E1A18]"
                         }`}
                       >
                         {task.title}
                       </div>
-                      <div className="text-[10px] text-[#756963]">
+                      <div className="text-[10px] text-[#554B45] font-medium">
                         +{task.points} pts
                       </div>
                     </div>
@@ -260,7 +262,7 @@ export function HomeClient({ initialData, initialTasks }: HomeClientProps) {
                     <button
                       type="button"
                       onClick={() => handleComplete(task)}
-                      className="px-3 py-1 rounded-xl bg-[#FCEBEE] hover:bg-[#E06D75] hover:text-white text-[#AB3B46] font-bold text-[11px] transition-all active:scale-95 shadow-2xs shrink-0"
+                      className="px-3 py-1 rounded-xl bg-[#FCEBEE] hover:bg-[#E06D75] hover:text-white text-[#AB3B46] font-bold text-[11px] transition-all active:scale-95 shadow-2xs shrink-0 cursor-pointer"
                     >
                       Done +{task.points}
                     </button>
@@ -279,7 +281,7 @@ export function HomeClient({ initialData, initialTasks }: HomeClientProps) {
             <h3 className="font-serif text-sm font-bold text-[#1E1A18]">
               Recent Activity
             </h3>
-            <span className="text-[11px] text-[#756963]">Latest moments</span>
+            <span className="text-[11px] text-[#554B45] font-medium">Latest moments</span>
           </div>
 
           <div className="bg-white rounded-3xl p-3 border border-[#EAE6DE] shadow-2xs divide-y divide-[#EAE6DE]/60">
@@ -302,11 +304,11 @@ export function HomeClient({ initialData, initialTasks }: HomeClientProps) {
                   <div className="flex-1 min-w-0">
                     <div className="text-[#1E1A18] leading-snug">
                       <span className="font-bold">{act.actor.name}</span>{" "}
-                      <span className="text-[#756963]">{act.description}</span>
+                      <span className="text-[#554B45]">{act.description}</span>
                     </div>
                     <div
                       suppressHydrationWarning
-                      className="text-[10px] text-[#A89F99] mt-0.5"
+                      className="text-[10px] text-[#6B615A] mt-0.5"
                     >
                       {formatActivityTime(act.createdAt)}
                     </div>

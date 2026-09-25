@@ -72,7 +72,7 @@ export function WalkieTalkieWidget({
             <div className="text-xs font-bold text-[#1E1A18] truncate">
               {hasUnread ? "New Whisper!" : "Walkie-Talkie"}
             </div>
-            <div className="text-[10px] text-[#756963] truncate">
+            <div className="text-[10px] text-[#554B45] font-medium truncate">
               {hasUnread
                 ? `${whisper?.durationSec}s from ${partnerName}`
                 : "Hold to whisper"}
@@ -84,7 +84,7 @@ export function WalkieTalkieWidget({
           className={`text-[11px] font-bold px-2 py-0.5 rounded-lg shrink-0 transition-colors ml-1 ${
             hasUnread
               ? "bg-[#FF4B72] text-white"
-              : "bg-[#FAF7F2] text-[#756963]"
+              : "bg-[#FAF7F2] text-[#554B45]"
           }`}
         >
           {hasUnread ? "▶ Listen" : "🎙️"}

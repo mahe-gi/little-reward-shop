@@ -77,7 +77,7 @@ export function ThumbKissButton({
                 ? `${partnerName} touching!`
                 : "Touch Screen"}
             </div>
-            <div className="text-[10px] text-[#756963] truncate">
+            <div className="text-[10px] text-[#554B45] font-medium truncate">
               {partnerWaiting
                 ? "Tap to sync heartbeat"
                 : "Sync heartbeat"}

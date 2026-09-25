@@ -8,6 +8,7 @@ import { MyOfferedRewardsModal } from "@/components/modals/MyOfferedRewardsModal
 import { RequestsClient, RequestEntry } from "@/app/(app)/requests/RequestsClient";
 import { Toast } from "@/components/ui/Toast";
 import { triggerHaptic } from "@/lib/haptics";
+import { triggerCelebration } from "@/components/ui/CelebrationConfetti";
 
 interface RewardItem {
   id: string;
@@ -86,8 +87,9 @@ export function RewardsClient({
 
   const handleAddReward = (reward: { id: string; title: string; cost: number; icon: string }) => {
     triggerHaptic("success");
+    triggerCelebration({ type: "hearts", count: 25 });
     addItem(reward);
-    setToastMessage(`Added "${reward.title}" to your wish ✨`);
+    setToastMessage(`Clipped "${reward.title}" to your wishes ✨`);
   };
 
   return (
@@ -95,14 +97,14 @@ export function RewardsClient({
       {/* Top Header */}
       <div className="flex items-center justify-between px-1">
         <div>
-          <h1 className="font-serif text-2xl font-bold text-[#24201D]">
+          <h1 className="font-serif text-2xl font-bold text-[#1E1A18]">
             Love Coupons &amp; Wishes
           </h1>
-          <p className="text-xs text-[#756963]">
+          <p className="text-xs text-[#554B45] font-medium">
             Treat each other with shared points &amp; surprises.
           </p>
         </div>
-        <div className="px-3 py-1.5 rounded-full bg-[#FCEBEE] border border-[#FAD4DA] text-[#AB3B46] text-xs font-bold shadow-xs">
+        <div className="px-3 py-1.5 rounded-full bg-[#FFF2F4] border border-[#FAD4DA] text-[#BA3F4A] text-xs font-bold shadow-2xs">
           <span>{availablePoints}</span> pts available
         </div>
       </div>
@@ -118,7 +120,7 @@ export function RewardsClient({
           className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
             hubTab === "coupons"
               ? "bg-[#1E1A18] text-white shadow-xs"
-              : "text-[#756963] hover:text-[#1E1A18] hover:bg-[#FAF7F2]"
+              : "text-[#554B45] hover:text-[#1E1A18] hover:bg-[#FAF7F2]"
           }`}
         >
           <span>🎁</span>
@@ -134,13 +136,13 @@ export function RewardsClient({
           className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer relative ${
             hubTab === "wishes"
               ? "bg-[#1E1A18] text-white shadow-xs"
-              : "text-[#756963] hover:text-[#1E1A18] hover:bg-[#FAF7F2]"
+              : "text-[#554B45] hover:text-[#1E1A18] hover:bg-[#FAF7F2]"
           }`}
         >
           <span>💌</span>
           <span>Active Wishes</span>
           {pendingReceivedCount > 0 && (
-            <span className="px-1.5 py-0.2 rounded-full bg-[#E06D75] text-white text-[10px] font-bold animate-pulse">
+            <span className="px-1.5 py-0.2 rounded-full bg-[#BA3F4A] text-white text-[10px] font-bold animate-pulse">
               {pendingReceivedCount}
             </span>
           )}
@@ -162,8 +164,8 @@ export function RewardsClient({
                     onClick={() => handleCategoryChange(cat.id)}
                     className={`px-3 py-1 rounded-full text-xs shrink-0 transition-all cursor-pointer ${
                       active
-                        ? "bg-[#24201D] text-white font-semibold shadow-xs"
-                        : "bg-white border border-[#EAE6DE] text-[#24201D] font-medium hover:border-[#E06D75]/40"
+                        ? "bg-[#1E1A18] text-white font-semibold shadow-xs"
+                        : "bg-white border border-[#EAE6DE] text-[#24201D] font-medium hover:border-[#BA3F4A]/40"
                     }`}
                   >
                     {cat.label}
@@ -175,34 +177,35 @@ export function RewardsClient({
             <button
               type="button"
               onClick={() => setIsMyRewardsOpen(true)}
-              className="px-2.5 py-1 rounded-xl bg-[#FAF7F2] hover:bg-[#FCEBEE] text-[#AB3B46] border border-[#EAE6DE] text-[11px] font-bold shrink-0 transition-all cursor-pointer active:scale-95"
+              className="px-2.5 py-1 rounded-xl bg-[#FAF7F2] hover:bg-[#FFF2F4] text-[#BA3F4A] border border-[#EAE6DE] text-[11px] font-bold shrink-0 transition-all cursor-pointer active:scale-95"
             >
               + Offer
             </button>
           </div>
 
-          {/* 2-Column Reward Grid */}
+          {/* 2-Column Reward Voucher Grid */}
           {displayedRewards.length === 0 ? (
             <div className="p-8 text-center bg-white rounded-3xl border border-[#EAE6DE] space-y-2 mt-2">
-              <div className="w-12 h-12 rounded-2xl bg-[#FAF7F2] border border-[#EAE6DE] flex items-center justify-center text-xl text-[#756963] mx-auto">
+              <div className="w-12 h-12 rounded-2xl bg-[#FAF7F2] border border-[#EAE6DE] flex items-center justify-center text-xl text-[#554B45] mx-auto">
                 ✦
               </div>
-              <div className="font-serif text-base font-bold text-[#24201D]">
-                No rewards in this category
+              <div className="font-serif text-base font-bold text-[#1E1A18]">
+                No coupons in this category
               </div>
-              <p className="text-xs text-[#756963]">
-                {partnerName} hasn&apos;t added rewards for this category yet.
+              <p className="text-xs text-[#554B45]">
+                {partnerName} hasn&apos;t added coupons for this category yet.
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-2.5 px-1">
+            <div className="grid grid-cols-2 gap-2.5 px-0.5">
               {displayedRewards.map((reward) => {
                 const isAdded = items.some((i) => i.rewardId === reward.id);
                 return (
                   <div
                     key={reward.id}
-                    className="bg-white rounded-3xl p-3.5 border border-[#EAE6DE] hover:border-[#E06D75]/40 shadow-xs hover:shadow-md flex flex-col justify-between transition-all duration-200 group"
+                    className="relative overflow-hidden bg-white rounded-3xl p-3 border border-[#EAE6DE] hover:border-[#BA3F4A]/40 shadow-[0_4px_16px_rgba(40,30,25,0.03)] hover:shadow-md flex flex-col justify-between transition-all duration-200 group"
                   >
+                    {/* Top Voucher Body */}
                     <div
                       className="cursor-pointer"
                       onClick={() => {
@@ -211,39 +214,48 @@ export function RewardsClient({
                       }}
                     >
                       <div className="flex items-center justify-between mb-2">
-                        <div className="w-11 h-11 rounded-2xl bg-[#FCEBEE] border border-[#FAD4DA] flex items-center justify-center text-2xl group-hover:scale-105 transition-transform">
+                        <div className="w-10 h-10 rounded-2xl bg-[#FFF2F4] border border-[#FAD4DA] flex items-center justify-center text-xl group-hover:scale-105 transition-transform shadow-2xs">
                           {reward.icon}
                         </div>
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#FAF7F2] text-[#807770] uppercase tracking-wider border border-[#EAE6DE]">
+                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-[#FAF7F2] text-[#554B45] uppercase tracking-wider border border-[#EAE6DE]">
                           {reward.category}
                         </span>
                       </div>
 
-                      <div className="text-xs font-bold text-[#24201D] truncate group-hover:text-[#E06D75] transition-colors">
+                      <div className="text-xs sm:text-sm font-serif font-bold text-[#1E1A18] truncate group-hover:text-[#BA3F4A] transition-colors">
                         {reward.title}
                       </div>
 
-                      <div className="text-xs font-bold text-[#E06D75] mt-0.5">
-                        {reward.cost} pts
+                      <div className="text-xs font-bold text-[#BA3F4A] mt-0.5 flex items-center gap-1">
+                        <span>{reward.cost} pts</span>
+                        <span className="text-[10px] text-[#A49B94] font-normal">• coupon</span>
                       </div>
 
                       {reward.description && (
-                        <div className="text-[10px] text-[#807770] mt-1 leading-relaxed line-clamp-2">
+                        <div className="text-[10px] text-[#554B45] mt-1 leading-relaxed line-clamp-2">
                           {reward.description}
                         </div>
                       )}
                     </div>
 
+                    {/* Perforated Ticket Divider with Punched Side Notches */}
+                    <div className="relative my-2.5 -mx-3 flex items-center pointer-events-none" aria-hidden="true">
+                      <div className="w-2.5 h-4 bg-[#FAF7F2] rounded-r-full border-y border-r border-[#EAE6DE] shrink-0" />
+                      <div className="flex-1 border-b border-dashed border-[#D8D2C7] mx-1 opacity-70" />
+                      <div className="w-2.5 h-4 bg-[#FAF7F2] rounded-l-full border-y border-l border-[#EAE6DE] shrink-0" />
+                    </div>
+
+                    {/* Tear / Clip Action */}
                     <button
                       type="button"
                       onClick={() => handleAddReward(reward)}
-                      className={`mt-3 w-full py-1.5 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1 active:scale-95 shadow-2xs ${
+                      className={`w-full py-1.5 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1 active:scale-95 shadow-2xs cursor-pointer ${
                         isAdded
-                          ? "bg-[#F0ECE1] text-[#756963] hover:bg-[#EAE6DE]"
-                          : "bg-[#FAF7F2] hover:bg-[#E06D75] hover:text-white text-[#24201D] border border-[#EAE6DE] hover:border-transparent cursor-pointer"
+                          ? "bg-[#F4F7F5] text-[#557567] border border-[#E5EEE9]"
+                          : "bg-[#FAF7F2] hover:bg-[#BA3F4A] hover:text-white text-[#1E1A18] border border-[#EAE6DE] hover:border-transparent"
                       }`}
                     >
-                      <span>{isAdded ? "Added to Wish ✓" : "+ Add to Wish"}</span>
+                      <span>{isAdded ? "Clipped ✓" : "✂️ Clip to Wish"}</span>
                     </button>
                   </div>
                 );
@@ -256,13 +268,14 @@ export function RewardsClient({
             <button
               type="button"
               onClick={() => setIsMyRewardsOpen(true)}
-              className="text-xs font-semibold text-[#756963] hover:text-[#E06D75] inline-flex items-center gap-1 underline underline-offset-4 cursor-pointer"
+              className="text-xs font-semibold text-[#554B45] hover:text-[#BA3F4A] inline-flex items-center gap-1 underline underline-offset-4 cursor-pointer"
             >
               <span>Coupons you offer to {partnerName} →</span>
             </button>
           </div>
         </div>
       )}
+
 
       {/* TAB 2: ACTIVE WISHES TRACKING */}
       {hubTab === "wishes" && (
