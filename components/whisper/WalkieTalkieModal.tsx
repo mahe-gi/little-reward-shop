@@ -8,6 +8,7 @@ import {
   VoiceWhisperItem,
 } from "@/actions/whisper";
 import { triggerHaptic } from "@/lib/haptics";
+import { RadioIcon, MicIcon, PlayIcon, PauseIcon, CheckIcon } from "@/components/ui/Icons";
 
 interface WalkieTalkieModalProps {
   isOpen: boolean;
@@ -390,7 +391,7 @@ export function WalkieTalkieModal({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="w-8 h-8 rounded-full bg-[#FAF7F2] border border-[#EAE6DE] flex items-center justify-center text-sm shadow-2xs">
-              📻
+              <RadioIcon size={16} className="text-[#1E1A18]" />
             </span>
             <div>
               <h2 className="font-serif text-base font-bold text-[#1E1A18] tracking-tight">
@@ -433,9 +434,9 @@ export function WalkieTalkieModal({
               <button
                 type="button"
                 onClick={handleTogglePlayReceived}
-                className="w-10 h-10 rounded-full bg-[#BA3F4A] hover:bg-[#AB3B46] text-white flex items-center justify-center text-sm shadow-xs transition-all active:scale-95 shrink-0 cursor-pointer"
+                className="w-10 h-10 rounded-full bg-[#BA3F4A] hover:bg-[#AB3B46] text-white flex items-center justify-center shadow-xs transition-all active:scale-95 shrink-0 cursor-pointer"
               >
-                {isPlayingReceived ? "⏸" : "▶"}
+                {isPlayingReceived ? <PauseIcon size={14} /> : <PlayIcon size={14} />}
               </button>
 
               <div className="flex-1 space-y-1">
@@ -471,7 +472,7 @@ export function WalkieTalkieModal({
             {testPhase === "recording" && (
               <div className="space-y-1">
                 <div className="flex items-center justify-center gap-2 text-xs font-bold text-[#8E5E1E]">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#E06D75] animate-ping" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#BA3F4A] animate-ping" />
                   <span>Speaking into mic... {testCountdown}s</span>
                 </div>
                 <p className="text-[11px] text-[#554B45]">Say &ldquo;Hello testing 1 2 3!&rdquo;</p>
@@ -480,7 +481,7 @@ export function WalkieTalkieModal({
             {testPhase === "playing" && (
               <div className="space-y-1">
                 <div className="text-xs font-bold text-[#8E5E1E] flex items-center justify-center gap-1.5">
-                  <span>🔊</span>
+                  <RadioIcon size={14} className="text-[#8E5E1E]" />
                   <span>Playing back your voice...</span>
                 </div>
                 <p className="text-[11px] text-[#554B45]">Listen through your speaker right now</p>
@@ -488,9 +489,12 @@ export function WalkieTalkieModal({
             )}
             {testPhase === "success" && (
               <div className="space-y-0.5 text-xs font-bold text-[#557567] bg-[#F4F7F5] p-2 rounded-xl border border-[#E5EEE9]">
-                <div>✅ Mic &amp; Audio Working Loud &amp; Clear!</div>
+                <div className="flex items-center justify-center gap-1.5">
+                  <CheckIcon size={14} className="text-[#557567]" />
+                  <span>Microphone &amp; Audio Working</span>
+                </div>
                 <div className="text-[10px] text-[#554B45] font-normal">
-                  Your hardware is 100% ready for Walkie-Talkie.
+                  Hardware verified and ready for Walkie-Talkie.
                 </div>
               </div>
             )}
@@ -506,7 +510,7 @@ export function WalkieTalkieModal({
               onClick={runMicSelfTest}
               className="text-[11px] font-bold text-[#BA3F4A] hover:text-[#1E1A18] underline underline-offset-2 flex items-center gap-1 cursor-pointer"
             >
-              <span>🧪 Test Mic &amp; Audio (3s)</span>
+              <span>Test Mic &amp; Audio (3s)</span>
             </button>
           </div>
         )}
@@ -540,7 +544,7 @@ export function WalkieTalkieModal({
                   : "bg-linear-to-br from-[#1E1A18] to-[#2E2825] hover:from-[#BA3F4A] hover:to-[#B43A47] text-white active:scale-95"
               }`}
             >
-              <span className="text-2xl">{isRecording ? "🎙️" : "📻"}</span>
+              <MicIcon size={26} className={isRecording ? "text-white" : "text-white/90"} />
               <span className="text-[10px] font-bold mt-1 tracking-tight">
                 {isRecording ? `${recordSeconds}s` : "HOLD"}
               </span>
@@ -551,7 +555,7 @@ export function WalkieTalkieModal({
             {isSending
               ? "Sending whisper to " + partnerName + "..."
               : isRecording
-              ? "Recording whisper... Release to send!"
+              ? "Recording whisper... Release to send"
               : "Press & hold to speak, release to send"}
           </p>
 
@@ -569,7 +573,7 @@ export function WalkieTalkieModal({
               <div className="text-[11px] font-bold text-[#1E1A18] truncate flex items-center gap-1.5">
                 <span>Your last whisper</span>
                 <span className="text-[10px] text-[#557567] bg-[#F4F7F5] px-1.5 py-0.2 rounded border border-[#E5EEE9]">
-                  {sentWhisper.isListened ? "Listened by partner ✓" : "Delivered ✓"}
+                  {sentWhisper.isListened ? "Listened by partner" : "Delivered"}
                 </span>
               </div>
               <div className="text-[10px] text-[#554B45]">
@@ -580,9 +584,10 @@ export function WalkieTalkieModal({
             <button
               type="button"
               onClick={handleTogglePlaySent}
-              className="px-2.5 py-1 rounded-xl bg-white border border-[#EAE6DE] hover:border-[#BA3F4A] text-xs font-bold text-[#1E1A18] hover:text-[#BA3F4A] shrink-0 transition-colors cursor-pointer flex items-center gap-1"
+              className="px-2.5 py-1 rounded-xl bg-white border border-[#EAE6DE] hover:border-[#BA3F4A] text-xs font-bold text-[#1E1A18] hover:text-[#BA3F4A] shrink-0 transition-colors cursor-pointer flex items-center gap-1.5"
             >
-              <span>{isPlayingSent ? "⏸ Pause" : "▶ Replay"}</span>
+              {isPlayingSent ? <PauseIcon size={12} /> : <PlayIcon size={12} />}
+              <span>{isPlayingSent ? "Pause" : "Replay"}</span>
             </button>
           </div>
         )}

@@ -9,6 +9,7 @@ import { RequestsClient, RequestEntry } from "@/app/(app)/requests/RequestsClien
 import { Toast } from "@/components/ui/Toast";
 import { triggerHaptic } from "@/lib/haptics";
 import { triggerCelebration } from "@/components/ui/CelebrationConfetti";
+import { RewardsIcon, MailIcon } from "@/components/ui/Icons";
 
 interface RewardItem {
   id: string;
@@ -89,7 +90,7 @@ export function RewardsClient({
     triggerHaptic("success");
     triggerCelebration({ type: "hearts", count: 25 });
     addItem(reward);
-    setToastMessage(`Clipped "${reward.title}" to your wishes ✨`);
+    setToastMessage(`Clipped "${reward.title}" to your wishes`);
   };
 
   return (
@@ -123,7 +124,7 @@ export function RewardsClient({
               : "text-[#554B45] hover:text-[#1E1A18] hover:bg-[#FAF7F2]"
           }`}
         >
-          <span>🎁</span>
+          <RewardsIcon size={14} className={hubTab === "coupons" ? "text-white" : "text-[#554B45]"} />
           <span>Available Coupons</span>
         </button>
 
@@ -139,7 +140,7 @@ export function RewardsClient({
               : "text-[#554B45] hover:text-[#1E1A18] hover:bg-[#FAF7F2]"
           }`}
         >
-          <span>💌</span>
+          <MailIcon size={14} className={hubTab === "wishes" ? "text-white" : "text-[#554B45]"} />
           <span>Active Wishes</span>
           {pendingReceivedCount > 0 && (
             <span className="px-1.5 py-0.2 rounded-full bg-[#BA3F4A] text-white text-[10px] font-bold animate-pulse">
@@ -255,7 +256,7 @@ export function RewardsClient({
                           : "bg-[#FAF7F2] hover:bg-[#BA3F4A] hover:text-white text-[#1E1A18] border border-[#EAE6DE] hover:border-transparent"
                       }`}
                     >
-                      <span>{isAdded ? "Clipped ✓" : "✂️ Clip to Wish"}</span>
+                      <span>{isAdded ? "Clipped" : "+ Clip to Wish"}</span>
                     </button>
                   </div>
                 );

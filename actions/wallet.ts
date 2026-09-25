@@ -35,7 +35,7 @@ export async function giveBonus(
     }
 
     const pts = Math.max(1, Math.min(100, Math.round(amount)));
-    const note = message.trim() || `Bonus from ${ctx.user.name} 🌸`;
+    const note = message.trim() || `Bonus from ${ctx.user.name}`;
 
     await prisma.$transaction(async (tx) => {
       await tx.walletTransaction.create({
@@ -62,8 +62,8 @@ export async function giveBonus(
             type: "TASK_COMPLETED", // closest available type for a bonus event
             description:
               targetUserId === ctx.user.id
-                ? `gave themselves ${pts} bonus pts 🌸`
-                : `gave ${ctx.partner?.name ?? "partner"} ${pts} bonus pts 🎁`,
+                ? `gave themselves ${pts} bonus pts`
+                : `gave ${ctx.partner?.name ?? "partner"} ${pts} bonus pts`,
           },
         });
       }
@@ -73,7 +73,7 @@ export async function giveBonus(
           data: {
             userId: ctx.partner.id,
             type: "POINTS_GIFTED",
-            title: "Points Surprise ✨",
+            title: "Points Bonus",
             body: `${ctx.user.name} sent you +${pts} points! "${note}"`,
           },
         });
@@ -82,7 +82,7 @@ export async function giveBonus(
 
     if (ctx.partner && targetUserId === ctx.partner.id) {
       sendPushNotification(ctx.partner.id, {
-        title: "Points Surprise ✨",
+        title: "Points Bonus",
         body: `${ctx.user.name} sent you +${pts} points! "${note}"`,
         url: "/us",
       }).catch((err) => console.error("[Push] Bonus points push failed:", err));

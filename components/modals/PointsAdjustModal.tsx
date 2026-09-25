@@ -76,11 +76,11 @@ export function PointsAdjustModal({
       title={
         isSelf
           ? isRemove
-            ? "Adjust My Points ✂️"
-            : "Treat Myself ✨"
+            ? "Adjust My Points"
+            : "Add Points to Myself"
           : isRemove
-          ? `Deduct from ${targetName} ✂️`
-          : `Send ${targetName} Points 🎁`
+          ? `Deduct from ${targetName}`
+          : `Send ${targetName} Points`
       }
       subtitle={
         isRemove
@@ -201,8 +201,8 @@ export function PointsAdjustModal({
               isRemove
                 ? "e.g. Correcting point balance / penalty"
                 : isSelf
-                ? "e.g. Proud of my discipline today 🌸"
-                : "e.g. You did amazing today 🌸"
+                ? "e.g. Proud of my discipline today"
+                : "e.g. You did amazing today"
             }
             className="w-full px-3.5 py-2.5 bg-white border border-[#EAE6DE] rounded-xl text-xs text-[#24201D] placeholder-[#A89F99] focus:outline-none focus:ring-1 focus:ring-[#E06D75]"
           />
@@ -218,8 +218,8 @@ export function PointsAdjustModal({
           {isRemove
             ? `Deduct ${amount} pts from ${isSelf ? "Myself" : targetName}`
             : isSelf
-            ? `Add ${amount} pts to Myself ✨`
-            : `Send ${amount} pts to ${targetName} ❤️`}
+            ? `Add ${amount} pts to Myself`
+            : `Send ${amount} pts to ${targetName}`}
         </PillButton>
       </form>
     </ModalSheet>

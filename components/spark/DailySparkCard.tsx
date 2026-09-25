@@ -10,6 +10,7 @@ import {
 import { SparkHistoryModal } from "./SparkHistoryModal";
 import { triggerHaptic } from "@/lib/haptics";
 import { triggerCelebration } from "@/components/ui/CelebrationConfetti";
+import { ShuffleIcon, BookOpenIcon, LockIcon } from "@/components/ui/Icons";
 
 export interface DailySparkCardProps {
   initialData?: TodaySparkData | null;
@@ -67,12 +68,12 @@ export function DailySparkCard({
           setIsExpanded(true);
           triggerHaptic("sparkUnlock");
           triggerCelebration({ type: "all", count: 65 });
-          onToast?.("🎉 Daily Spark Unlocked! +15 bonus points awarded to both of you!");
+          onToast?.("Daily Spark Unlocked! +15 bonus points awarded to both of you!");
           onPointsEarned?.();
         } else {
           triggerHaptic("medium");
           triggerCelebration({ type: "hearts", count: 25 });
-          onToast?.("Answer locked in! Your partner has been notified ✨");
+          onToast?.("Answer locked in. Your partner has been notified.");
         }
         const refreshed = await getTodaySpark();
         if (refreshed.success && refreshed.data) {
@@ -95,7 +96,7 @@ export function DailySparkCard({
       const res = await shuffleTodayQuestion();
       if (res.success && res.question) {
         setAnswerInput("");
-        onToast?.("Swapped to a fresh question! 🔀");
+        onToast?.("Swapped to a fresh question.");
         const refreshed = await getTodaySpark();
         if (refreshed.success && refreshed.data) {
           setData(refreshed.data);
@@ -204,25 +205,24 @@ export function DailySparkCard({
       <div className="rounded-3xl bg-white p-4 sm:p-5 border border-[#EAE6DE] shadow-xs space-y-3 relative overflow-hidden transition-all">
         {/* Header Bar */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs">✨</span>
+          <div className="flex items-center gap-2">
             <span className="font-serif text-sm font-bold text-[#1E1A18]">Daily Spark</span>
             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#FFF2F4] text-[#BA3F4A] border border-[#FAD4DA]">
               {data.question.category}
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             {!isUnlocked && (
               <button
                 type="button"
                 disabled={shuffling}
                 onClick={handleShuffle}
                 title="Swap question"
-                className="text-[11px] font-semibold text-[#554B45] hover:text-[#BA3F4A] px-2 py-0.5 rounded-lg hover:bg-[#FAF7F2] transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-1"
+                className="text-[11px] font-semibold text-[#554B45] hover:text-[#BA3F4A] px-2 py-1 rounded-lg hover:bg-[#FAF7F2] transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
               >
+                <ShuffleIcon size={12} className="text-[#554B45]" />
                 <span>{shuffling ? "..." : "Swap"}</span>
-                <span>🔀</span>
               </button>
             )}
 
@@ -233,9 +233,9 @@ export function DailySparkCard({
                   triggerHaptic("selection");
                   setIsExpanded(false);
                 }}
-                className="text-[11px] font-bold text-[#554B45] hover:text-[#BA3F4A] px-2 py-0.5 rounded-lg hover:bg-[#FAF7F2] transition-colors cursor-pointer"
+                className="text-[11px] font-bold text-[#554B45] hover:text-[#BA3F4A] px-2 py-1 rounded-lg hover:bg-[#FAF7F2] transition-colors cursor-pointer"
               >
-                Collapse ▴
+                Collapse
               </button>
             )}
 
@@ -246,10 +246,10 @@ export function DailySparkCard({
                 setHistoryOpen(true);
               }}
               title="View past sparks"
-              className="text-[11px] font-semibold text-[#554B45] hover:text-[#BA3F4A] px-2 py-0.5 rounded-lg hover:bg-[#FAF7F2] transition-colors cursor-pointer flex items-center gap-1"
+              className="text-[11px] font-semibold text-[#554B45] hover:text-[#BA3F4A] px-2 py-1 rounded-lg hover:bg-[#FAF7F2] transition-colors cursor-pointer flex items-center gap-1.5"
             >
+              <BookOpenIcon size={12} className="text-[#554B45]" />
               <span>Memories</span>
-              <span>📖</span>
             </button>
           </div>
         </div>
@@ -268,15 +268,15 @@ export function DailySparkCard({
             {partnerAnswered ? (
               <div className="px-3 py-1.5 rounded-xl bg-[#FFF2F4] border border-[#FAD4DA] flex items-center justify-between text-xs text-[#BA3F4A]">
                 <div className="flex items-center gap-1.5 font-bold">
-                  <span>🔒</span>
-                  <span>{partnerName} already answered!</span>
+                  <LockIcon size={12} className="text-[#BA3F4A]" />
+                  <span>{partnerName} already answered</span>
                 </div>
                 <span className="text-[10px] font-semibold">Answer to reveal (+15 pts)</span>
               </div>
             ) : (
               <div className="text-[11px] text-[#554B45] flex items-center justify-between">
                 <span>Both answer to reveal each other&apos;s answer</span>
-                <span className="font-bold text-[#D4AF37]">+15 pts</span>
+                <span className="font-bold text-[#BA3F4A]">+15 pts</span>
               </div>
             )}
 
@@ -294,10 +294,9 @@ export function DailySparkCard({
                 <button
                   type="submit"
                   disabled={!answerInput.trim() || submitting}
-                  className="absolute right-2.5 bottom-3 px-3 py-1.5 bg-[#1E1A18] hover:bg-[#BA3F4A] text-white rounded-xl text-xs font-bold shadow-2xs transition-all active:scale-95 disabled:opacity-40 disabled:hover:bg-[#1E1A18] cursor-pointer flex items-center gap-1"
+                  className="absolute right-2.5 bottom-3 px-3 py-1.5 bg-[#1E1A18] hover:bg-[#BA3F4A] text-white rounded-xl text-xs font-bold shadow-2xs transition-all active:scale-95 disabled:opacity-40 disabled:hover:bg-[#1E1A18] cursor-pointer"
                 >
-                  <span>{submitting ? "..." : "Send"}</span>
-                  <span>✨</span>
+                  {submitting ? "..." : "Send"}
                 </button>
               </div>
             </form>
@@ -321,10 +320,10 @@ export function DailySparkCard({
 
             <div className="px-3 py-2 rounded-xl bg-white border border-[#EAE6DE] flex items-center justify-between text-xs text-[#554B45]">
               <div className="flex items-center gap-1.5">
-                <span>🔒</span>
-                <span>Unlocks automatically when {partnerName} answers!</span>
+                <LockIcon size={12} className="text-[#554B45]" />
+                <span>Unlocks automatically when {partnerName} answers</span>
               </div>
-              <span className="text-[10px] font-bold text-[#D4AF37]">+15 pts</span>
+              <span className="text-[10px] font-bold text-[#BA3F4A]">+15 pts</span>
             </div>
           </div>
         )}
@@ -334,11 +333,8 @@ export function DailySparkCard({
           <div className="space-y-2.5 pt-0.5">
             {/* Celebration pill */}
             <div className="px-3 py-1 rounded-full bg-[#F4F7F5] border border-[#E5EEE9] flex items-center justify-between text-xs">
-              <div className="flex items-center gap-1.5 font-bold text-[#557567]">
-                <span>🎉</span>
-                <span>Both Answered!</span>
-              </div>
-              <span className="text-[10px] font-bold text-[#557567]">+15 pts Awarded ✨</span>
+              <span className="font-bold text-[#557567]">Both Answered</span>
+              <span className="text-[10px] font-bold text-[#557567]">+15 pts Awarded</span>
             </div>
 
             {/* Revealed Cards */}
@@ -370,7 +366,7 @@ export function DailySparkCard({
               }}
               className="w-full py-1.5 text-center text-xs font-semibold text-[#554B45] hover:text-[#1E1A18] bg-[#FAF7F2] rounded-xl border border-[#EAE6DE] transition-colors cursor-pointer"
             >
-              Done · Collapse to mini view ▴
+              Done · Collapse
             </button>
           </div>
         )}

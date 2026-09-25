@@ -98,7 +98,7 @@ export async function completeTask(taskId: string) {
           data: {
             userId: partner.id,
             type: "TASK_COMPLETED",
-            title: "Habit Completed! 🎉",
+            title: "Habit Completed",
             body: `${user.name} completed "${task.title}" (+${task.points} pts)`,
           },
         });
@@ -109,7 +109,7 @@ export async function completeTask(taskId: string) {
 
     if (partner) {
       sendPushNotification(partner.id, {
-        title: "Habit Completed! 🎉",
+        title: "Habit Completed",
         body: `${user.name} completed "${task.title}" (+${task.points} pts)`,
         url: "/tasks",
       }).catch((err) => console.error("[Push] Task completion push failed:", err));
@@ -178,7 +178,7 @@ export async function giveTask(
         data: {
           userId: partner.id,
           type: "TASK_GIFTED",
-          title: "New Habit Gifted ✨",
+          title: "New Habit Gifted",
           body: `${user.name} gifted you a habit: "${title.trim()}" (+${validPoints} pts)`,
         },
       });
@@ -187,7 +187,7 @@ export async function giveTask(
     });
 
     sendPushNotification(partner.id, {
-      title: "New Habit Gifted ✨",
+      title: "New Habit Gifted",
       body: `${user.name} gifted you a habit: "${title.trim()}" (+${validPoints} pts)`,
       url: "/tasks",
     }).catch((err) => console.error("[Push] Habit gifted push failed:", err));

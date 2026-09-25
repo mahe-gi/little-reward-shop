@@ -406,11 +406,11 @@ export function UsClient({ initialData }: UsClientProps) {
               {data.partner.hasPushEnabled ? (
                 <span className="inline-flex items-center gap-1 font-bold text-[#557567] bg-[#F4F7F5] border border-[#E5EEE9] px-2 py-0.5 rounded-full">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#7E9F85]" />
-                  Active 🔔
+                  Active
                 </span>
               ) : (
                 <span className="inline-flex items-center gap-1 font-medium text-[#A89F99] bg-[#FAF7F2] border border-[#EAE6DE] px-2 py-0.5 rounded-full" title="Partner hasn't enabled phone notifications in Pairly yet">
-                  Not enabled yet 🔕
+                  Not enabled yet
                 </span>
               )}
             </div>

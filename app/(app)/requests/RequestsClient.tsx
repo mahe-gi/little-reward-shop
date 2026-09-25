@@ -14,6 +14,7 @@ import { PillButton } from "@/components/ui/PillButton";
 import { Toast } from "@/components/ui/Toast";
 import { triggerHaptic } from "@/lib/haptics";
 import { triggerCelebration } from "@/components/ui/CelebrationConfetti";
+import { MailIcon, RewardsIcon } from "@/components/ui/Icons";
 
 export interface RequestItem {
   id: string;
@@ -87,7 +88,7 @@ export function RequestsClient({
     const res = await approveRewardRequest(requestId);
     setActionLoadingId(null);
     if (res.success) {
-      setToastMessage("Wish approved with love ❤️");
+      setToastMessage("Wish approved");
       refreshData();
     } else {
       setToastMessage(res.error || "Failed to approve request");
@@ -154,7 +155,7 @@ export function RequestsClient({
     const res = await fulfillRewardRequest(requestId);
     setActionLoadingId(null);
     if (res.success) {
-      setToastMessage("Wish completely fulfilled! ✨❤️");
+      setToastMessage("Wish fulfilled!");
       refreshData();
     } else {
       setToastMessage(res.error || "Failed to complete fulfillment");
@@ -224,8 +225,8 @@ export function RequestsClient({
         <div className="space-y-3.5 animate-in fade-in duration-300">
           {receivedRequests.length === 0 ? (
             <div className="p-8 sm:p-10 text-center bg-white/80 rounded-3xl border border-[#EAE6DE] shadow-2xs space-y-3">
-              <div className="w-14 h-14 rounded-2xl bg-[#FDFBF7] border border-[#EAE6DE] flex items-center justify-center text-2xl mx-auto shadow-2xs">
-                💌
+              <div className="w-14 h-14 rounded-2xl bg-[#FDFBF7] border border-[#EAE6DE] flex items-center justify-center text-[#554B45] mx-auto shadow-2xs">
+                <MailIcon size={24} />
               </div>
               <div className="space-y-1">
                 <h3 className="font-serif text-lg font-bold text-[#1E1A18]">
@@ -263,7 +264,7 @@ export function RequestsClient({
                           Wants from You
                         </span>
                         <span className="text-[11px] font-bold text-[#D4AF37] px-2 py-0.5 bg-[#FFFBF0] rounded-full border border-[#FEF3D6]">
-                          ✨ {req.totalPoints} pts
+                          {req.totalPoints} pts
                         </span>
                       </div>
 
@@ -291,9 +292,9 @@ export function RequestsClient({
                       }`}
                     >
                       {isCompleted
-                        ? "Fulfilled ❤️"
+                        ? "Fulfilled"
                         : isFulfilling
-                        ? "In Progress 💫"
+                        ? "In Progress"
                         : isRejected
                         ? "Declined"
                         : "Awaiting You"}
@@ -358,7 +359,7 @@ export function RequestsClient({
                             className="w-full mt-2 font-bold shadow-xs active:scale-95"
                             onClick={() => handleFulfill(req.id)}
                           >
-                            Mark Fulfilled ❤️
+                            Mark Fulfilled
                           </PillButton>
                         </>
                       ) : (
@@ -369,7 +370,7 @@ export function RequestsClient({
                           loading={actionLoadingId === req.id}
                           onClick={() => handleFulfill(req.id)}
                         >
-                          Mark Fulfilled ❤️
+                          Mark Fulfilled
                         </PillButton>
                       )}
                     </div>
@@ -385,7 +386,7 @@ export function RequestsClient({
                         loading={actionLoadingId === req.id}
                         onClick={() => handleApprove(req.id)}
                       >
-                        Approve Wish ❤️
+                        Approve Wish
                       </PillButton>
                       <PillButton
                         variant="secondary"
@@ -408,8 +409,8 @@ export function RequestsClient({
         <div className="space-y-3.5 animate-in fade-in duration-300">
           {sentRequests.length === 0 ? (
             <div className="p-8 sm:p-10 text-center bg-white/80 rounded-3xl border border-[#EAE6DE] shadow-2xs space-y-3">
-              <div className="w-14 h-14 rounded-2xl bg-[#FDFBF7] border border-[#EAE6DE] flex items-center justify-center text-2xl mx-auto shadow-2xs">
-                🎁
+              <div className="w-14 h-14 rounded-2xl bg-[#FDFBF7] border border-[#EAE6DE] flex items-center justify-center text-[#554B45] mx-auto shadow-2xs">
+                <RewardsIcon size={24} />
               </div>
               <div className="space-y-1">
                 <h3 className="font-serif text-lg font-bold text-[#1E1A18]">
@@ -473,7 +474,7 @@ export function RequestsClient({
 
                       {isFulfilling && (
                         <p className="text-xs text-[#756963] leading-relaxed">
-                          Approved by {partnerName} ❤️ ·{" "}
+                          Approved by {partnerName} ·{" "}
                           <span className="font-semibold text-[#1E1A18]">
                             {req.totalPoints} pts spent
                           </span>
@@ -482,7 +483,7 @@ export function RequestsClient({
 
                       {isCompleted && (
                         <p className="text-xs text-[#557567] font-semibold leading-relaxed">
-                          Fulfilled by {partnerName} ✨❤️
+                          Fulfilled by {partnerName}
                         </p>
                       )}
 
@@ -512,9 +513,9 @@ export function RequestsClient({
                       }`}
                     >
                       {isCompleted
-                        ? "Fulfilled ❤️"
+                        ? "Fulfilled"
                         : isFulfilling
-                        ? "Approved ❤️"
+                        ? "Approved"
                         : isPending
                         ? "Pending"
                         : isRejected

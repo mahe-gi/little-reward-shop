@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { getLatestVoiceWhisper, VoiceWhisperItem } from "@/actions/whisper";
 import { WalkieTalkieModal } from "./WalkieTalkieModal";
 import { triggerHaptic } from "@/lib/haptics";
+import { RadioIcon, MicIcon } from "@/components/ui/Icons";
 
 interface WalkieTalkieWidgetProps {
   partnerName?: string;
@@ -57,37 +58,37 @@ export function WalkieTalkieWidget({
             <span
               className={`w-7 h-7 rounded-xl flex items-center justify-center text-xs transition-colors ${
                 hasUnread
-                  ? "bg-[#FF4B72] text-white shadow-xs"
+                  ? "bg-[#BA3F4A] text-white shadow-xs"
                   : "bg-[#FAF7F2] border border-[#EAE6DE] text-[#1E1A18]"
               }`}
             >
-              📻
+              <RadioIcon size={14} className={hasUnread ? "text-white" : "text-[#1E1A18]"} />
             </span>
             {hasUnread && (
-              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-[#FF4B72] border-2 border-white animate-ping" />
+              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-[#BA3F4A] border-2 border-white animate-ping" />
             )}
           </div>
 
           <div className="text-left min-w-0 flex-1">
             <div className="text-xs font-bold text-[#1E1A18] truncate">
-              {hasUnread ? "New Whisper!" : "Walkie-Talkie"}
+              {hasUnread ? "New Whisper" : "Walkie-Talkie"}
             </div>
             <div className="text-[10px] text-[#554B45] font-medium truncate">
               {hasUnread
-                ? `${whisper?.durationSec}s from ${partnerName}`
+                ? `${whisper?.durationSec}s voice note`
                 : "Hold to whisper"}
             </div>
           </div>
         </div>
 
         <span
-          className={`text-[11px] font-bold px-2 py-0.5 rounded-lg shrink-0 transition-colors ml-1 ${
+          className={`text-[11px] font-bold px-2 py-0.5 rounded-lg shrink-0 transition-colors ml-1 flex items-center gap-1 ${
             hasUnread
-              ? "bg-[#FF4B72] text-white"
+              ? "bg-[#BA3F4A] text-white"
               : "bg-[#FAF7F2] text-[#554B45]"
           }`}
         >
-          {hasUnread ? "▶ Listen" : "🎙️"}
+          {hasUnread ? "Listen" : <MicIcon size={12} />}
         </span>
       </button>
 

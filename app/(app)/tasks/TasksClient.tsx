@@ -90,16 +90,16 @@ export function TasksClient({
       <div className="space-y-1.5">
         <div className="flex items-center justify-between px-1">
           <span className="text-[10px] font-bold uppercase tracking-wider text-[#554B45]">
-            ⚡ 1-Tap Habit Gifting
+            Quick Habit Gifting
           </span>
           <span className="text-[10px] text-[#6B615A]">Send to {partnerName}</span>
         </div>
         <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar py-0.5 px-0.5">
           {[
-            { title: "6k Steps 👟", pts: 6 },
-            { title: "2.5L Water 💧", pts: 1 },
-            { title: "Eat Fruit 🍎", pts: 10 },
-            { title: "Eat Veggies 🥗", pts: 5 },
+            { title: "6k Steps", pts: 6 },
+            { title: "2.5L Water", pts: 1 },
+            { title: "Eat Fruit", pts: 10 },
+            { title: "Eat Veggies", pts: 5 },
           ].map((preset) => (
             <button
               key={preset.title}
@@ -273,7 +273,7 @@ export function TasksClient({
         onClose={() => setIsGiveSheetOpen(false)}
         partnerName={partnerName}
         onTaskGiven={(title, pts) => {
-          setToastMessage(`Task "${title}" (+${pts} pts) sent to ${partnerName} ❤️`);
+          setToastMessage(`Task "${title}" (+${pts} pts) sent to ${partnerName}`);
           refreshTasks();
         }}
       />

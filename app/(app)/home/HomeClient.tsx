@@ -16,6 +16,7 @@ import { Avatar } from "@/components/ui/Avatar";
 import { ThumbKissButton } from "@/components/thumbkiss/ThumbKissButton";
 import { WalkieTalkieWidget } from "@/components/whisper/WalkieTalkieWidget";
 import { triggerCelebration } from "@/components/ui/CelebrationConfetti";
+import { FlameIcon } from "@/components/ui/Icons";
 
 interface TaskItem {
   id: string;
@@ -144,9 +145,9 @@ export function HomeClient({ initialData, initialTasks }: HomeClientProps) {
               <button
                 type="button"
                 onClick={() => setStreakModalOpen(true)}
-                className="px-2.5 py-1 rounded-full bg-white/20 hover:bg-white/30 text-white text-[11px] font-bold backdrop-blur-xs transition-colors flex items-center gap-1 shadow-2xs cursor-pointer active:scale-95"
+                className="px-2.5 py-1 rounded-full bg-white/20 hover:bg-white/30 text-white text-[11px] font-bold backdrop-blur-xs transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer active:scale-95"
               >
-                <span>🔥</span>
+                <FlameIcon size={12} className="text-white" />
                 <span>{data.couple.streakCount}d</span>
               </button>
             )}

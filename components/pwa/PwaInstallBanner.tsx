@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { PillButton } from "@/components/ui/PillButton";
 import { usePwaInstall } from "@/components/pwa/usePwaInstall";
+import { SmartphoneIcon } from "@/components/ui/Icons";
 
 export function PwaInstallBanner({ className = "" }: { className?: string }) {
   const { isStandalone, isMounted, triggerInstall } = usePwaInstall();
@@ -94,7 +95,7 @@ export function PwaInstallBanner({ className = "" }: { className?: string }) {
               onClick={handleInstallClick}
               className="font-bold shadow-xs active:scale-95"
             >
-              Install App 📲
+              Install App
             </PillButton>
           </div>
         </div>
@@ -104,8 +105,8 @@ export function PwaInstallBanner({ className = "" }: { className?: string }) {
       {showIosGuide && (
         <div className="fixed inset-0 z-50 bg-black/45 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
           <div className="bg-white rounded-3xl p-5 sm:p-6 max-w-sm w-full space-y-4 border border-[#EAE6DE] shadow-xl text-center">
-            <div className="w-14 h-14 rounded-2xl bg-[#FCEBEE] border border-[#FAD4DA] flex items-center justify-center text-3xl mx-auto shadow-2xs">
-              📲
+            <div className="w-14 h-14 rounded-2xl bg-[#FCEBEE] border border-[#FAD4DA] flex items-center justify-center mx-auto shadow-2xs text-[#BA3F4A]">
+              <SmartphoneIcon size={26} />
             </div>
 
             <div className="space-y-1">

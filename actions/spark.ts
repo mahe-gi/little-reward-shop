@@ -212,7 +212,7 @@ export async function submitSparkAnswer(
             amount: 15,
             type: "BONUS",
             status: "FINALIZED",
-            description: "Daily Spark completion bonus ✨",
+            description: "Daily Spark completion bonus",
           },
         });
 
@@ -226,7 +226,7 @@ export async function submitSparkAnswer(
             amount: 15,
             type: "BONUS",
             status: "FINALIZED",
-            description: "Daily Spark completion bonus ✨",
+            description: "Daily Spark completion bonus",
           },
         });
 
@@ -236,7 +236,7 @@ export async function submitSparkAnswer(
             coupleId: couple.id,
             actorUserId: user.id,
             type: "TASK_COMPLETED",
-            description: `unlocked today's Daily Spark with ${partner.name} (+15 pts each) 🎉`,
+            description: `unlocked today's Daily Spark with ${partner.name} (+15 pts each)`,
           },
         });
 
@@ -245,7 +245,7 @@ export async function submitSparkAnswer(
           data: {
             userId: partner.id,
             type: "DAILY_SPARK_UNLOCKED",
-            title: "Daily Spark Unlocked! 🎉",
+            title: "Daily Spark Unlocked",
             body: `${user.name} answered! Tap to read both answers and see your +15 pts.`,
           },
         });
@@ -253,7 +253,7 @@ export async function submitSparkAnswer(
 
       // Send Web Push notification to partner's phone
       sendPushNotification(partner.id, {
-        title: "Daily Spark Unlocked! 🎉",
+        title: "Daily Spark Unlocked",
         body: `${user.name} answered! Both responses are now revealed (+15 pts).`,
         url: "/home",
         icon: "/icon-192.png",
@@ -289,7 +289,7 @@ export async function submitSparkAnswer(
           data: {
             userId: partner.id,
             type: "DAILY_SPARK_ANSWERED",
-            title: "Daily Spark ✨",
+            title: "Daily Spark",
             body: `${user.name} answered today's question! Answer to reveal their response.`,
           },
         });
@@ -297,7 +297,7 @@ export async function submitSparkAnswer(
 
       // Send Web Push to partner
       sendPushNotification(partner.id, {
-        title: "Daily Spark ✨",
+        title: "Daily Spark",
         body: `${user.name} answered today's question! Answer yours to unlock their response.`,
         url: "/home",
         icon: "/icon-192.png",

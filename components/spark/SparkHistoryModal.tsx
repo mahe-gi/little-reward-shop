@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { ModalSheet } from "@/components/ui/ModalSheet";
 import { SparkHistoryItem, getSparkHistory } from "@/actions/spark";
+import { BookOpenIcon } from "@/components/ui/Icons";
 
 export interface SparkHistoryModalProps {
   isOpen: boolean;
@@ -53,8 +54,10 @@ export function SparkHistoryModal({
             Loading our memories...
           </div>
         ) : history.length === 0 ? (
-          <div className="py-12 text-center bg-white rounded-3xl border border-dashed border-[#EAE6DE] space-y-1 p-6">
-            <span className="text-3xl">✨</span>
+          <div className="py-12 text-center bg-white rounded-3xl border border-dashed border-[#EAE6DE] space-y-2 p-6">
+            <div className="w-10 h-10 rounded-2xl bg-[#FAF7F2] border border-[#EAE6DE] flex items-center justify-center mx-auto text-[#554B45]">
+              <BookOpenIcon size={20} />
+            </div>
             <p className="text-xs font-bold text-[#1E1A18]">No shared sparks yet</p>
             <p className="text-[11px] text-[#756963] max-w-[220px] mx-auto">
               Once you and {partnerName} both answer today&apos;s Daily Spark, it will be saved here forever!

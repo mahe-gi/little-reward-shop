@@ -77,13 +77,13 @@ export async function createReward(
         data: {
           userId: partner.id,
           type: "REWARD_ADDED",
-          title: "New Boutique Reward 🎁",
+          title: "New Coupon Offered",
           body: `${user.name} added a new treat: "${title.trim()}" (${validCost} pts)`,
         },
       });
 
       sendPushNotification(partner.id, {
-        title: "New Boutique Reward 🎁",
+        title: "New Coupon Offered",
         body: `${user.name} added a new treat: "${title.trim()}" (${validCost} pts)`,
         url: "/rewards",
       }).catch((err) => console.error("[Push] Reward added push failed:", err));

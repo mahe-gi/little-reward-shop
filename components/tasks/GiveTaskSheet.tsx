@@ -20,10 +20,10 @@ interface TaskPreset {
 }
 
 const DEFAULT_PRESETS: TaskPreset[] = [
-  { id: "p1", title: "6k Steps 👟", points: 6, note: "Hit 6,000 steps today!" },
-  { id: "p2", title: "2.5L Water 💧", points: 1, note: "Stay hydrated & energized" },
-  { id: "p3", title: "Eat Fruit 🍎", points: 10, note: "Enjoy fresh sweet fruits" },
-  { id: "p4", title: "Eat Veggies 🥗", points: 5, note: "Nourish your body with veggies" },
+  { id: "p1", title: "6k Steps", points: 6, note: "Hit 6,000 steps today!" },
+  { id: "p2", title: "2.5L Water", points: 1, note: "Stay hydrated & energized" },
+  { id: "p3", title: "Eat Fruit", points: 10, note: "Enjoy fresh sweet fruits" },
+  { id: "p4", title: "Eat Veggies", points: 5, note: "Nourish your body with veggies" },
 ];
 
 export function GiveTaskSheet({
@@ -130,7 +130,7 @@ export function GiveTaskSheet({
         <div>
           <div className="flex items-center justify-between mb-1.5">
             <label className="font-semibold text-[#24201D] text-[11px] uppercase tracking-wider">
-              ⚡ Quick Presets (Tap to Fill)
+              Quick Presets (Tap to Fill)
             </label>
             <span className="text-[10px] text-[#807770]">Reusable habits</span>
           </div>

@@ -128,7 +128,7 @@ export async function submitRewardRequest(
         data: {
           userId: partner.id,
           type: "WISH_REQUESTED",
-          title: "New Wish Received 💌",
+          title: "New Wish Received",
           body: `${user.name} wished for: ${summaryTitles} (${totalCost} pts)`,
         },
       });
@@ -138,7 +138,7 @@ export async function submitRewardRequest(
 
     const summaryTitles = requestItemData.map((i) => i.title).join(", ");
     sendPushNotification(partner.id, {
-      title: "New Wish Received 💌",
+      title: "New Wish Received",
       body: `${user.name} wished for: ${summaryTitles} (${totalCost} pts)`,
       url: "/requests",
     }).catch((err) => console.error("[Push] Wish request push failed:", err));
@@ -266,14 +266,14 @@ export async function approveRewardRequest(requestId: string) {
         data: {
           userId: request.userId,
           type: "WISH_APPROVED",
-          title: "Wish Approved! ❤️",
+          title: "Wish Approved",
           body: `${user.name} approved your wish and is working on fulfilling it!`,
         },
       });
     });
 
     sendPushNotification(request.userId, {
-      title: "Wish Approved! ❤️",
+      title: "Wish Approved",
       body: `${user.name} approved your wish!`,
       url: "/requests",
     }).catch((err) => console.error("[Push] Wish approved push failed:", err));
@@ -332,14 +332,14 @@ export async function rejectRewardRequest(requestId: string, reason?: string) {
         data: {
           userId: request.userId,
           type: "WISH_DECLINED",
-          title: "Wish Update 💌",
+          title: "Wish Update",
           body: `${user.name} declined your wish${reason ? `: "${reason}"` : ""}. Your ${request.totalCost} points were refunded!`,
         },
       });
     });
 
     sendPushNotification(request.userId, {
-      title: "Wish Update 💌",
+      title: "Wish Update",
       body: `${user.name} declined your wish${reason ? `: "${reason}"` : ""}. Points refunded.`,
       url: "/requests",
     }).catch((err) => console.error("[Push] Wish declined push failed:", err));
@@ -474,7 +474,7 @@ export async function fulfillRewardRequest(requestId: string) {
           coupleId: couple.id,
           actorUserId: user.id,
           type: "REQUEST_FULFILLED",
-          description: `delivered and fulfilled reward with love ❤️`,
+          description: `delivered and fulfilled reward`,
           referenceId: request.id,
         },
       });
@@ -483,14 +483,14 @@ export async function fulfillRewardRequest(requestId: string) {
         data: {
           userId: request.userId,
           type: "WISH_FULFILLED",
-          title: "Wish Fulfilled! ✨",
+          title: "Wish Fulfilled",
           body: `${user.name} delivered and fulfilled your wish!`,
         },
       });
     });
 
     sendPushNotification(request.userId, {
-      title: "Wish Fulfilled! ✨",
+      title: "Wish Fulfilled",
       body: `${user.name} delivered and fulfilled your wish!`,
       url: "/requests",
     }).catch((err) => console.error("[Push] Wish fulfilled push failed:", err));

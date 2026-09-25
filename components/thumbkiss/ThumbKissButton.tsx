@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { getPartnerThumbKissWaiting } from "@/actions/thumbkiss";
 import { ThumbKissModal } from "./ThumbKissModal";
 import { triggerHaptic } from "@/lib/haptics";
+import { HeartIcon } from "@/components/ui/Icons";
 
 interface ThumbKissButtonProps {
   partnerName?: string;
@@ -60,21 +61,21 @@ export function ThumbKissButton({
             <span
               className={`w-7 h-7 rounded-xl flex items-center justify-center text-xs transition-colors ${
                 partnerWaiting
-                  ? "bg-[#FF4B72] text-white"
-                  : "bg-[#FCEBEE] text-[#AB3B46]"
+                  ? "bg-[#BA3F4A] text-white"
+                  : "bg-[#FFF2F4] text-[#BA3F4A]"
               }`}
             >
-              ♥
+              <HeartIcon size={14} filled className={partnerWaiting ? "text-white" : "text-[#BA3F4A]"} />
             </span>
             {partnerWaiting && (
-              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-[#FF4B72] border-2 border-white animate-ping" />
+              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-[#BA3F4A] border-2 border-white animate-ping" />
             )}
           </div>
 
           <div className="text-left min-w-0 flex-1">
             <div className="text-xs font-bold text-[#1E1A18] truncate">
               {partnerWaiting
-                ? `${partnerName} touching!`
+                ? `${partnerName} touching`
                 : "Touch Screen"}
             </div>
             <div className="text-[10px] text-[#554B45] font-medium truncate">
@@ -88,11 +89,11 @@ export function ThumbKissButton({
         <span
           className={`text-[11px] font-bold px-2 py-0.5 rounded-lg shrink-0 transition-colors ml-1 ${
             partnerWaiting
-              ? "bg-[#FF4B72] text-white"
-              : "bg-[#FAF7F2] text-[#AB3B46]"
+              ? "bg-[#BA3F4A] text-white"
+              : "bg-[#FAF7F2] text-[#554B45]"
           }`}
         >
-          {partnerWaiting ? "Touch ♥" : "Open"}
+          {partnerWaiting ? "Touch" : "Open"}
         </span>
       </button>
 

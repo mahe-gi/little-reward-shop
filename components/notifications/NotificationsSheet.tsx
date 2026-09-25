@@ -24,7 +24,7 @@ function getNotificationIcon(type: string) {
     case "WISH_REQUESTED":
       return "✧";
     case "WISH_APPROVED":
-      return "❤️";
+      return "✓";
     case "WISH_DECLINED":
       return "↩";
     case "WISH_FULFILLED":
@@ -32,9 +32,9 @@ function getNotificationIcon(type: string) {
     case "POINTS_GIFTED":
       return "+";
     case "DAILY_SPARK_ANSWERED":
-      return "✨";
+      return "✦";
     case "DAILY_SPARK_UNLOCKED":
-      return "🎉";
+      return "★";
     default:
       return "•";
   }

@@ -52,7 +52,7 @@ export default function OnboardingCouplePage() {
         setPartnerConnected(true);
         setPartnerName(status.partnerName);
         setToastMessage(
-          `🎉 ${status.partnerName || "Your partner"} just connected! Entering your space... ❤️`
+          `${status.partnerName || "Your partner"} just connected! Entering your space...`
         );
         clearInterval(interval);
         setTimeout(() => {
@@ -80,7 +80,7 @@ export default function OnboardingCouplePage() {
     setLoading(false);
 
     if (res.success) {
-      setToastMessage("🎉 Connected together as a couple! ❤️");
+      setToastMessage("Connected together as a couple!");
       setTimeout(() => {
         router.push("/home");
       }, 1000);
@@ -92,7 +92,7 @@ export default function OnboardingCouplePage() {
   const handleCopy = () => {
     if (createdCode && navigator.clipboard) {
       navigator.clipboard.writeText(createdCode);
-      setToastMessage(`Pairing code ${createdCode} copied! 💌`);
+      setToastMessage(`Pairing code ${createdCode} copied!`);
     }
   };
 
@@ -101,7 +101,7 @@ export default function OnboardingCouplePage() {
       if (navigator.share) {
         navigator
           .share({
-            title: "Join me on Pairly ❤️",
+            title: "Join me on Pairly",
             text: `Connect with me on Pairly using our pairing code: ${createdCode}`,
             url: window.location.origin,
           })
@@ -110,7 +110,7 @@ export default function OnboardingCouplePage() {
         navigator.clipboard.writeText(
           `Join me on Pairly! Our pairing code is ${createdCode}: ${window.location.origin}`
         );
-        setToastMessage("Invite message copied to clipboard! 💌");
+        setToastMessage("Invite message copied to clipboard!");
       }
     }
   };
@@ -152,8 +152,20 @@ export default function OnboardingCouplePage() {
       </div>
 
       <div className="my-auto space-y-4 text-center py-4 max-w-xs mx-auto">
-        <div className="w-16 h-16 rounded-2xl bg-[#FCEBEE] text-[#E06D75] flex items-center justify-center text-3xl mx-auto shadow-sm">
-          🔗
+        <div className="w-16 h-16 rounded-2xl bg-[#FCEBEE] text-[#E06D75] flex items-center justify-center mx-auto shadow-sm">
+          <svg
+            width="28"
+            height="28"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+          </svg>
         </div>
 
         <div>
@@ -248,12 +260,12 @@ export default function OnboardingCouplePage() {
 
             {partnerConnected ? (
               <div className="p-3 rounded-xl bg-[#F4F7F5] border border-[#7E9F85] flex items-center justify-center gap-2 text-xs text-[#557567] font-semibold">
-                <span>{partnerName ? `Connected with ${partnerName} ❤️` : "You're connected ❤️"}</span>
+                <span>{partnerName ? `Connected with ${partnerName}` : "You're connected"}</span>
               </div>
             ) : (
               <div className="p-3 rounded-xl bg-[#FAF7F2] border border-[#EAE6DE] flex items-center justify-center gap-1.5 text-center">
                 <span className="w-2 h-2 rounded-full bg-[#E06D75] animate-pulse" />
-                <span className="text-xs text-[#E06D75] font-semibold">Waiting for your partner ❤️</span>
+                <span className="text-xs text-[#E06D75] font-semibold">Waiting for your partner</span>
               </div>
             )}
 
@@ -269,7 +281,7 @@ export default function OnboardingCouplePage() {
                 }
               }}
             >
-              {partnerConnected ? "Enter Our Space ❤️" : "Waiting for Partner to Connect..."}
+              {partnerConnected ? "Enter Our Space" : "Waiting for Partner to Connect..."}
             </PillButton>
           </div>
         )}

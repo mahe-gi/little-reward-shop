@@ -53,14 +53,14 @@ export async function sendVoiceWhisper(
       data: {
         userId: partner.id,
         type: "VOICE_WHISPER",
-        title: "📻 Voice Whisper",
+        title: "Voice Whisper",
         body: `${user.name} sent you a voice whisper (${clampedDuration}s)!`,
       },
     });
 
     // Send web push notification (non-blocking)
     sendPushNotification(partner.id, {
-      title: "📻 Voice Whisper",
+      title: "Voice Whisper",
       body: `${user.name} sent you a voice whisper (${clampedDuration}s)!`,
       url: "/home",
     }).catch(() => {});

@@ -8,7 +8,7 @@ import { submitRewardRequest } from "@/actions/requests";
 import { calculateAvailablePoints } from "@/actions/wallet";
 import { PillButton } from "@/components/ui/PillButton";
 import { Toast } from "@/components/ui/Toast";
-import { ArrowLeftIcon, HeartIcon, TrashIcon } from "@/components/ui/Icons";
+import { ArrowLeftIcon, HeartIcon, RewardsIcon, TrashIcon } from "@/components/ui/Icons";
 
 export default function ReviewWishPage() {
   const router = useRouter();
@@ -90,7 +90,7 @@ export default function ReviewWishPage() {
 
           <div className="space-y-2">
             <h1 className="font-serif text-3xl font-bold text-[#24201D] tracking-tight">
-              Wish Sent ❤️
+              Wish Sent
             </h1>
             <p className="text-sm text-[#756963] max-w-xs mx-auto leading-relaxed">
               <span className="font-semibold text-[#24201D]">{partnerName}</span> has your wish.
@@ -143,8 +143,8 @@ export default function ReviewWishPage() {
 
         {/* Empty Illustration & Copy */}
         <div className="my-auto space-y-4 max-w-xs mx-auto">
-          <div className="w-20 h-20 rounded-3xl bg-[#FDFBF7] border border-[#EAE6DE] flex items-center justify-center text-3xl mx-auto shadow-xs">
-            🎁
+          <div className="w-20 h-20 rounded-3xl bg-[#FDFBF7] border border-[#EAE6DE] flex items-center justify-center mx-auto shadow-xs text-[#554B45]">
+            <RewardsIcon size={32} />
           </div>
           <div>
             <h2 className="font-serif text-2xl font-bold text-[#24201D]">
@@ -193,7 +193,7 @@ export default function ReviewWishPage() {
           Your Wish
         </h1>
         <p className="text-xs text-[#756963]">
-          From <span className="font-semibold text-[#24201D]">{partnerName}</span> ❤️
+          From <span className="font-semibold text-[#24201D]">{partnerName}</span>
         </p>
       </div>
 
@@ -362,7 +362,7 @@ export default function ReviewWishPage() {
             onClick={handleSendWish}
             className="w-full font-semibold shadow-[0_4px_16px_rgba(224,109,117,0.3)]"
           >
-            {submitting ? "Sending your wish…" : `Send Wish to ${partnerName} ❤️`}
+            {submitting ? "Sending your wish…" : `Send Wish to ${partnerName}`}
           </PillButton>
 
           <p className="text-[11px] text-center text-[#807770]">
