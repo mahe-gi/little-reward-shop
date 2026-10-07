@@ -147,13 +147,13 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
     router.push("/rewards/checkout");
   };
 
-  const isCheckoutRoute = pathname === "/rewards/checkout";
+  const hideFooter = pathname === "/rewards/checkout" || pathname?.startsWith("/game");
   const summary = items.map((i) => `${i.icon} ${i.title}`).join(", ");
 
   return (
     <ResponsiveAppShell
       footer={
-        !isCheckoutRoute ? (
+        !hideFooter ? (
           <div className="flex flex-col w-full pointer-events-none justify-end">
             <FloatingCartBar
               itemsCount={totalCount}

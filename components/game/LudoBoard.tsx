@@ -70,6 +70,14 @@ export function LudoBoard({
     const isMovable = movablePawnIds.includes(pawnId);
     const player = isP1 ? player1 : player2;
 
+    const isEmoji =
+      player.avatar &&
+      !player.avatar.startsWith("http") &&
+      player.avatar.length <= 4;
+    const tokenLabel = isEmoji
+      ? player.avatar
+      : player.name?.charAt(0).toUpperCase() || (isP1 ? "1" : "2");
+
     return (
       <button
         key={pawnId}
@@ -87,9 +95,7 @@ export function LudoBoard({
             : "cursor-default z-10"
         }`}
       >
-        <span className="text-xs font-bold leading-none">
-          {player.avatar || (isP1 ? "🌸" : "✨")}
-        </span>
+        <span className="text-xs font-bold leading-none">{tokenLabel}</span>
         {isMovable && (
           <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-emerald-500 border border-white animate-ping" />
         )}

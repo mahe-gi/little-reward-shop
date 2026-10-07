@@ -241,7 +241,7 @@ export function LudoGameClient({
   const currentTurnPlayer = isP1 ? state.player1 : state.player2;
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#FAF7F2] max-w-md mx-auto justify-between p-3 select-none">
+    <div className="flex flex-col min-h-screen bg-[#FAF7F2] max-w-md mx-auto justify-between p-3 pb-8 select-none">
       {/* Top Bar */}
       <div className="flex items-center justify-between pb-2">
         <Link
@@ -277,9 +277,9 @@ export function LudoGameClient({
               : "bg-white border-[#EAE6DE] opacity-75"
           }`}
         >
-          <div className="flex items-center gap-2">
-            <span className="text-xl">{state.player1.avatar || "🌸"}</span>
-            <div className="truncate">
+          <div className="flex items-center gap-2 min-w-0">
+            <Avatar avatar={state.player1.avatar} name={state.player1.name} size="xs" />
+            <div className="min-w-0 flex-1">
               <div className="text-xs font-bold text-[#1E1A18] truncate">
                 {state.player1.name}
               </div>
@@ -298,9 +298,9 @@ export function LudoGameClient({
               : "bg-white border-[#EAE6DE] opacity-75"
           }`}
         >
-          <div className="flex items-center gap-2">
-            <span className="text-xl">{state.player2.avatar || "✨"}</span>
-            <div className="truncate">
+          <div className="flex items-center gap-2 min-w-0">
+            <Avatar avatar={state.player2.avatar} name={state.player2.name} size="xs" />
+            <div className="min-w-0 flex-1">
               <div className="text-xs font-bold text-[#1E1A18] truncate">
                 {state.player2.name}
               </div>
