@@ -13,6 +13,8 @@ import { DailySparkCard } from "@/components/spark/DailySparkCard";
 import { triggerHaptic } from "@/lib/haptics";
 import { PartnerBatteryBadge } from "@/components/battery/PartnerBatteryBadge";
 import { Avatar } from "@/components/ui/Avatar";
+import { ThumbKissButton } from "@/components/thumbkiss/ThumbKissButton";
+import { WalkieTalkieWidget } from "@/components/whisper/WalkieTalkieWidget";
 import { LudoHomeWidget } from "@/components/game/LudoHomeWidget";
 import { triggerCelebration } from "@/components/ui/CelebrationConfetti";
 import { FlameIcon } from "@/components/ui/Icons";
@@ -179,6 +181,12 @@ export function HomeClient({ initialData, initialTasks }: HomeClientProps) {
             </Link>
           </div>
         </div>
+      </div>
+
+      {/* Intimate Micro-Interactions: Touch Screen & Walkie-Talkie */}
+      <div className="grid grid-cols-2 gap-2.5">
+        <ThumbKissButton partnerName={partnerName} />
+        <WalkieTalkieWidget partnerName={partnerName} />
       </div>
 
       {/* Couple Love Ludo Game Widget */}
