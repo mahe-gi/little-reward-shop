@@ -449,12 +449,6 @@ export async function moveLudoPawn(
             };
           }
         }
-
-        // Check Dare Tile
-        if (LOVE_DARES[curTile]) {
-          triggeredDare = LOVE_DARES[curTile];
-          state.activeDare = triggeredDare;
-        }
       }
 
       if (pawn.stepCount === 56) {

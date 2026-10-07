@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LudoGameState, LudoDare } from "@/lib/ludo-types";
+import { LudoGameState, getCoordForStep } from "@/lib/ludo-types";
 import {
   getLudoGame,
   startLudoGame,
@@ -13,10 +13,18 @@ import {
 } from "@/actions/game";
 import { LudoBoard } from "@/components/game/LudoBoard";
 import { LudoDice } from "@/components/game/LudoDice";
-import { LoveDareModal } from "@/components/game/LoveDareModal";
 import { triggerCelebration } from "@/components/ui/CelebrationConfetti";
 import { triggerHaptic } from "@/lib/haptics";
 import { Avatar } from "@/components/ui/Avatar";
+import {
+  playDiceRollSound,
+  playStepSound,
+  playCaptureSound,
+  playHomeSound,
+  playVictorySound,
+  isSoundEnabled,
+  toggleSound,
+} from "@/lib/sound-effects";
 
 interface LudoGameClientProps {
   initialState: LudoGameState | null;
@@ -41,8 +49,18 @@ export function LudoGameClient({
   const [selectedStake, setSelectedStake] = useState<number>(0);
   const [selectedMode, setSelectedMode] = useState<"couch" | "remote">("couch");
   const [selectedPawnCount, setSelectedPawnCount] = useState<2 | 4>(4);
-  const [activeDare, setActiveDare] = useState<LudoDare | null>(null);
   const [captureAlert, setCaptureAlert] = useState<{ killer: string; victim: string } | null>(null);
+  const [soundOn, setSoundOn] = useState<boolean>(true);
+  const [animatingPawn, setAnimatingPawn] = useState<{ id: string; col: number; row: number } | null>(null);
+
+  useEffect(() => {
+    setSoundOn(isSoundEnabled());
+  }, []);
+
+  const handleToggleSound = () => {
+    const next = toggleSound();
+    setSoundOn(next);
+  };
 
   // Poll for opponent's turn in remote mode with low latency (1000ms) and focus listener
   useEffect(() => {
@@ -57,6 +75,7 @@ export function LudoGameClient({
         if (res.success && res.data?.state && isSubscribed) {
           setState(res.data.state);
           if (res.data.state.winnerUserId) {
+            playVictorySound();
             triggerCelebration({ type: "hearts", count: 40 });
           }
         }
@@ -87,6 +106,7 @@ export function LudoGameClient({
     if (state?.lastCapture?.timestamp) {
       if (Date.now() - state.lastCapture.timestamp < 10000) {
         setCaptureAlert({ killer: state.lastCapture.killerName, victim: state.lastCapture.victimName });
+        playCaptureSound();
         triggerHaptic("heartbeat");
         triggerCelebration({ type: "hearts", count: 35 });
         const timer = setTimeout(() => setCaptureAlert(null), 3500);
@@ -97,6 +117,7 @@ export function LudoGameClient({
 
   const handleStartGame = async () => {
     setLoading(true);
+    playStepSound();
     try {
       const res = await startLudoGame(selectedMode, selectedStake, selectedPawnCount);
       if (res.success && res.gameId && res.state) {
@@ -112,6 +133,8 @@ export function LudoGameClient({
   const handleRollDice = async () => {
     if (!gameId || isRolling) return;
     setIsRolling(true);
+    playDiceRollSound();
+    triggerHaptic("medium");
     try {
       const res = await rollLudoDice(gameId);
       if (res.success && res.state) {
@@ -124,27 +147,67 @@ export function LudoGameClient({
   };
 
   const handleMovePawn = async (pawnId: string) => {
-    if (!gameId) return;
+    if (!gameId || !state || !state.dice || animatingPawn) return;
+    const pawn = state.pawns[pawnId];
+    if (!pawn) return;
+
+    const roll = state.dice;
+    const isP1 = state.turnUserId === state.player1.id;
+    const playerNum: 1 | 2 = isP1 ? 1 : 2;
+    const pawnIndex = parseInt(pawnId.split("_")[1], 10) || 0;
+
+    // 1. Hatching from yard
+    if (pawn.stepCount === -1) {
+      playStepSound();
+      triggerHaptic("selection");
+      try {
+        const res = await moveLudoPawn(gameId, pawnId);
+        if (res.success && res.state) {
+          setState(res.state);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+      return;
+    }
+
+    // 2. Step-by-step authentic hopping animation
+    const startStep = pawn.stepCount;
+    const endStep = startStep + roll;
+
+    for (let step = startStep + 1; step <= endStep; step++) {
+      await new Promise((resolve) => setTimeout(resolve, 110));
+      const coord = getCoordForStep(playerNum, step, pawnIndex);
+      setAnimatingPawn({ id: pawnId, col: coord.col, row: coord.row });
+      playStepSound();
+      triggerHaptic("light");
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 60));
+    setAnimatingPawn(null);
+
     try {
       const res = await moveLudoPawn(gameId, pawnId);
       if (res.success && res.state) {
         setState(res.state);
 
         if (res.won) {
+          playVictorySound();
           triggerHaptic("sparkUnlock");
-          triggerCelebration({ type: "hearts", count: 50 });
+          triggerCelebration({ type: "hearts", count: 60 });
         } else if (res.captured) {
+          playCaptureSound();
           triggerHaptic("heartbeat");
-          triggerCelebration({ type: "hearts", count: 25 });
-        } else if (res.dare) {
-          setActiveDare(res.dare);
-          triggerHaptic("light");
+          triggerCelebration({ type: "hearts", count: 35 });
+        } else if (endStep === 56) {
+          playHomeSound();
+          triggerCelebration({ type: "hearts", count: 20 });
         } else {
           triggerHaptic("selection");
         }
       }
-    } catch {
-      // Fallback
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -308,7 +371,7 @@ export function LudoGameClient({
   const currentTurnPlayer = isP1 ? state.player1 : state.player2;
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#FAF7F2] max-w-md mx-auto justify-between p-3 pb-8 select-none">
+    <div className="flex flex-col min-h-screen bg-[#FAF7F2] max-w-lg mx-auto justify-between p-3 pb-8 select-none">
       {/* Top Bar */}
       <div className="flex items-center justify-between pb-2">
         <Link
@@ -319,15 +382,26 @@ export function LudoGameClient({
         </Link>
 
         <div className="flex items-center gap-2">
+          {/* Sound Toggle Button */}
+          <button
+            type="button"
+            onClick={handleToggleSound}
+            className="px-2.5 py-1 rounded-full bg-white border border-[#EAE6DE] text-[11px] font-semibold text-[#1E1A18] shadow-2xs hover:bg-[#FDFBF7] cursor-pointer"
+            title="Toggle Sound Effects"
+          >
+            {soundOn ? "🔊 Sound ON" : "🔇 Sound OFF"}
+          </button>
+
           {state.stakePoints > 0 && (
             <span className="px-2.5 py-1 rounded-full bg-[#FFFBF0] border border-[#D4AF37]/40 text-[#D4AF37] text-[11px] font-bold">
               Pot: {state.stakePoints * 2} pts
             </span>
           )}
+
           <button
             type="button"
             onClick={handleAbandon}
-            className="text-[11px] text-[#A49B94] hover:text-[#BA3F4A]"
+            className="text-[11px] text-[#A49B94] hover:text-[#BA3F4A] cursor-pointer"
           >
             Reset
           </button>
@@ -351,7 +425,7 @@ export function LudoGameClient({
                 {state.player1.name}
               </div>
               <div className="text-[10px] text-[#BA3F4A] font-semibold">
-                {isP1 ? "✦ Turn to move" : "P1 (Rose)"}
+                {isP1 ? "✦ Turn to move" : "P1 (Red)"}
               </div>
             </div>
           </div>
@@ -372,7 +446,7 @@ export function LudoGameClient({
                 {state.player2.name}
               </div>
               <div className="text-[10px] text-[#D4AF37] font-semibold">
-                {!isP1 ? "✦ Turn to move" : "P2 (Gold)"}
+                {!isP1 ? "✦ Turn to move" : "P2 (Yellow)"}
               </div>
             </div>
           </div>
@@ -405,6 +479,7 @@ export function LudoGameClient({
           turnUserId={state.turnUserId}
           hasRolled={state.hasRolled}
           diceValue={state.dice}
+          animatingPawn={animatingPawn}
           onMovePawn={handleMovePawn}
         />
       </div>
@@ -454,12 +529,6 @@ export function LudoGameClient({
           />
         </div>
       </div>
-
-      {/* Love Dare Modal */}
-      <LoveDareModal
-        dare={activeDare}
-        onDismiss={() => setActiveDare(null)}
-      />
 
       {/* Winner Celebration Modal */}
       {state.winnerUserId && (

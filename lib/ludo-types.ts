@@ -164,9 +164,35 @@ export function getDestinationCoord(
     return { col: c.col + 0.5, row: c.row + 0.5 };
   }
   if (targetStep === 56) {
-    return { col: 7.5, row: 7.5 };
+    return playerNum === 1 ? { col: 6.7, row: 7.5 } : { col: 8.3, row: 7.5 };
   }
   return null;
+}
+
+export function getCoordForStep(
+  playerNum: 1 | 2,
+  stepCount: number,
+  pawnIndex: number = 0
+): { col: number; row: number } {
+  if (stepCount === -1) {
+    return playerNum === 1
+      ? P1_YARD_SLOTS[pawnIndex] || { col: 2.5, row: 2.5 }
+      : P2_YARD_SLOTS[pawnIndex] || { col: 11.5, row: 11.5 };
+  }
+  if (stepCount <= 50) {
+    const tile = getTrackTileForStep(playerNum, stepCount);
+    const c = CLASSIC_TRACK_COORDS[tile];
+    return { col: c.col + 0.5, row: c.row + 0.5 };
+  }
+  if (stepCount >= 51 && stepCount <= 55) {
+    const homeIdx = stepCount - 51;
+    const c = playerNum === 1 ? P1_HOME_COORDS[homeIdx] : P2_HOME_COORDS[homeIdx];
+    return { col: c.col + 0.5, row: c.row + 0.5 };
+  }
+  // Step 56: Home Triangle Bay
+  return playerNum === 1
+    ? { col: 6.5 + (pawnIndex % 2) * 0.35, row: 7.3 + Math.floor(pawnIndex / 2) * 0.35 }
+    : { col: 8.1 + (pawnIndex % 2) * 0.35, row: 7.3 + Math.floor(pawnIndex / 2) * 0.35 };
 }
 
 // Red (Player 1) Home Row coordinates (steps 51..55)

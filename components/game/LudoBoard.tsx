@@ -11,6 +11,7 @@ import {
   P2_YARD_SLOTS,
   CENTER_HOME_COORD,
   getDestinationCoord,
+  getCoordForStep,
 } from "@/lib/ludo-types";
 
 interface LudoBoardProps {
@@ -22,6 +23,7 @@ interface LudoBoardProps {
   turnUserId: string;
   hasRolled: boolean;
   diceValue?: number | null;
+  animatingPawn?: { id: string; col: number; row: number } | null;
   onMovePawn: (pawnId: string) => void;
 }
 
@@ -34,6 +36,7 @@ export function LudoBoard({
   turnUserId,
   hasRolled,
   diceValue,
+  animatingPawn,
   onMovePawn,
 }: LudoBoardProps) {
   const isP1Turn = turnUserId === player1.id;
@@ -55,44 +58,14 @@ export function LudoBoard({
 
   // Determine pawn locations on the 15x15 board
   const getPawnPixelCoord = (pawnId: string): { col: number; row: number } | null => {
+    if (animatingPawn && animatingPawn.id === pawnId) {
+      return { col: animatingPawn.col, row: animatingPawn.row };
+    }
     const p = pawns[pawnId];
     if (!p) return null;
     const isP1 = pawnId.startsWith("p1_");
     const pawnIndex = parseInt(pawnId.split("_")[1], 10) || 0;
-
-    // 1. In Yard
-    if (p.stepCount === -1) {
-      if (isP1) {
-        return P1_YARD_SLOTS[pawnIndex] || { col: 2.5, row: 2.5 };
-      } else {
-        return P2_YARD_SLOTS[pawnIndex] || { col: 11.5, row: 11.5 };
-      }
-    }
-
-    // 2. On 52-tile circuit (steps 0..50)
-    if (p.stepCount <= 50) {
-      const tileIdx = p.position;
-      if (tileIdx >= 0 && tileIdx < CLASSIC_TRACK_COORDS.length) {
-        const c = CLASSIC_TRACK_COORDS[tileIdx];
-        return { col: c.col + 0.5, row: c.row + 0.5 };
-      }
-    }
-
-    // 3. In colored home row (steps 51..55)
-    if (p.stepCount >= 51 && p.stepCount <= 55) {
-      const homeIdx = p.stepCount - 51;
-      const c = isP1 ? P1_HOME_COORDS[homeIdx] : P2_HOME_COORDS[homeIdx];
-      if (c) return { col: c.col + 0.5, row: c.row + 0.5 };
-    }
-
-    // 4. In Center Home Triangle (step 56)
-    if (p.stepCount === 56) {
-      return isP1
-        ? { col: 6.8 + (pawnIndex % 2) * 0.7, row: 7.2 + Math.floor(pawnIndex / 2) * 0.7 }
-        : { col: 7.6 + (pawnIndex % 2) * 0.7, row: 7.2 + Math.floor(pawnIndex / 2) * 0.7 };
-    }
-
-    return null;
+    return getCoordForStep(isP1 ? 1 : 2, p.stepCount, pawnIndex);
   };
 
   // Group active pawns to prevent overlapping
@@ -127,7 +100,7 @@ export function LudoBoard({
           </radialGradient>
         </defs>
 
-        {/* ---------------- 1. FOUR CORNER YARDS ---------------- */}
+        {/* ---------------- 1. CORNER YARDS (2-PLAYER FOCUSED) ---------------- */}
         {/* Top-Left: Player 1 (Red / Rose) Yard */}
         <rect x="0" y="0" width="6" height="6" fill="#EF4444" />
         <rect x="1" y="1" width="4" height="4" rx="0.5" fill="#FFFFFF" />
@@ -136,13 +109,10 @@ export function LudoBoard({
         <circle cx="2" cy="4" r="0.6" fill="#FEE2E2" stroke="#EF4444" strokeWidth="0.08" />
         <circle cx="4" cy="4" r="0.6" fill="#FEE2E2" stroke="#EF4444" strokeWidth="0.08" />
 
-        {/* Top-Right: Green Yard */}
-        <rect x="9" y="0" width="6" height="6" fill="#10B981" />
-        <rect x="10" y="1" width="4" height="4" rx="0.5" fill="#FFFFFF" />
-        <circle cx="11" cy="2" r="0.6" fill="#D1FAE5" stroke="#10B981" strokeWidth="0.08" />
-        <circle cx="13" cy="2" r="0.6" fill="#D1FAE5" stroke="#10B981" strokeWidth="0.08" />
-        <circle cx="11" cy="4" r="0.6" fill="#D1FAE5" stroke="#10B981" strokeWidth="0.08" />
-        <circle cx="13" cy="4" r="0.6" fill="#D1FAE5" stroke="#10B981" strokeWidth="0.08" />
+        {/* Top-Right: Clean Neutral Zone */}
+        <rect x="9" y="0" width="6" height="6" fill="#F6F2EB" />
+        <rect x="10" y="1" width="4" height="4" rx="0.5" fill="#FFFFFF" stroke="#EAE4D9" strokeWidth="0.04" />
+        <text x="12" y="3.3" textAnchor="middle" fontSize="0.7" fill="#C8BFB2">🎲</text>
 
         {/* Bottom-Right: Player 2 (Yellow / Gold) Yard */}
         <rect x="9" y="9" width="6" height="6" fill="#EAB308" />
@@ -152,25 +122,30 @@ export function LudoBoard({
         <circle cx="11" cy="13" r="0.6" fill="#FEF9C3" stroke="#EAB308" strokeWidth="0.08" />
         <circle cx="13" cy="13" r="0.6" fill="#FEF9C3" stroke="#EAB308" strokeWidth="0.08" />
 
-        {/* Bottom-Left: Blue Yard */}
-        <rect x="0" y="9" width="6" height="6" fill="#3B82F6" />
-        <rect x="1" y="10" width="4" height="4" rx="0.5" fill="#FFFFFF" />
-        <circle cx="2" cy="11" r="0.6" fill="#DBEAFE" stroke="#3B82F6" strokeWidth="0.08" />
-        <circle cx="4" cy="11" r="0.6" fill="#DBEAFE" stroke="#3B82F6" strokeWidth="0.08" />
-        <circle cx="2" cy="13" r="0.6" fill="#DBEAFE" stroke="#3B82F6" strokeWidth="0.08" />
-        <circle cx="4" cy="13" r="0.6" fill="#DBEAFE" stroke="#3B82F6" strokeWidth="0.08" />
+        {/* Bottom-Left: Clean Neutral Zone */}
+        <rect x="0" y="9" width="6" height="6" fill="#F6F2EB" />
+        <rect x="1" y="10" width="4" height="4" rx="0.5" fill="#FFFFFF" stroke="#EAE4D9" strokeWidth="0.04" />
+        <text x="3" y="12.3" textAnchor="middle" fontSize="0.7" fill="#C8BFB2">🎲</text>
 
-        {/* ---------------- 2. CENTER HOME TRIANGLES ---------------- */}
-        <polygon points="6,6 7.5,7.5 6,9" fill="#EF4444" />
-        <polygon points="6,6 7.5,7.5 9,6" fill="#10B981" />
-        <polygon points="9,6 7.5,7.5 9,9" fill="#EAB308" />
-        <polygon points="6,9 7.5,7.5 9,9" fill="#3B82F6" />
-        {/* Center decorative ring */}
-        <circle cx="7.5" cy="7.5" r="0.45" fill="#FFFFFF" />
-        <text x="7.5" y="7.65" textAnchor="middle" fontSize="0.4" fontWeight="bold">💖</text>
+        {/* ---------------- 2. CENTER HOME (RED & YELLOW BAYS) ---------------- */}
+        {/* Red Home Triangle (Left bay) */}
+        <polygon points="6,6 7.5,7.5 6,9" fill="#EF4444" stroke="#DC2626" strokeWidth="0.04" />
+        <text x="6.45" y="7.62" textAnchor="middle" fontSize="0.4" fill="#FFFFFF" fontWeight="900">★</text>
 
-        {/* ---------------- 3. COLORED HOME COLUMNS ---------------- */}
-        {/* Red Home Column (row 7, col 1..5) */}
+        {/* Yellow Home Triangle (Right bay) */}
+        <polygon points="9,6 7.5,7.5 9,9" fill="#EAB308" stroke="#CA8A04" strokeWidth="0.04" />
+        <text x="8.55" y="7.62" textAnchor="middle" fontSize="0.4" fill="#FFFFFF" fontWeight="900">★</text>
+
+        {/* Neutral Top & Bottom Center Triangles */}
+        <polygon points="6,6 7.5,7.5 9,6" fill="#F5EFE6" stroke="#E5DDD0" strokeWidth="0.04" />
+        <polygon points="6,9 7.5,7.5 9,9" fill="#F5EFE6" stroke="#E5DDD0" strokeWidth="0.04" />
+
+        {/* Center Victory Trophy Emblem */}
+        <circle cx="7.5" cy="7.5" r="0.46" fill="#FFFFFF" stroke="#E5DDD0" strokeWidth="0.04" />
+        <text x="7.5" y="7.65" textAnchor="middle" fontSize="0.34" fontWeight="bold">🏆</text>
+
+        {/* ---------------- 3. COLORED HOME LANES ---------------- */}
+        {/* Red Home Lane (row 7, col 1..5) */}
         {P1_HOME_COORDS.map((c, i) => (
           <rect
             key={`p1-home-${i}`}
@@ -184,21 +159,21 @@ export function LudoBoard({
           />
         ))}
 
-        {/* Green Home Column (col 7, row 1..5) */}
+        {/* Neutral Top Lane (col 7, row 1..5) */}
         {[1, 2, 3, 4, 5].map((r) => (
           <rect
-            key={`green-home-${r}`}
+            key={`neutral-home-top-${r}`}
             x="7"
             y={r}
             width="1"
             height="1"
-            fill="#10B981"
-            stroke="#059669"
+            fill="#FAF7F2"
+            stroke="#E5E7EB"
             strokeWidth="0.03"
           />
         ))}
 
-        {/* Yellow Home Column (row 7, col 9..13) */}
+        {/* Yellow Home Lane (row 7, col 9..13) */}
         {P2_HOME_COORDS.map((c, i) => (
           <rect
             key={`p2-home-${i}`}
@@ -212,16 +187,16 @@ export function LudoBoard({
           />
         ))}
 
-        {/* Blue Home Column (col 7, row 9..13) */}
+        {/* Neutral Bottom Lane (col 7, row 9..13) */}
         {[9, 10, 11, 12, 13].map((r) => (
           <rect
-            key={`blue-home-${r}`}
+            key={`neutral-home-bot-${r}`}
             x="7"
             y={r}
             width="1"
             height="1"
-            fill="#3B82F6"
-            stroke="#2563EB"
+            fill="#FAF7F2"
+            stroke="#E5E7EB"
             strokeWidth="0.03"
           />
         ))}
@@ -236,9 +211,7 @@ export function LudoBoard({
 
           let tileFill = "#FFFFFF";
           if (isP1Start) tileFill = "#EF4444";
-          else if (isGreenStart) tileFill = "#10B981";
           else if (isP2Start) tileFill = "#EAB308";
-          else if (isBlueStart) tileFill = "#3B82F6";
 
           return (
             <g key={`tile-${idx}`}>
@@ -254,26 +227,16 @@ export function LudoBoard({
 
               {/* Start square indicators & Star icons */}
               {isP1Start && (
-                <text x={c.col + 0.5} y={c.row + 0.65} textAnchor="middle" fontSize="0.45" fill="#FFFFFF">
-                  ★
-                </text>
-              )}
-              {isGreenStart && (
-                <text x={c.col + 0.5} y={c.row + 0.65} textAnchor="middle" fontSize="0.45" fill="#FFFFFF">
+                <text x={c.col + 0.5} y={c.row + 0.65} textAnchor="middle" fontSize="0.45" fill="#FFFFFF" fontWeight="bold">
                   ★
                 </text>
               )}
               {isP2Start && (
-                <text x={c.col + 0.5} y={c.row + 0.65} textAnchor="middle" fontSize="0.45" fill="#FFFFFF">
+                <text x={c.col + 0.5} y={c.row + 0.65} textAnchor="middle" fontSize="0.45" fill="#FFFFFF" fontWeight="bold">
                   ★
                 </text>
               )}
-              {isBlueStart && (
-                <text x={c.col + 0.5} y={c.row + 0.65} textAnchor="middle" fontSize="0.45" fill="#FFFFFF">
-                  ★
-                </text>
-              )}
-              {isSafe && !isP1Start && !isGreenStart && !isP2Start && !isBlueStart && (
+              {isSafe && !isP1Start && !isP2Start && (
                 <text x={c.col + 0.5} y={c.row + 0.65} textAnchor="middle" fontSize="0.45" fill="#9CA3AF">
                   ⭐
                 </text>
