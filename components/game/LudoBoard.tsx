@@ -10,6 +10,7 @@ import {
   P1_YARD_SLOTS,
   P2_YARD_SLOTS,
   CENTER_HOME_COORD,
+  getDestinationCoord,
 } from "@/lib/ludo-types";
 
 interface LudoBoardProps {
@@ -20,6 +21,7 @@ interface LudoBoardProps {
   player2: { id: string; name: string; avatar: string | null; color: "gold" };
   turnUserId: string;
   hasRolled: boolean;
+  diceValue?: number | null;
   onMovePawn: (pawnId: string) => void;
 }
 
@@ -29,8 +31,28 @@ export function LudoBoard({
   pawnCount,
   player1,
   player2,
+  turnUserId,
+  hasRolled,
+  diceValue,
   onMovePawn,
 }: LudoBoardProps) {
+  const isP1Turn = turnUserId === player1.id;
+  const playerNum = isP1Turn ? 1 : 2;
+
+  // Calculate destination landing squares for movable pawns
+  const destinationCoords: { col: number; row: number; pawnId: string }[] = [];
+  if (hasRolled && diceValue) {
+    for (const pid of movablePawnIds) {
+      const p = pawns[pid];
+      if (p) {
+        const dest = getDestinationCoord(playerNum, p.stepCount, diceValue);
+        if (dest) {
+          destinationCoords.push({ ...dest, pawnId: pid });
+        }
+      }
+    }
+  }
+
   // Determine pawn locations on the 15x15 board
   const getPawnPixelCoord = (pawnId: string): { col: number; row: number } | null => {
     const p = pawns[pawnId];
@@ -260,6 +282,38 @@ export function LudoBoard({
           );
         })}
 
+        {/* ---------------- 4.5 LANDING TARGET HIGHLIGHTS ---------------- */}
+        {destinationCoords.map((dest, i) => (
+          <g key={`dest-${dest.pawnId}-${i}`} className="pointer-events-none">
+            <circle
+              cx={dest.col}
+              cy={dest.row}
+              r="0.45"
+              fill={playerNum === 1 ? "rgba(239, 68, 68, 0.22)" : "rgba(234, 179, 8, 0.22)"}
+              stroke={playerNum === 1 ? "#EF4444" : "#EAB308"}
+              strokeWidth="0.06"
+              strokeDasharray="0.12 0.08"
+            />
+            <circle
+              cx={dest.col}
+              cy={dest.row}
+              r="0.18"
+              fill={playerNum === 1 ? "#EF4444" : "#EAB308"}
+              opacity="0.85"
+            />
+            <text
+              x={dest.col}
+              y={dest.row + 0.07}
+              textAnchor="middle"
+              fontSize="0.22"
+              fill="#FFFFFF"
+              fontWeight="900"
+            >
+              ★
+            </text>
+          </g>
+        ))}
+
         {/* ---------------- 5. AUTHENTIC 3D LUDO PAWNS ---------------- */}
         {activePawns.map((pawnId) => {
           const coord = getPawnPixelCoord(pawnId);
@@ -274,21 +328,33 @@ export function LudoBoard({
             <g
               key={`pawn-token-${pawnId}`}
               transform={`translate(${coord.col}, ${coord.row})`}
-              className={`transition-all duration-300 ${
-                isMovable ? "cursor-pointer animate-pulse" : "cursor-default"
+              style={{
+                transition: "transform 0.35s cubic-bezier(0.34, 1.4, 0.64, 1)",
+              }}
+              className={`transition-all ${
+                isMovable ? "cursor-pointer animate-bounce" : "cursor-default"
               }`}
               onClick={() => {
                 if (isMovable) onMovePawn(pawnId);
               }}
             >
+              {/* Invisible large touch target circle for mobile tap reliability */}
+              <circle
+                cx="0"
+                cy="0"
+                r="0.75"
+                fill="transparent"
+                style={{ pointerEvents: isMovable ? "all" : "none" }}
+              />
+
               {/* Movable aura glow */}
               {isMovable && (
                 <circle
                   cx="0"
                   cy="0"
-                  r="0.52"
+                  r="0.55"
                   fill="none"
-                  stroke="#BA3F4A"
+                  stroke={isP1 ? "#EF4444" : "#EAB308"}
                   strokeWidth="0.09"
                   className="animate-ping"
                 />

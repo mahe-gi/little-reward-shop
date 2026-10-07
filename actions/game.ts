@@ -10,15 +10,10 @@ import {
   LudoGameState,
   LOVE_DARES,
   CLASSIC_SAFE_TILES,
+  getTrackTileForStep,
 } from "@/lib/ludo-types";
 
 export type { PawnState, LudoDare, LudoGameState };
-
-function getTrackTileForStep(playerNum: 1 | 2, stepCount: number): number {
-  if (stepCount < 0 || stepCount > 50) return -1;
-  if (playerNum === 1) return stepCount;
-  return (26 + stepCount) % 52;
-}
 
 function calculateMovablePawns(
   playerNum: 1 | 2,
@@ -262,16 +257,54 @@ export async function rollLudoDice(gameId: string): Promise<{
       return { success: false, error: "You already rolled! Please select a pawn to move." };
     }
 
-    // Roll standard 1-6
-    const roll = Math.floor(Math.random() * 6) + 1;
     const isPlayer1 = state.turnUserId === state.player1.id;
     const playerNum = isPlayer1 ? 1 : 2;
     const currentName = isPlayer1 ? state.player1.name : state.player2.name;
+    const prefix = isPlayer1 ? "p1_" : "p2_";
+    const count = state.pawnCount || 4;
 
-    // Track consecutive sixes (rule: 3 sixes forfeits turn)
+    // Check if player has all pawns stuck in the yard
+    const myPawns = Array.from({ length: count }, (_, i) => state.pawns[`${prefix}${i}`]).filter(Boolean);
+    const allInYard = myPawns.length > 0 && myPawns.every((p) => p.stepCount === -1);
+
+    if (!state.turnsWithoutSix) {
+      state.turnsWithoutSix = {};
+    }
+    const misses = state.turnsWithoutSix[state.turnUserId] || 0;
+
+    // Pity balancing:
+    // If a player has all pawns in yard and hasn't rolled a 6:
+    // - 1st miss: 40% chance of 6
+    // - 2nd miss: 75% chance of 6
+    // - 3rd miss+: 100% guaranteed 6 (no player is left trapped for 4 turns!)
+    // If not all in yard, but player hasn't rolled a 6 for 5+ turns: 35% chance of 6
+    let roll: number;
+    let forceSix = false;
+
+    if (allInYard) {
+      if (misses >= 3) {
+        forceSix = true;
+      } else if (misses === 2) {
+        forceSix = Math.random() < 0.75;
+      } else if (misses === 1) {
+        forceSix = Math.random() < 0.4;
+      }
+    } else if (misses >= 5) {
+      forceSix = Math.random() < 0.35;
+    }
+
+    if (forceSix) {
+      roll = 6;
+    } else {
+      roll = Math.floor(Math.random() * 6) + 1;
+    }
+
+    // Track consecutive sixes and pity counter
     if (roll === 6) {
+      state.turnsWithoutSix[state.turnUserId] = 0;
       state.consecutiveSixes = (state.consecutiveSixes || 0) + 1;
     } else {
+      state.turnsWithoutSix[state.turnUserId] = misses + 1;
       state.consecutiveSixes = 0;
     }
 
@@ -406,6 +439,15 @@ export async function moveLudoPawn(
               captured = true;
             }
           }
+
+          if (captured) {
+            state.lastCapture = {
+              killerName: currentName,
+              victimName: otherName,
+              pawnId,
+              timestamp: Date.now(),
+            };
+          }
         }
 
         // Check Dare Tile
@@ -520,11 +562,19 @@ export async function moveLudoPawn(
       },
     });
 
-    if (state.mode === "remote" && !gotBonusRoll && partner) {
-      await sendPushNotification(state.turnUserId, {
-        title: "Your Turn in Ludo! 🎲",
-        body: `${currentName} just moved. Tap to roll your dice!`,
-      }).catch(() => {});
+    if (partner) {
+      if (captured) {
+        const victimUserId = isPlayer1 ? state.player2.id : state.player1.id;
+        await sendPushNotification(victimUserId, {
+          title: "⚔️ Token Captured in Ludo!",
+          body: `${currentName} captured your token and sent it back to the Yard! 💋 Time for revenge!`,
+        }).catch(() => {});
+      } else if (state.mode === "remote" && !gotBonusRoll) {
+        await sendPushNotification(state.turnUserId, {
+          title: "🎲 Your Turn in Ludo!",
+          body: `${currentName} moved ${roll} step${roll > 1 ? "s" : ""}. Tap to roll!`,
+        }).catch(() => {});
+      }
     }
 
     return {

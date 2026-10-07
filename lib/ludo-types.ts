@@ -12,6 +12,13 @@ export interface LudoDare {
   description: string;
 }
 
+export interface CaptureEvent {
+  killerName: string;
+  victimName: string;
+  pawnId: string;
+  timestamp: number;
+}
+
 export interface LudoGameState {
   mode: "couch" | "remote";
   pawnCount: 2 | 4; // 2 pawns (Fast) or 4 pawns (Classic Full Ludo)
@@ -31,10 +38,12 @@ export interface LudoGameState {
   dice: number | null;
   hasRolled: boolean;
   consecutiveSixes: number;
+  turnsWithoutSix?: Record<string, number>;
   movablePawnIds: string[];
   pawns: Record<string, PawnState>;
   lastActionMessage: string | null;
   activeDare: LudoDare | null;
+  lastCapture?: CaptureEvent | null;
   winnerUserId: string | null;
   status: "ACTIVE" | "COMPLETED" | "ABANDONED";
   stakePoints: number;
@@ -122,6 +131,43 @@ export const CLASSIC_TRACK_COORDS: { col: number; row: number }[] = [
 
 // 8 classic Star safe squares where pawns cannot be captured
 export const CLASSIC_SAFE_TILES = [0, 8, 13, 21, 26, 34, 39, 47];
+
+export function getTrackTileForStep(playerNum: 1 | 2, stepCount: number): number {
+  if (stepCount < 0 || stepCount > 50) return -1;
+  if (playerNum === 1) return stepCount;
+  return (26 + stepCount) % 52;
+}
+
+export function getDestinationCoord(
+  playerNum: 1 | 2,
+  currentStep: number,
+  roll: number
+): { col: number; row: number } | null {
+  if (currentStep === -1) {
+    if (roll === 6) {
+      const tile = playerNum === 1 ? 0 : 26;
+      const c = CLASSIC_TRACK_COORDS[tile];
+      return { col: c.col + 0.5, row: c.row + 0.5 };
+    }
+    return null;
+  }
+  const targetStep = currentStep + roll;
+  if (targetStep > 56) return null;
+  if (targetStep <= 50) {
+    const tile = getTrackTileForStep(playerNum, targetStep);
+    const c = CLASSIC_TRACK_COORDS[tile];
+    return { col: c.col + 0.5, row: c.row + 0.5 };
+  }
+  if (targetStep >= 51 && targetStep <= 55) {
+    const homeIdx = targetStep - 51;
+    const c = playerNum === 1 ? P1_HOME_COORDS[homeIdx] : P2_HOME_COORDS[homeIdx];
+    return { col: c.col + 0.5, row: c.row + 0.5 };
+  }
+  if (targetStep === 56) {
+    return { col: 7.5, row: 7.5 };
+  }
+  return null;
+}
 
 // Red (Player 1) Home Row coordinates (steps 51..55)
 export const P1_HOME_COORDS = [

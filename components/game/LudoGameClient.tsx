@@ -42,26 +42,58 @@ export function LudoGameClient({
   const [selectedMode, setSelectedMode] = useState<"couch" | "remote">("couch");
   const [selectedPawnCount, setSelectedPawnCount] = useState<2 | 4>(4);
   const [activeDare, setActiveDare] = useState<LudoDare | null>(null);
+  const [captureAlert, setCaptureAlert] = useState<{ killer: string; victim: string } | null>(null);
 
-  // Poll for opponent's turn in remote mode
+  // Poll for opponent's turn in remote mode with low latency (1000ms) and focus listener
   useEffect(() => {
     if (!gameId || state?.mode !== "remote" || state?.status === "COMPLETED") return;
 
-    const interval = setInterval(async () => {
-      // If it's not my turn, poll for updates
+    let isSubscribed = true;
+
+    const pollGame = async () => {
+      if (!isSubscribed) return;
       if (state && state.turnUserId !== currentUserId) {
         const res = await getLudoGame();
-        if (res.success && res.data?.state) {
+        if (res.success && res.data?.state && isSubscribed) {
           setState(res.data.state);
           if (res.data.state.winnerUserId) {
             triggerCelebration({ type: "hearts", count: 40 });
           }
         }
       }
-    }, 2500);
+    };
 
-    return () => clearInterval(interval);
-  }, [gameId, state, currentUserId]);
+    const interval = setInterval(pollGame, 1000);
+
+    const handleSync = () => {
+      if (document.visibilityState === "visible") {
+        pollGame();
+      }
+    };
+
+    window.addEventListener("focus", handleSync);
+    document.addEventListener("visibilitychange", handleSync);
+
+    return () => {
+      isSubscribed = false;
+      clearInterval(interval);
+      window.removeEventListener("focus", handleSync);
+      document.removeEventListener("visibilitychange", handleSync);
+    };
+  }, [gameId, state?.mode, state?.status, state?.turnUserId, currentUserId]);
+
+  // Capture alert trigger when partner or user kills a pawn
+  useEffect(() => {
+    if (state?.lastCapture?.timestamp) {
+      if (Date.now() - state.lastCapture.timestamp < 10000) {
+        setCaptureAlert({ killer: state.lastCapture.killerName, victim: state.lastCapture.victimName });
+        triggerHaptic("heartbeat");
+        triggerCelebration({ type: "hearts", count: 35 });
+        const timer = setTimeout(() => setCaptureAlert(null), 3500);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [state?.lastCapture?.timestamp]);
 
   const handleStartGame = async () => {
     setLoading(true);
@@ -347,6 +379,21 @@ export function LudoGameClient({
         </div>
       </div>
 
+      {/* Dramatic Capture Banner Alert */}
+      {captureAlert && (
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-11/12 max-w-sm px-4 py-3 rounded-2xl bg-linear-to-r from-[#991B1B] to-[#E06D75] text-white shadow-2xl border border-white/20 animate-in slide-in-from-top duration-300 flex items-center gap-3">
+          <span className="text-3xl animate-bounce">⚔️</span>
+          <div className="flex-1 min-w-0">
+            <div className="text-[10px] font-black uppercase tracking-wider text-rose-200">
+              Token Captured! 💋
+            </div>
+            <div className="text-xs font-semibold leading-tight text-white truncate">
+              <strong>{captureAlert.killer}</strong> sent <strong>{captureAlert.victim}</strong> back to Yard!
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* The 2-Player Ludo Board */}
       <div className="my-auto py-1">
         <LudoBoard
@@ -357,6 +404,7 @@ export function LudoGameClient({
           player2={state.player2}
           turnUserId={state.turnUserId}
           hasRolled={state.hasRolled}
+          diceValue={state.dice}
           onMovePawn={handleMovePawn}
         />
       </div>
@@ -369,6 +417,23 @@ export function LudoGameClient({
             {state.lastActionMessage}
           </p>
         </div>
+
+        {/* Quick Tap-To-Advance Button when a single pawn is movable */}
+        {isMyTurn && state.hasRolled && state.movablePawnIds.length === 1 && (
+          <button
+            type="button"
+            onClick={() => handleMovePawn(state.movablePawnIds[0])}
+            className="w-full py-3 px-4 rounded-2xl bg-linear-to-r from-[#E06D75] to-[#B43A47] text-white text-xs font-bold shadow-lg shadow-[#E06D75]/30 active:scale-98 transition-all flex items-center justify-center gap-2 animate-pulse cursor-pointer hover:brightness-105"
+          >
+            <span>🎯</span>
+            <span>
+              {state.pawns[state.movablePawnIds[0]]?.stepCount === -1
+                ? "Tap to hatch token onto the board!"
+                : `Tap to advance token forward ${state.dice} steps!`}
+            </span>
+            <span>→</span>
+          </button>
+        )}
 
         {/* Couch Mode Pass Prompt */}
         {state.mode === "couch" && (
