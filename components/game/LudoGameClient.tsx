@@ -40,6 +40,7 @@ export function LudoGameClient({
   const [isRolling, setIsRolling] = useState(false);
   const [selectedStake, setSelectedStake] = useState<number>(0);
   const [selectedMode, setSelectedMode] = useState<"couch" | "remote">("couch");
+  const [selectedPawnCount, setSelectedPawnCount] = useState<2 | 4>(4);
   const [activeDare, setActiveDare] = useState<LudoDare | null>(null);
 
   // Poll for opponent's turn in remote mode
@@ -65,7 +66,7 @@ export function LudoGameClient({
   const handleStartGame = async () => {
     setLoading(true);
     try {
-      const res = await startLudoGame(selectedMode, selectedStake);
+      const res = await startLudoGame(selectedMode, selectedStake, selectedPawnCount);
       if (res.success && res.gameId && res.state) {
         setGameId(res.gameId);
         setState(res.state);
@@ -187,6 +188,40 @@ export function LudoGameClient({
                 <span className="text-xl">📱</span>
                 <div className="font-bold text-xs text-[#1E1A18] mt-1">Remote Mode</div>
                 <div className="text-[10px] text-[#756963]">Turn-by-turn when apart with alerts</div>
+              </button>
+            </div>
+          </div>
+
+          {/* Token Count Selector */}
+          <div className="space-y-2">
+            <label className="text-xs font-bold uppercase tracking-wider text-[#A49B94]">
+              Token Count
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setSelectedPawnCount(4)}
+                className={`p-3 rounded-2xl border text-left transition-all ${
+                  selectedPawnCount === 4
+                    ? "bg-[#FCEBEE] border-[#E06D75] text-[#BA3F4A] ring-2 ring-[#E06D75]/20 font-bold shadow-xs"
+                    : "bg-white border-[#EAE6DE] text-[#1E1A18]"
+                }`}
+              >
+                <div className="text-xs font-bold">4 Tokens (Classic Ludo) 🎯</div>
+                <div className="text-[10px] text-[#756963] font-normal mt-0.5">Full traditional experience</div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setSelectedPawnCount(2)}
+                className={`p-3 rounded-2xl border text-left transition-all ${
+                  selectedPawnCount === 2
+                    ? "bg-[#FCEBEE] border-[#E06D75] text-[#BA3F4A] ring-2 ring-[#E06D75]/20 font-bold shadow-xs"
+                    : "bg-white border-[#EAE6DE] text-[#1E1A18]"
+                }`}
+              >
+                <div className="text-xs font-bold">2 Tokens (Fast Race) ⚡</div>
+                <div className="text-[10px] text-[#756963] font-normal mt-0.5">Quick couple match (~5 mins)</div>
               </button>
             </div>
           </div>
@@ -317,6 +352,7 @@ export function LudoGameClient({
         <LudoBoard
           pawns={state.pawns}
           movablePawnIds={state.movablePawnIds}
+          pawnCount={state.pawnCount || 4}
           player1={state.player1}
           player2={state.player2}
           turnUserId={state.turnUserId}

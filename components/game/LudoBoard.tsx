@@ -1,12 +1,21 @@
 "use client";
 
 import React from "react";
-import { PawnState, SAFE_TILES, LEAP_TILES } from "@/lib/ludo-types";
-import { Avatar } from "@/components/ui/Avatar";
+import {
+  PawnState,
+  CLASSIC_TRACK_COORDS,
+  CLASSIC_SAFE_TILES,
+  P1_HOME_COORDS,
+  P2_HOME_COORDS,
+  P1_YARD_SLOTS,
+  P2_YARD_SLOTS,
+  CENTER_HOME_COORD,
+} from "@/lib/ludo-types";
 
 interface LudoBoardProps {
   pawns: Record<string, PawnState>;
   movablePawnIds: string[];
+  pawnCount: number;
   player1: { id: string; name: string; avatar: string | null; color: "rose" };
   player2: { id: string; name: string; avatar: string | null; color: "gold" };
   turnUserId: string;
@@ -14,243 +23,314 @@ interface LudoBoardProps {
   onMovePawn: (pawnId: string) => void;
 }
 
-// 6x6 grid perimeter tile coordinates (col, row from 0 to 5)
-const TILE_COORDS: Record<number, { col: number; row: number }> = {
-  0: { col: 0, row: 0 },
-  1: { col: 1, row: 0 },
-  2: { col: 2, row: 0 },
-  3: { col: 3, row: 0 },
-  4: { col: 4, row: 0 },
-  5: { col: 5, row: 0 },
-  6: { col: 5, row: 1 },
-  7: { col: 5, row: 2 },
-  8: { col: 5, row: 3 },
-  9: { col: 5, row: 4 },
-  10: { col: 5, row: 5 },
-  11: { col: 4, row: 5 },
-  12: { col: 3, row: 5 },
-  13: { col: 2, row: 5 },
-  14: { col: 1, row: 5 },
-  15: { col: 0, row: 5 },
-  16: { col: 0, row: 4 },
-  17: { col: 0, row: 3 },
-  18: { col: 0, row: 2 },
-  19: { col: 0, row: 1 },
-};
-
-// Home stretch steps 20, 21, 22 inward coordinates
-const P1_HOME_STRETCH: Record<number, { col: number; row: number }> = {
-  20: { col: 1, row: 1 },
-  21: { col: 2, row: 1 },
-  22: { col: 2, row: 2 },
-};
-
-const P2_HOME_STRETCH: Record<number, { col: number; row: number }> = {
-  20: { col: 4, row: 4 },
-  21: { col: 3, row: 4 },
-  22: { col: 3, row: 3 },
-};
-
 export function LudoBoard({
   pawns,
   movablePawnIds,
+  pawnCount,
   player1,
   player2,
-  turnUserId,
-  hasRolled,
   onMovePawn,
 }: LudoBoardProps) {
-  // Group pawns by location
-  const p1BasePawns = ["p1_0", "p1_1"].filter((id) => pawns[id]?.stepCount === -1);
-  const p2BasePawns = ["p2_0", "p2_1"].filter((id) => pawns[id]?.stepCount === -1);
-  const homeFinishedPawns = Object.keys(pawns).filter((id) => pawns[id]?.stepCount === 23);
-
-  const renderPawnToken = (pawnId: string) => {
+  // Determine pawn locations on the 15x15 board
+  const getPawnPixelCoord = (pawnId: string): { col: number; row: number } | null => {
+    const p = pawns[pawnId];
+    if (!p) return null;
     const isP1 = pawnId.startsWith("p1_");
-    const isMovable = movablePawnIds.includes(pawnId);
-    const player = isP1 ? player1 : player2;
+    const pawnIndex = parseInt(pawnId.split("_")[1], 10) || 0;
 
-    const isEmoji =
-      player.avatar &&
-      !player.avatar.startsWith("http") &&
-      player.avatar.length <= 4;
-    const tokenLabel = isEmoji
-      ? player.avatar
-      : player.name?.charAt(0).toUpperCase() || (isP1 ? "1" : "2");
+    // 1. In Yard
+    if (p.stepCount === -1) {
+      if (isP1) {
+        return P1_YARD_SLOTS[pawnIndex] || { col: 2.5, row: 2.5 };
+      } else {
+        return P2_YARD_SLOTS[pawnIndex] || { col: 11.5, row: 11.5 };
+      }
+    }
 
-    return (
-      <button
-        key={pawnId}
-        type="button"
-        disabled={!isMovable}
-        onClick={() => onMovePawn(pawnId)}
-        aria-label={`${player.name} pawn ${pawnId}`}
-        className={`relative w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 select-none shadow-md ${
-          isP1
-            ? "bg-linear-to-br from-[#E06D75] to-[#B43A47] text-white border-2 border-white"
-            : "bg-linear-to-br from-[#E6C766] to-[#D4AF37] text-[#1E1A18] border-2 border-white"
-        } ${
-          isMovable
-            ? "cursor-pointer scale-110 ring-3 ring-[#BA3F4A] animate-bounce z-30"
-            : "cursor-default z-10"
-        }`}
-      >
-        <span className="text-xs font-bold leading-none">{tokenLabel}</span>
-        {isMovable && (
-          <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-emerald-500 border border-white animate-ping" />
-        )}
-      </button>
-    );
+    // 2. On 52-tile circuit (steps 0..50)
+    if (p.stepCount <= 50) {
+      const tileIdx = p.position;
+      if (tileIdx >= 0 && tileIdx < CLASSIC_TRACK_COORDS.length) {
+        const c = CLASSIC_TRACK_COORDS[tileIdx];
+        return { col: c.col + 0.5, row: c.row + 0.5 };
+      }
+    }
+
+    // 3. In colored home row (steps 51..55)
+    if (p.stepCount >= 51 && p.stepCount <= 55) {
+      const homeIdx = p.stepCount - 51;
+      const c = isP1 ? P1_HOME_COORDS[homeIdx] : P2_HOME_COORDS[homeIdx];
+      if (c) return { col: c.col + 0.5, row: c.row + 0.5 };
+    }
+
+    // 4. In Center Home Triangle (step 56)
+    if (p.stepCount === 56) {
+      return isP1
+        ? { col: 6.8 + (pawnIndex % 2) * 0.7, row: 7.2 + Math.floor(pawnIndex / 2) * 0.7 }
+        : { col: 7.6 + (pawnIndex % 2) * 0.7, row: 7.2 + Math.floor(pawnIndex / 2) * 0.7 };
+    }
+
+    return null;
   };
 
+  // Group active pawns to prevent overlapping
+  const activePawns = Object.keys(pawns).filter((pid) => {
+    const idx = parseInt(pid.split("_")[1], 10);
+    return idx < pawnCount;
+  });
+
   return (
-    <div className="relative w-full aspect-square max-w-[380px] mx-auto p-2 bg-[#FDFBF7] rounded-3xl border border-[#EAE6DE] shadow-xl overflow-hidden select-none">
-      {/* 6x6 Grid Background */}
-      <div className="grid grid-cols-6 grid-rows-6 w-full h-full gap-1.5 p-1 relative">
-        {/* Render 20 Perimeter Tiles */}
-        {Object.entries(TILE_COORDS).map(([tileStr, { col, row }]) => {
-          const tileNum = Number(tileStr);
-          const isSafe = SAFE_TILES.includes(tileNum);
-          const isLeap = LEAP_TILES.includes(tileNum);
-          const isDare = tileNum === 4 || tileNum === 14;
-          const isP1Start = tileNum === 0;
-          const isP2Start = tileNum === 10;
+    <div className="relative w-full aspect-square max-w-[420px] mx-auto p-1.5 bg-[#FAF7F2] rounded-3xl border-2 border-[#EAE6DE] shadow-2xl select-none overflow-hidden">
+      <svg
+        viewBox="0 0 15 15"
+        className="w-full h-full rounded-2xl overflow-hidden bg-white shadow-inner"
+        style={{ shapeRendering: "geometricPrecision" }}
+      >
+        <defs>
+          {/* Subtle drop shadow for authentic 3D pawns */}
+          <filter id="pawn-shadow" x="-30%" y="-30%" width="160%" height="160%">
+            <feDropShadow dx="0" dy="0.12" stdDeviation="0.1" floodColor="#000" floodOpacity="0.35" />
+          </filter>
+          <filter id="movable-glow" x="-50%" y="-50%" width="200%" height="200%">
+            <feDropShadow dx="0" dy="0" stdDeviation="0.22" floodColor="#BA3F4A" floodOpacity="0.8" />
+          </filter>
 
-          // Find pawns currently on this tile
-          const occupants = Object.keys(pawns).filter(
-            (id) => pawns[id]?.stepCount >= 0 && pawns[id]?.stepCount < 20 && pawns[id]?.position === tileNum
-          );
+          <radialGradient id="p1-grad" cx="40%" cy="40%" r="60%">
+            <stop offset="0%" stopColor="#F87171" />
+            <stop offset="100%" stopColor="#B91C1C" />
+          </radialGradient>
+          <radialGradient id="p2-grad" cx="40%" cy="40%" r="60%">
+            <stop offset="0%" stopColor="#FDE047" />
+            <stop offset="100%" stopColor="#CA8A04" />
+          </radialGradient>
+        </defs>
+
+        {/* ---------------- 1. FOUR CORNER YARDS ---------------- */}
+        {/* Top-Left: Player 1 (Red / Rose) Yard */}
+        <rect x="0" y="0" width="6" height="6" fill="#EF4444" />
+        <rect x="1" y="1" width="4" height="4" rx="0.5" fill="#FFFFFF" />
+        <circle cx="2" cy="2" r="0.6" fill="#FEE2E2" stroke="#EF4444" strokeWidth="0.08" />
+        <circle cx="4" cy="2" r="0.6" fill="#FEE2E2" stroke="#EF4444" strokeWidth="0.08" />
+        <circle cx="2" cy="4" r="0.6" fill="#FEE2E2" stroke="#EF4444" strokeWidth="0.08" />
+        <circle cx="4" cy="4" r="0.6" fill="#FEE2E2" stroke="#EF4444" strokeWidth="0.08" />
+
+        {/* Top-Right: Green Yard */}
+        <rect x="9" y="0" width="6" height="6" fill="#10B981" />
+        <rect x="10" y="1" width="4" height="4" rx="0.5" fill="#FFFFFF" />
+        <circle cx="11" cy="2" r="0.6" fill="#D1FAE5" stroke="#10B981" strokeWidth="0.08" />
+        <circle cx="13" cy="2" r="0.6" fill="#D1FAE5" stroke="#10B981" strokeWidth="0.08" />
+        <circle cx="11" cy="4" r="0.6" fill="#D1FAE5" stroke="#10B981" strokeWidth="0.08" />
+        <circle cx="13" cy="4" r="0.6" fill="#D1FAE5" stroke="#10B981" strokeWidth="0.08" />
+
+        {/* Bottom-Right: Player 2 (Yellow / Gold) Yard */}
+        <rect x="9" y="9" width="6" height="6" fill="#EAB308" />
+        <rect x="10" y="10" width="4" height="4" rx="0.5" fill="#FFFFFF" />
+        <circle cx="11" cy="11" r="0.6" fill="#FEF9C3" stroke="#EAB308" strokeWidth="0.08" />
+        <circle cx="13" cy="11" r="0.6" fill="#FEF9C3" stroke="#EAB308" strokeWidth="0.08" />
+        <circle cx="11" cy="13" r="0.6" fill="#FEF9C3" stroke="#EAB308" strokeWidth="0.08" />
+        <circle cx="13" cy="13" r="0.6" fill="#FEF9C3" stroke="#EAB308" strokeWidth="0.08" />
+
+        {/* Bottom-Left: Blue Yard */}
+        <rect x="0" y="9" width="6" height="6" fill="#3B82F6" />
+        <rect x="1" y="10" width="4" height="4" rx="0.5" fill="#FFFFFF" />
+        <circle cx="2" cy="11" r="0.6" fill="#DBEAFE" stroke="#3B82F6" strokeWidth="0.08" />
+        <circle cx="4" cy="11" r="0.6" fill="#DBEAFE" stroke="#3B82F6" strokeWidth="0.08" />
+        <circle cx="2" cy="13" r="0.6" fill="#DBEAFE" stroke="#3B82F6" strokeWidth="0.08" />
+        <circle cx="4" cy="13" r="0.6" fill="#DBEAFE" stroke="#3B82F6" strokeWidth="0.08" />
+
+        {/* ---------------- 2. CENTER HOME TRIANGLES ---------------- */}
+        <polygon points="6,6 7.5,7.5 6,9" fill="#EF4444" />
+        <polygon points="6,6 7.5,7.5 9,6" fill="#10B981" />
+        <polygon points="9,6 7.5,7.5 9,9" fill="#EAB308" />
+        <polygon points="6,9 7.5,7.5 9,9" fill="#3B82F6" />
+        {/* Center decorative ring */}
+        <circle cx="7.5" cy="7.5" r="0.45" fill="#FFFFFF" />
+        <text x="7.5" y="7.65" textAnchor="middle" fontSize="0.4" fontWeight="bold">💖</text>
+
+        {/* ---------------- 3. COLORED HOME COLUMNS ---------------- */}
+        {/* Red Home Column (row 7, col 1..5) */}
+        {P1_HOME_COORDS.map((c, i) => (
+          <rect
+            key={`p1-home-${i}`}
+            x={c.col}
+            y={c.row}
+            width="1"
+            height="1"
+            fill="#EF4444"
+            stroke="#DC2626"
+            strokeWidth="0.03"
+          />
+        ))}
+
+        {/* Green Home Column (col 7, row 1..5) */}
+        {[1, 2, 3, 4, 5].map((r) => (
+          <rect
+            key={`green-home-${r}`}
+            x="7"
+            y={r}
+            width="1"
+            height="1"
+            fill="#10B981"
+            stroke="#059669"
+            strokeWidth="0.03"
+          />
+        ))}
+
+        {/* Yellow Home Column (row 7, col 9..13) */}
+        {P2_HOME_COORDS.map((c, i) => (
+          <rect
+            key={`p2-home-${i}`}
+            x={c.col}
+            y={c.row}
+            width="1"
+            height="1"
+            fill="#EAB308"
+            stroke="#CA8A04"
+            strokeWidth="0.03"
+          />
+        ))}
+
+        {/* Blue Home Column (col 7, row 9..13) */}
+        {[9, 10, 11, 12, 13].map((r) => (
+          <rect
+            key={`blue-home-${r}`}
+            x="7"
+            y={r}
+            width="1"
+            height="1"
+            fill="#3B82F6"
+            stroke="#2563EB"
+            strokeWidth="0.03"
+          />
+        ))}
+
+        {/* ---------------- 4. 52 COMMON CIRCUIT TILES ---------------- */}
+        {CLASSIC_TRACK_COORDS.map((c, idx) => {
+          const isP1Start = idx === 0;
+          const isGreenStart = idx === 13;
+          const isP2Start = idx === 26;
+          const isBlueStart = idx === 39;
+          const isSafe = CLASSIC_SAFE_TILES.includes(idx);
+
+          let tileFill = "#FFFFFF";
+          if (isP1Start) tileFill = "#EF4444";
+          else if (isGreenStart) tileFill = "#10B981";
+          else if (isP2Start) tileFill = "#EAB308";
+          else if (isBlueStart) tileFill = "#3B82F6";
 
           return (
-            <div
-              key={`tile-${tileNum}`}
-              style={{ gridColumn: col + 1, gridRow: row + 1 }}
-              className={`relative rounded-xl border flex items-center justify-center transition-colors ${
-                isP1Start
-                  ? "bg-[#FCEBEE] border-[#E06D75]/40 text-[#BA3F4A]"
-                  : isP2Start
-                  ? "bg-[#FFFBF0] border-[#D4AF37]/40 text-[#D4AF37]"
-                  : isDare
-                  ? "bg-[#FFF0F3] border-[#E06D75]/30 text-[#BA3F4A]"
-                  : isLeap
-                  ? "bg-[#F4F9F5] border-[#7E9F85]/40 text-[#7E9F85]"
-                  : isSafe
-                  ? "bg-[#FAF7F2] border-[#EAE6DE] text-[#A49B94]"
-                  : "bg-white border-[#EAE6DE]/80 text-[#A49B94]"
+            <g key={`tile-${idx}`}>
+              <rect
+                x={c.col}
+                y={c.row}
+                width="1"
+                height="1"
+                fill={tileFill}
+                stroke="#D1D5DB"
+                strokeWidth="0.03"
+              />
+
+              {/* Start square indicators & Star icons */}
+              {isP1Start && (
+                <text x={c.col + 0.5} y={c.row + 0.65} textAnchor="middle" fontSize="0.45" fill="#FFFFFF">
+                  ★
+                </text>
+              )}
+              {isGreenStart && (
+                <text x={c.col + 0.5} y={c.row + 0.65} textAnchor="middle" fontSize="0.45" fill="#FFFFFF">
+                  ★
+                </text>
+              )}
+              {isP2Start && (
+                <text x={c.col + 0.5} y={c.row + 0.65} textAnchor="middle" fontSize="0.45" fill="#FFFFFF">
+                  ★
+                </text>
+              )}
+              {isBlueStart && (
+                <text x={c.col + 0.5} y={c.row + 0.65} textAnchor="middle" fontSize="0.45" fill="#FFFFFF">
+                  ★
+                </text>
+              )}
+              {isSafe && !isP1Start && !isGreenStart && !isP2Start && !isBlueStart && (
+                <text x={c.col + 0.5} y={c.row + 0.65} textAnchor="middle" fontSize="0.45" fill="#9CA3AF">
+                  ⭐
+                </text>
+              )}
+            </g>
+          );
+        })}
+
+        {/* ---------------- 5. AUTHENTIC 3D LUDO PAWNS ---------------- */}
+        {activePawns.map((pawnId) => {
+          const coord = getPawnPixelCoord(pawnId);
+          if (!coord) return null;
+
+          const isP1 = pawnId.startsWith("p1_");
+          const isMovable = movablePawnIds.includes(pawnId);
+          const player = isP1 ? player1 : player2;
+          const initial = player.name?.charAt(0).toUpperCase() || (isP1 ? "1" : "2");
+
+          return (
+            <g
+              key={`pawn-token-${pawnId}`}
+              transform={`translate(${coord.col}, ${coord.row})`}
+              className={`transition-all duration-300 ${
+                isMovable ? "cursor-pointer animate-pulse" : "cursor-default"
               }`}
+              onClick={() => {
+                if (isMovable) onMovePawn(pawnId);
+              }}
             >
-              {/* Tile Indicators */}
-              {occupants.length === 0 && (
-                <div className="flex flex-col items-center justify-center text-[10px] font-semibold leading-none pointer-events-none">
-                  {isP1Start ? (
-                    <span>🏁 1</span>
-                  ) : isP2Start ? (
-                    <span>🏁 2</span>
-                  ) : isDare ? (
-                    <span>{tileNum === 4 ? "💋" : "🎙️"}</span>
-                  ) : isLeap ? (
-                    <span>⚡+2</span>
-                  ) : isSafe ? (
-                    <span>⭐</span>
-                  ) : (
-                    <span className="text-[8px] text-[#A49B94]/60">{tileNum}</span>
-                  )}
-                </div>
+              {/* Movable aura glow */}
+              {isMovable && (
+                <circle
+                  cx="0"
+                  cy="0"
+                  r="0.52"
+                  fill="none"
+                  stroke="#BA3F4A"
+                  strokeWidth="0.09"
+                  className="animate-ping"
+                />
               )}
 
-              {/* Render occupants */}
-              {occupants.length > 0 && (
-                <div className="flex items-center justify-center -space-x-2">
-                  {occupants.map((pid) => renderPawnToken(pid))}
-                </div>
-              )}
-            </div>
+              {/* 3D Pawn Shape: Skirt Base */}
+              <circle
+                cx="0"
+                cy="0"
+                r="0.38"
+                fill={isP1 ? "url(#p1-grad)" : "url(#p2-grad)"}
+                stroke="#FFFFFF"
+                strokeWidth="0.05"
+                filter="url(#pawn-shadow)"
+              />
+
+              {/* Pawn Head */}
+              <circle
+                cx="0"
+                cy="-0.04"
+                r="0.22"
+                fill={isP1 ? "#B91C1C" : "#CA8A04"}
+                stroke="#FFFFFF"
+                strokeWidth="0.03"
+              />
+
+              {/* Monogram Initial */}
+              <text
+                x="0"
+                y="0.04"
+                textAnchor="middle"
+                fontSize="0.22"
+                fontWeight="900"
+                fill="#FFFFFF"
+                style={{ fontFamily: "sans-serif", pointerEvents: "none" }}
+              >
+                {initial}
+              </text>
+            </g>
           );
         })}
-
-        {/* Player 1 Home Stretch Tiles (Steps 20, 21, 22) */}
-        {Object.entries(P1_HOME_STRETCH).map(([stepStr, { col, row }]) => {
-          const stepNum = Number(stepStr);
-          const occupants = Object.keys(pawns).filter(
-            (id) => id.startsWith("p1_") && pawns[id]?.stepCount === stepNum
-          );
-          return (
-            <div
-              key={`p1-step-${stepNum}`}
-              style={{ gridColumn: col + 1, gridRow: row + 1 }}
-              className="rounded-lg bg-[#FCEBEE]/70 border border-[#E06D75]/30 flex items-center justify-center"
-            >
-              {occupants.length > 0 ? (
-                occupants.map((pid) => renderPawnToken(pid))
-              ) : (
-                <span className="text-[9px] text-[#BA3F4A]/60 font-bold">♥</span>
-              )}
-            </div>
-          );
-        })}
-
-        {/* Player 2 Home Stretch Tiles (Steps 20, 21, 22) */}
-        {Object.entries(P2_HOME_STRETCH).map(([stepStr, { col, row }]) => {
-          const stepNum = Number(stepStr);
-          const occupants = Object.keys(pawns).filter(
-            (id) => id.startsWith("p2_") && pawns[id]?.stepCount === stepNum
-          );
-          return (
-            <div
-              key={`p2-step-${stepNum}`}
-              style={{ gridColumn: col + 1, gridRow: row + 1 }}
-              className="rounded-lg bg-[#FFFBF0]/70 border border-[#D4AF37]/30 flex items-center justify-center"
-            >
-              {occupants.length > 0 ? (
-                occupants.map((pid) => renderPawnToken(pid))
-              ) : (
-                <span className="text-[9px] text-[#D4AF37]/60 font-bold">★</span>
-              )}
-            </div>
-          );
-        })}
-
-        {/* Center Sanctuary Home Heart 💖 (step 23 for both) */}
-        <div
-          style={{ gridColumn: "3 / 5", gridRow: "3 / 5" }}
-          className="relative z-20 rounded-2xl bg-linear-to-br from-[#FFF5F6] via-white to-[#FFFBF0] border-2 border-[#E06D75]/40 flex flex-col items-center justify-center shadow-inner p-1"
-        >
-          <span className="text-2xl animate-pulse">💖</span>
-          <span className="text-[9px] font-bold tracking-wider uppercase text-[#BA3F4A]">
-            Home
-          </span>
-
-          {homeFinishedPawns.length > 0 && (
-            <div className="absolute inset-0 flex items-center justify-center gap-1 bg-white/80 rounded-2xl backdrop-blur-xs">
-              {homeFinishedPawns.map((pid) => renderPawnToken(pid))}
-            </div>
-          )}
-        </div>
-
-        {/* Player 1 Base Yard (Top-Left Yard) */}
-        <div
-          style={{ gridColumn: "2 / 4", gridRow: "2 / 3" }}
-          className="rounded-xl bg-[#FCEBEE]/50 border border-dashed border-[#E06D75]/40 flex items-center justify-center gap-1.5 p-1"
-        >
-          {p1BasePawns.length > 0 ? (
-            p1BasePawns.map((pid) => renderPawnToken(pid))
-          ) : (
-            <span className="text-[10px] text-[#BA3F4A]/50 font-medium">P1 Yard</span>
-          )}
-        </div>
-
-        {/* Player 2 Base Yard (Bottom-Right Yard) */}
-        <div
-          style={{ gridColumn: "4 / 6", gridRow: "4 / 5" }}
-          className="rounded-xl bg-[#FFFBF0]/50 border border-dashed border-[#D4AF37]/40 flex items-center justify-center gap-1.5 p-1"
-        >
-          {p2BasePawns.length > 0 ? (
-            p2BasePawns.map((pid) => renderPawnToken(pid))
-          ) : (
-            <span className="text-[10px] text-[#D4AF37]/50 font-medium">P2 Yard</span>
-          )}
-        </div>
-      </div>
+      </svg>
     </div>
   );
 }
