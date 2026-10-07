@@ -15,6 +15,7 @@ import { PartnerBatteryBadge } from "@/components/battery/PartnerBatteryBadge";
 import { Avatar } from "@/components/ui/Avatar";
 import { ThumbKissButton } from "@/components/thumbkiss/ThumbKissButton";
 import { WalkieTalkieWidget } from "@/components/whisper/WalkieTalkieWidget";
+import { LudoHomeWidget } from "@/components/game/LudoHomeWidget";
 import { triggerCelebration } from "@/components/ui/CelebrationConfetti";
 import { FlameIcon } from "@/components/ui/Icons";
 
@@ -187,6 +188,9 @@ export function HomeClient({ initialData, initialTasks }: HomeClientProps) {
         <ThumbKissButton partnerName={partnerName} />
         <WalkieTalkieWidget partnerName={partnerName} />
       </div>
+
+      {/* Couple Love Ludo Game Widget */}
+      <LudoHomeWidget />
 
       {/* Daily Spark (Blind Question & Reveal) */}
       <DailySparkCard

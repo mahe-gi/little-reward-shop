@@ -168,6 +168,7 @@ model Couple {
   activities   Activity[]
   dailyAnswers DailyAnswer[]
   voiceWhispers VoiceWhisper[]
+  games        CoupleGame[]
 
   @@map("couple")
 }
@@ -453,4 +454,29 @@ model VoiceWhisper {
   @@map("voice_whisper")
 }
 
+// ------------------------------------------------------
+// COUPLE GAMES (LOVE LUDO & MINI-GAMES)
+// ------------------------------------------------------
 
+enum GameStatus {
+  ACTIVE
+  COMPLETED
+  ABANDONED
+}
+
+model CoupleGame {
+  id           String     @id @default(cuid())
+  coupleId     String
+  couple       Couple     @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  gameType     String     @default("LUDO")
+  status       GameStatus @default(ACTIVE)
+  turnUserId   String
+  stakePoints  Int        @default(0)
+  winnerUserId String?
+  state        Json
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@index([coupleId, status])
+  @@map("couple_game")
+}
