@@ -52,6 +52,41 @@ function calculateMovablePawns(
   return movable;
 }
 
+let tableEnsured = false;
+
+async function ensureCoupleGameTable() {
+  if (tableEnsured) return;
+  try {
+    await prisma.$executeRawUnsafe(`
+      DO $$ BEGIN
+        CREATE TYPE "GameStatus" AS ENUM ('ACTIVE', 'COMPLETED', 'ABANDONED');
+      EXCEPTION
+        WHEN duplicate_object THEN null;
+      END $$;
+    `);
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "couple_game" (
+        "id" TEXT NOT NULL PRIMARY KEY,
+        "coupleId" TEXT NOT NULL REFERENCES "couple"("id") ON DELETE CASCADE,
+        "gameType" TEXT NOT NULL DEFAULT 'LUDO',
+        "status" "GameStatus" NOT NULL DEFAULT 'ACTIVE',
+        "turnUserId" TEXT NOT NULL,
+        "stakePoints" INTEGER NOT NULL DEFAULT 0,
+        "winnerUserId" TEXT,
+        "state" JSONB NOT NULL,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    await prisma.$executeRawUnsafe(`
+      CREATE INDEX IF NOT EXISTS "couple_game_coupleId_status_idx" ON "couple_game"("coupleId", "status");
+    `);
+    tableEnsured = true;
+  } catch (err) {
+    console.warn("[Ludo] ensureCoupleGameTable:", err);
+  }
+}
+
 export async function getLudoGame(): Promise<{
   success: boolean;
   data?: {
@@ -68,6 +103,8 @@ export async function getLudoGame(): Promise<{
     if (!partner) {
       return { success: false, error: "You must be paired with a partner to play." };
     }
+
+    await ensureCoupleGameTable();
 
     const activeGame = await prisma.coupleGame.findFirst({
       where: {
@@ -118,6 +155,8 @@ export async function startLudoGame(
         error: `You need at least ${stake} points to start a staked match.`,
       };
     }
+
+    await ensureCoupleGameTable();
 
     // Cancel any previous active games
     await prisma.coupleGame.updateMany({

@@ -1,23 +1,20 @@
-import { redirect } from "next/navigation";
+import { requireCouple } from "@/lib/permissions";
 import { getLudoGame } from "@/actions/game";
 import { LudoGameClient } from "@/components/game/LudoGameClient";
 
 export const dynamic = "force-dynamic";
 
 export default async function LudoPage() {
+  const { user, partner } = await requireCouple();
   const res = await getLudoGame();
-
-  if (!res.success || !res.data) {
-    redirect("/home");
-  }
 
   return (
     <LudoGameClient
-      gameId={res.data.gameId}
-      initialState={res.data.state}
-      currentUserId={res.data.currentUserId}
-      partnerId={res.data.partnerId}
-      userBalance={res.data.userBalance}
+      gameId={res.data?.gameId || null}
+      initialState={res.data?.state || null}
+      currentUserId={user.id}
+      partnerId={partner?.id || ""}
+      userBalance={user.pointBalance}
     />
   );
 }

@@ -14,15 +14,11 @@ self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
 
   event.respondWith(
-    fetch(event.request).catch(async () => {
+    fetch(event.request).catch(async (err) => {
       const cache = await caches.open(CACHE_NAME);
       const cached = await cache.match(event.request);
       if (cached) return cached;
-      return new Response("Offline", {
-        status: 503,
-        statusText: "Service Unavailable",
-        headers: { "Content-Type": "text/plain" },
-      });
+      throw err;
     })
   );
 });
