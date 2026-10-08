@@ -191,7 +191,7 @@ export async function startLudoGame(
       consecutiveSixes: 0,
       movablePawnIds: [],
       pawns: initialPawns,
-      lastActionMessage: `${user.name} started a match of Classic Ludo! Roll a 6 to open your token 🎲`,
+      lastActionMessage: `${user.name} started a match of Ludo! Roll a 6 to open your token 🎲`,
       activeDare: null,
       winnerUserId: null,
       status: "ACTIVE",
@@ -212,7 +212,7 @@ export async function startLudoGame(
 
     if (mode === "remote") {
       await sendPushNotification(partner.id, {
-        title: "Classic Ludo Match! 🎲",
+        title: "Ludo Match! 🎲",
         body: `${user.name} challenged you to a game of Ludo!`,
       }).catch(() => {});
     }
@@ -469,7 +469,7 @@ export async function moveLudoPawn(
 
     if (hasWon) {
       state.winnerUserId = state.turnUserId;
-      state.lastActionMessage = `🏆 ${currentName} won the match of Classic Ludo! 💖`;
+      state.lastActionMessage = `🏆 ${currentName} won the match of Ludo! 🏆`;
 
       if (state.stakePoints > 0) {
         const totalPot = state.stakePoints * 2;
@@ -485,7 +485,7 @@ export async function moveLudoPawn(
               amount: totalPot,
               type: "BONUS",
               status: "FINALIZED",
-              description: `Won Classic Ludo Match pot (+${totalPot} pts)!`,
+              description: `Won Ludo Match pot (+${totalPot} pts)!`,
             },
           });
 

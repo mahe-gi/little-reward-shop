@@ -32,7 +32,7 @@ export function LudoHomeWidget() {
         <div>
           <div className="flex items-center gap-2">
             <h4 className="font-serif text-base font-bold text-[#1E1A18]">
-              Love Ludo
+              Ludo
             </h4>
             {hasActiveGame ? (
               <span className="px-2 py-0.5 rounded-full bg-[#E06D75] text-white text-[10px] font-bold animate-pulse">
@@ -40,7 +40,7 @@ export function LudoHomeWidget() {
               </span>
             ) : (
               <span className="px-2 py-0.5 rounded-full bg-[#FAF7F2] border border-[#EAE6DE] text-[#756963] text-[10px] font-semibold">
-                Mini Game
+                Board Game
               </span>
             )}
           </div>
@@ -49,7 +49,7 @@ export function LudoHomeWidget() {
               ? stake > 0
                 ? `Pot: ${stake * 2} pts • Tap to continue`
                 : "Match in progress • Tap to continue"
-              : "Race to the Home Heart with sweet kisses & dares"}
+              : "Classic 2-player board game with live turn sync"}
           </p>
         </div>
       </div>

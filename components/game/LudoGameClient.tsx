@@ -244,10 +244,10 @@ export function LudoGameClient({
               🎲
             </div>
             <h1 className="font-serif text-3xl font-bold text-[#1E1A18]">
-              Love Ludo
+              Ludo
             </h1>
             <p className="text-sm text-[#685E58] max-w-xs mx-auto">
-              A 2-player romantic board race. Roll dice, advance your pawns to the Home Heart, and capture each other with sweet kisses!
+              A 2-player board race. Roll dice, advance your pawns to the Home triangle, and capture each other&apos;s tokens!
             </p>
           </div>
 
@@ -358,7 +358,7 @@ export function LudoGameClient({
             disabled={loading}
             className="w-full py-4 rounded-full bg-linear-to-r from-[#E06D75] to-[#B43A47] text-white font-semibold text-base shadow-lg shadow-[#E06D75]/30 active:scale-98 transition-all hover:brightness-105 cursor-pointer disabled:opacity-50"
           >
-            {loading ? "Preparing Board..." : "Start Love Ludo Match 🎲"}
+            {loading ? "Preparing Board..." : "Start Ludo Match 🎲"}
           </button>
         </div>
       </div>
@@ -493,22 +493,26 @@ export function LudoGameClient({
           </p>
         </div>
 
-        {/* Quick Tap-To-Advance Button when a single pawn is movable */}
-        {isMyTurn && state.hasRolled && state.movablePawnIds.length === 1 && (
-          <button
-            type="button"
-            onClick={() => handleMovePawn(state.movablePawnIds[0])}
-            className="w-full py-3 px-4 rounded-2xl bg-linear-to-r from-[#E06D75] to-[#B43A47] text-white text-xs font-bold shadow-lg shadow-[#E06D75]/30 active:scale-98 transition-all flex items-center justify-center gap-2 animate-pulse cursor-pointer hover:brightness-105"
-          >
-            <span>🎯</span>
-            <span>
-              {state.pawns[state.movablePawnIds[0]]?.stepCount === -1
-                ? "Tap to hatch token onto the board!"
-                : `Tap to advance token forward ${state.dice} steps!`}
-            </span>
-            <span>→</span>
-          </button>
-        )}
+        {/* Quick Tap-To-Advance Button when a single pawn is movable or all movable are in yard */}
+        {isMyTurn &&
+          state.hasRolled &&
+          state.movablePawnIds.length > 0 &&
+          (state.movablePawnIds.length === 1 ||
+            state.movablePawnIds.every((pid) => state.pawns[pid]?.stepCount === -1)) && (
+            <button
+              type="button"
+              onClick={() => handleMovePawn(state.movablePawnIds[0])}
+              className="w-full py-3 px-4 rounded-2xl bg-linear-to-r from-[#E06D75] to-[#B43A47] text-white text-xs font-bold shadow-lg shadow-[#E06D75]/30 active:scale-98 transition-all flex items-center justify-center gap-2 animate-pulse cursor-pointer hover:brightness-105"
+            >
+              <span>🚀</span>
+              <span>
+                {state.pawns[state.movablePawnIds[0]]?.stepCount === -1
+                  ? "Tap to open token onto the board!"
+                  : `Tap to advance token forward ${state.dice} steps!`}
+              </span>
+              <span>→</span>
+            </button>
+          )}
 
         {/* Couch Mode Pass Prompt */}
         {state.mode === "couch" && (

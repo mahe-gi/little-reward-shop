@@ -291,12 +291,7 @@ export function LudoBoard({
             <g
               key={`pawn-token-${pawnId}`}
               transform={`translate(${coord.col}, ${coord.row})`}
-              style={{
-                transition: "transform 0.35s cubic-bezier(0.34, 1.4, 0.64, 1)",
-              }}
-              className={`transition-all ${
-                isMovable ? "cursor-pointer animate-bounce" : "cursor-default"
-              }`}
+              className={isMovable ? "cursor-pointer" : "cursor-default"}
               onClick={() => {
                 if (isMovable) onMovePawn(pawnId);
               }}
@@ -305,7 +300,7 @@ export function LudoBoard({
               <circle
                 cx="0"
                 cy="0"
-                r="0.75"
+                r="0.8"
                 fill="transparent"
                 style={{ pointerEvents: isMovable ? "all" : "none" }}
               />
@@ -327,10 +322,10 @@ export function LudoBoard({
               <circle
                 cx="0"
                 cy="0"
-                r="0.38"
+                r={isMovable ? 0.42 : 0.38}
                 fill={isP1 ? "url(#p1-grad)" : "url(#p2-grad)"}
-                stroke="#FFFFFF"
-                strokeWidth="0.05"
+                stroke={isMovable ? "#FFE082" : "#FFFFFF"}
+                strokeWidth={isMovable ? 0.08 : 0.05}
                 filter="url(#pawn-shadow)"
               />
 

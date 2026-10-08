@@ -132,6 +132,43 @@ export const CLASSIC_TRACK_COORDS: { col: number; row: number }[] = [
 // 8 classic Star safe squares where pawns cannot be captured
 export const CLASSIC_SAFE_TILES = [0, 8, 13, 21, 26, 34, 39, 47];
 
+// Red (Player 1) Home Row coordinates (steps 51..55)
+export const P1_HOME_COORDS = [
+  { col: 1, row: 7 }, // step 51 (H1)
+  { col: 2, row: 7 }, // step 52 (H2)
+  { col: 3, row: 7 }, // step 53 (H3)
+  { col: 4, row: 7 }, // step 54 (H4)
+  { col: 5, row: 7 }, // step 55 (H5)
+];
+
+// Yellow (Player 2) Home Row coordinates (steps 51..55)
+export const P2_HOME_COORDS = [
+  { col: 13, row: 7 }, // step 51 (H1)
+  { col: 12, row: 7 }, // step 52 (H2)
+  { col: 11, row: 7 }, // step 53 (H3)
+  { col: 10, row: 7 }, // step 54 (H4)
+  { col: 9, row: 7 }, // step 55 (H5)
+];
+
+// Yard nest slots inside Player 1 Yard (Top-Left 6x6, exact circle centers)
+export const P1_YARD_SLOTS = [
+  { col: 2, row: 2 },
+  { col: 4, row: 2 },
+  { col: 2, row: 4 },
+  { col: 4, row: 4 },
+];
+
+// Yard nest slots inside Player 2 Yard (Bottom-Right 6x6, exact circle centers)
+export const P2_YARD_SLOTS = [
+  { col: 11, row: 11 },
+  { col: 13, row: 11 },
+  { col: 11, row: 13 },
+  { col: 13, row: 13 },
+];
+
+// Center Home coordinates
+export const CENTER_HOME_COORD = { col: 7, row: 7 };
+
 export function getTrackTileForStep(playerNum: 1 | 2, stepCount: number): number {
   if (stepCount < 0 || stepCount > 50) return -1;
   if (playerNum === 1) return stepCount;
@@ -176,8 +213,8 @@ export function getCoordForStep(
 ): { col: number; row: number } {
   if (stepCount === -1) {
     return playerNum === 1
-      ? P1_YARD_SLOTS[pawnIndex] || { col: 2.5, row: 2.5 }
-      : P2_YARD_SLOTS[pawnIndex] || { col: 11.5, row: 11.5 };
+      ? P1_YARD_SLOTS[pawnIndex] || { col: 2, row: 2 }
+      : P2_YARD_SLOTS[pawnIndex] || { col: 11, row: 11 };
   }
   if (stepCount <= 50) {
     const tile = getTrackTileForStep(playerNum, stepCount);
@@ -194,43 +231,6 @@ export function getCoordForStep(
     ? { col: 6.5 + (pawnIndex % 2) * 0.35, row: 7.3 + Math.floor(pawnIndex / 2) * 0.35 }
     : { col: 8.1 + (pawnIndex % 2) * 0.35, row: 7.3 + Math.floor(pawnIndex / 2) * 0.35 };
 }
-
-// Red (Player 1) Home Row coordinates (steps 51..55)
-export const P1_HOME_COORDS = [
-  { col: 1, row: 7 }, // step 51 (H1)
-  { col: 2, row: 7 }, // step 52 (H2)
-  { col: 3, row: 7 }, // step 53 (H3)
-  { col: 4, row: 7 }, // step 54 (H4)
-  { col: 5, row: 7 }, // step 55 (H5)
-];
-
-// Yellow (Player 2) Home Row coordinates (steps 51..55)
-export const P2_HOME_COORDS = [
-  { col: 13, row: 7 }, // step 51 (H1)
-  { col: 12, row: 7 }, // step 52 (H2)
-  { col: 11, row: 7 }, // step 53 (H3)
-  { col: 10, row: 7 }, // step 54 (H4)
-  { col: 9, row: 7 }, // step 55 (H5)
-];
-
-// Yard nest slots inside Player 1 Yard (Top-Left 6x6)
-export const P1_YARD_SLOTS = [
-  { col: 1.8, row: 1.8 },
-  { col: 3.8, row: 1.8 },
-  { col: 1.8, row: 3.8 },
-  { col: 3.8, row: 3.8 },
-];
-
-// Yard nest slots inside Player 2 Yard (Bottom-Right 6x6)
-export const P2_YARD_SLOTS = [
-  { col: 10.8, row: 10.8 },
-  { col: 12.8, row: 10.8 },
-  { col: 10.8, row: 12.8 },
-  { col: 12.8, row: 12.8 },
-];
-
-// Center Home coordinates
-export const CENTER_HOME_COORD = { col: 7, row: 7 };
 
 // Special romantic couple dare tiles on the 52-tile circuit
 export const LOVE_DARES: Record<number, LudoDare> = {
