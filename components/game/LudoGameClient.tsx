@@ -131,7 +131,7 @@ export function LudoGameClient({
   };
 
   const handleRollDice = async () => {
-    if (!gameId || isRolling) return;
+    if (!gameId || isRolling || animatingPawn) return;
     setIsRolling(true);
     playDiceRollSound();
     triggerHaptic("medium");
@@ -156,10 +156,12 @@ export function LudoGameClient({
     const playerNum: 1 | 2 = isP1 ? 1 : 2;
     const pawnIndex = parseInt(pawnId.split("_")[1], 10) || 0;
 
-    // 1. Hatching from yard
+    // 1. Smooth glide when hatching from yard to start square
     if (pawn.stepCount === -1) {
       playStepSound();
       triggerHaptic("selection");
+      const hatchCoord = getCoordForStep(playerNum, 0, pawnIndex);
+      setAnimatingPawn({ id: pawnId, col: hatchCoord.col, row: hatchCoord.row });
       try {
         const res = await moveLudoPawn(gameId, pawnId);
         if (res.success && res.state) {
@@ -167,6 +169,8 @@ export function LudoGameClient({
         }
       } catch (err) {
         console.error(err);
+      } finally {
+        setAnimatingPawn(null);
       }
       return;
     }
@@ -175,18 +179,15 @@ export function LudoGameClient({
     const startStep = pawn.stepCount;
     const endStep = startStep + roll;
 
-    for (let step = startStep + 1; step <= endStep; step++) {
-      await new Promise((resolve) => setTimeout(resolve, 110));
-      const coord = getCoordForStep(playerNum, step, pawnIndex);
-      setAnimatingPawn({ id: pawnId, col: coord.col, row: coord.row });
-      playStepSound();
-      triggerHaptic("light");
-    }
-
-    await new Promise((resolve) => setTimeout(resolve, 60));
-    setAnimatingPawn(null);
-
     try {
+      for (let step = startStep + 1; step <= endStep; step++) {
+        const coord = getCoordForStep(playerNum, step, pawnIndex);
+        setAnimatingPawn({ id: pawnId, col: coord.col, row: coord.row });
+        playStepSound();
+        triggerHaptic("light");
+        await new Promise((resolve) => setTimeout(resolve, 115));
+      }
+
       const res = await moveLudoPawn(gameId, pawnId);
       if (res.success && res.state) {
         setState(res.state);
@@ -208,6 +209,9 @@ export function LudoGameClient({
       }
     } catch (err) {
       console.error(err);
+    } finally {
+      // Clear animating pawn only AFTER server state has been applied to eliminate snapback/flickering
+      setAnimatingPawn(null);
     }
   };
 
@@ -304,7 +308,7 @@ export function LudoGameClient({
   const currentTurnPlayer = isP1 ? state.player1 : state.player2;
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#FAF7F2] max-w-lg mx-auto justify-between p-3 pb-8 select-none">
+    <div className="flex flex-col min-h-[100dvh] bg-[#FAF7F2] max-w-lg mx-auto justify-between p-3 pb-5 select-none">
       {/* Top Bar */}
       <div className="flex items-center justify-between pb-2">
         <Link
@@ -357,8 +361,12 @@ export function LudoGameClient({
               <div className="text-xs font-bold text-[#1E1A18] truncate">
                 {state.player1.name}
               </div>
-              <div className="text-[10px] text-[#BA3F4A] font-semibold">
-                {isP1 ? "✦ Turn to move" : "P1 (Red)"}
+              <div className="text-[10px] text-[#BA3F4A] font-semibold truncate">
+                {isP1
+                  ? state.mode === "couch"
+                    ? "✦ Turn (Pass phone)"
+                    : "✦ Turn to move"
+                  : "P1 (Red)"}
               </div>
             </div>
           </div>
@@ -378,8 +386,12 @@ export function LudoGameClient({
               <div className="text-xs font-bold text-[#1E1A18] truncate">
                 {state.player2.name}
               </div>
-              <div className="text-[10px] text-[#D4AF37] font-semibold">
-                {!isP1 ? "✦ Turn to move" : "P2 (Yellow)"}
+              <div className="text-[10px] text-[#D4AF37] font-semibold truncate">
+                {!isP1
+                  ? state.mode === "couch"
+                    ? "✦ Turn (Pass phone)"
+                    : "✦ Turn to move"
+                  : "P2 (Yellow)"}
               </div>
             </div>
           </div>
@@ -401,8 +413,8 @@ export function LudoGameClient({
         </div>
       )}
 
-      {/* The 2-Player Ludo Board */}
-      <div className="my-auto py-1">
+      {/* The 2-Player Ludo Board (Strictly locked aspect-square and shrink-0 so it never resizes) */}
+      <div className="w-full max-w-[min(410px,92vw)] aspect-square shrink-0 mx-auto my-auto flex items-center justify-center">
         <LudoBoard
           pawns={state.pawns}
           movablePawnIds={state.movablePawnIds}
@@ -418,48 +430,43 @@ export function LudoGameClient({
       </div>
 
       {/* Action Console & Dice */}
-      <div className="space-y-3 pt-2 pb-4">
-        {/* Status / Announcement Pill */}
-        <div className="px-4 py-2 rounded-2xl bg-white border border-[#EAE6DE] shadow-xs text-center">
-          <p className="text-xs font-medium text-[#1E1A18]">
-            {state.lastActionMessage}
-          </p>
-        </div>
-
-        {/* Quick Tap-To-Advance Button when a single pawn is movable or all movable are in yard */}
-        {isMyTurn &&
+      <div className="w-full max-w-sm mx-auto flex flex-col items-center gap-2.5 pt-1 pb-1 shrink-0">
+        {/* Status / Auto-Move Pill (Stable fixed height slot so layout never jumps or resizes) */}
+        <div className="w-full h-11 shrink-0 flex items-center justify-center">
+          {isMyTurn &&
           state.hasRolled &&
+          !animatingPawn &&
           state.movablePawnIds.length > 0 &&
           (state.movablePawnIds.length === 1 ||
-            state.movablePawnIds.every((pid) => state.pawns[pid]?.stepCount === -1)) && (
+            state.movablePawnIds.every((pid) => state.pawns[pid]?.stepCount === -1)) ? (
             <button
               type="button"
               onClick={() => handleMovePawn(state.movablePawnIds[0])}
-              className="w-full py-3 px-4 rounded-2xl bg-linear-to-r from-[#E06D75] to-[#B43A47] text-white text-xs font-bold shadow-lg shadow-[#E06D75]/30 active:scale-98 transition-all flex items-center justify-center gap-2 animate-pulse cursor-pointer hover:brightness-105"
+              className="w-full h-full px-4 rounded-2xl bg-linear-to-r from-[#E06D75] to-[#B43A47] text-white text-xs font-bold shadow-md shadow-[#E06D75]/25 active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer hover:brightness-105"
             >
               <span>🚀</span>
-              <span>
+              <span className="truncate">
                 {state.pawns[state.movablePawnIds[0]]?.stepCount === -1
-                  ? "Tap to open token onto the board!"
-                  : `Tap to advance token forward ${state.dice} steps!`}
+                  ? "Tap to open token onto board"
+                  : `Tap to advance token ${state.dice} steps`}
               </span>
               <span>→</span>
             </button>
+          ) : (
+            <div className="w-full h-full px-4 rounded-2xl bg-white border border-[#EAE6DE] shadow-2xs flex items-center justify-center text-center">
+              <p className="text-xs font-medium text-[#1E1A18] truncate">
+                {state.lastActionMessage}
+              </p>
+            </div>
           )}
-
-        {/* Couch Mode Pass Prompt */}
-        {state.mode === "couch" && (
-          <div className="text-center text-[11px] font-semibold text-[#BA3F4A]">
-            🛋️ Pass phone to: <strong>{currentTurnPlayer.name}</strong>
-          </div>
-        )}
+        </div>
 
         {/* Dice Controller */}
-        <div className="flex justify-center">
+        <div className="flex justify-center shrink-0">
           <LudoDice
             value={state.dice}
             isRolling={isRolling}
-            disabled={!isMyTurn}
+            disabled={!isMyTurn || !!animatingPawn}
             isTurn={isMyTurn}
             hasRolled={state.hasRolled}
             onRoll={handleRollDice}

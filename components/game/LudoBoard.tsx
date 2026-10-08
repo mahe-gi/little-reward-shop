@@ -75,7 +75,7 @@ export function LudoBoard({
   });
 
   return (
-    <div className="relative w-full aspect-square max-w-[420px] mx-auto p-1.5 bg-[#FAF7F2] rounded-3xl border-2 border-[#EAE6DE] shadow-2xl select-none overflow-hidden">
+    <div className="relative w-full aspect-square max-w-[min(410px,92vw)] mx-auto p-1.5 bg-[#FAF7F2] rounded-3xl border-2 border-[#EAE6DE] shadow-2xl select-none overflow-hidden shrink-0">
       <svg
         viewBox="0 0 15 15"
         className="w-full h-full rounded-2xl overflow-hidden bg-white shadow-inner"
@@ -246,36 +246,37 @@ export function LudoBoard({
         })}
 
         {/* ---------------- 4.5 LANDING TARGET HIGHLIGHTS ---------------- */}
-        {destinationCoords.map((dest, i) => (
-          <g key={`dest-${dest.pawnId}-${i}`} className="pointer-events-none">
-            <circle
-              cx={dest.col}
-              cy={dest.row}
-              r="0.45"
-              fill={playerNum === 1 ? "rgba(239, 68, 68, 0.22)" : "rgba(234, 179, 8, 0.22)"}
-              stroke={playerNum === 1 ? "#EF4444" : "#EAB308"}
-              strokeWidth="0.06"
-              strokeDasharray="0.12 0.08"
-            />
-            <circle
-              cx={dest.col}
-              cy={dest.row}
-              r="0.18"
-              fill={playerNum === 1 ? "#EF4444" : "#EAB308"}
-              opacity="0.85"
-            />
-            <text
-              x={dest.col}
-              y={dest.row + 0.07}
-              textAnchor="middle"
-              fontSize="0.22"
-              fill="#FFFFFF"
-              fontWeight="900"
-            >
-              ★
-            </text>
-          </g>
-        ))}
+        {!animatingPawn &&
+          destinationCoords.map((dest, i) => (
+            <g key={`dest-${dest.pawnId}-${i}`} className="pointer-events-none">
+              <circle
+                cx={dest.col}
+                cy={dest.row}
+                r="0.45"
+                fill={playerNum === 1 ? "rgba(239, 68, 68, 0.22)" : "rgba(234, 179, 8, 0.22)"}
+                stroke={playerNum === 1 ? "#EF4444" : "#EAB308"}
+                strokeWidth="0.06"
+                strokeDasharray="0.12 0.08"
+              />
+              <circle
+                cx={dest.col}
+                cy={dest.row}
+                r="0.18"
+                fill={playerNum === 1 ? "#EF4444" : "#EAB308"}
+                opacity="0.85"
+              />
+              <text
+                x={dest.col}
+                y={dest.row + 0.07}
+                textAnchor="middle"
+                fontSize="0.22"
+                fill="#FFFFFF"
+                fontWeight="900"
+              >
+                ★
+              </text>
+            </g>
+          ))}
 
         {/* ---------------- 5. AUTHENTIC 3D LUDO PAWNS ---------------- */}
         {activePawns.map((pawnId) => {
@@ -283,7 +284,7 @@ export function LudoBoard({
           if (!coord) return null;
 
           const isP1 = pawnId.startsWith("p1_");
-          const isMovable = movablePawnIds.includes(pawnId);
+          const isMovable = !animatingPawn && movablePawnIds.includes(pawnId);
           const player = isP1 ? player1 : player2;
           const initial = player.name?.charAt(0).toUpperCase() || (isP1 ? "1" : "2");
 
@@ -291,6 +292,7 @@ export function LudoBoard({
             <g
               key={`pawn-token-${pawnId}`}
               transform={`translate(${coord.col}, ${coord.row})`}
+              style={{ transition: "transform 0.11s linear", willChange: "transform" }}
               className={isMovable ? "cursor-pointer" : "cursor-default"}
               onClick={() => {
                 if (isMovable) onMovePawn(pawnId);
@@ -314,7 +316,7 @@ export function LudoBoard({
                   fill="none"
                   stroke={isP1 ? "#EF4444" : "#EAB308"}
                   strokeWidth="0.09"
-                  className="animate-ping"
+                  className="animate-pulse"
                 />
               )}
 
