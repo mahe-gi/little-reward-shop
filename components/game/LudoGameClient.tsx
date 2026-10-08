@@ -227,8 +227,8 @@ export function LudoGameClient({
   // If no active game, show Start Match Screen
   if (!state || !gameId) {
     return (
-      <div className="flex flex-col min-h-screen bg-[#FAF7F2] p-4 max-w-md mx-auto justify-between">
-        <div className="space-y-6 pt-4">
+      <div className="flex flex-col h-full min-h-0 bg-[#FAF7F2] p-4 max-w-md mx-auto justify-between overflow-y-auto">
+        <div className="space-y-6 pt-2">
           {/* Header */}
           <div className="flex items-center justify-between">
             <Link
@@ -308,9 +308,9 @@ export function LudoGameClient({
   const currentTurnPlayer = isP1 ? state.player1 : state.player2;
 
   return (
-    <div className="flex flex-col min-h-[100dvh] bg-[#FAF7F2] max-w-lg mx-auto justify-between p-3 pb-5 select-none">
+    <div className="flex flex-col h-full min-h-0 bg-[#FAF7F2] max-w-md mx-auto justify-between p-3 pb-2 select-none">
       {/* Top Bar */}
-      <div className="flex items-center justify-between pb-2">
+      <div className="flex items-center justify-between pb-1.5">
         <Link
           href="/home"
           className="text-xs font-semibold text-[#685E58] hover:text-[#1E1A18] flex items-center gap-1"
@@ -346,7 +346,7 @@ export function LudoGameClient({
       </div>
 
       {/* Players Header Card */}
-      <div className="grid grid-cols-2 gap-2 mb-2">
+      <div className="grid grid-cols-2 gap-2 mb-1.5">
         {/* Player 1 (Rose) */}
         <div
           className={`p-2.5 rounded-2xl border transition-all ${
@@ -414,7 +414,7 @@ export function LudoGameClient({
       )}
 
       {/* The 2-Player Ludo Board (Strictly locked aspect-square and shrink-0 so it never resizes) */}
-      <div className="w-full max-w-[min(410px,92vw)] aspect-square shrink-0 mx-auto my-auto flex items-center justify-center">
+      <div className="w-full max-w-[min(370px,88vw,46vh)] aspect-square shrink-0 mx-auto my-auto flex items-center justify-center">
         <LudoBoard
           pawns={state.pawns}
           movablePawnIds={state.movablePawnIds}
@@ -430,9 +430,9 @@ export function LudoGameClient({
       </div>
 
       {/* Action Console & Dice */}
-      <div className="w-full max-w-sm mx-auto flex flex-col items-center gap-2.5 pt-1 pb-1 shrink-0">
+      <div className="w-full max-w-sm mx-auto flex flex-col items-center gap-2 pt-1 pb-1 shrink-0">
         {/* Status / Auto-Move Pill (Stable fixed height slot so layout never jumps or resizes) */}
-        <div className="w-full h-11 shrink-0 flex items-center justify-center">
+        <div className="w-full h-10 shrink-0 flex items-center justify-center">
           {isMyTurn &&
           state.hasRolled &&
           !animatingPawn &&

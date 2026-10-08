@@ -97,20 +97,20 @@ export function LudoDice({
   const canClick = isTurn && !hasRolled && !disabled && !isRolling;
 
   return (
-    <div className="flex flex-col items-center gap-2">
+    <div className="flex flex-col items-center gap-1.5">
       <button
         type="button"
         onClick={handleClick}
         disabled={!canClick}
         aria-label="Roll Dice"
-        className={`relative w-20 h-20 rounded-2xl bg-white border-2 transition-all duration-300 flex items-center justify-center select-none ${
+        className={`relative w-16 h-16 rounded-2xl bg-white border-2 transition-all duration-300 flex items-center justify-center select-none ${
           canClick
-            ? "border-[#E06D75] shadow-[0_12px_28px_-6px_rgba(224,109,117,0.35)] cursor-pointer active:scale-95 animate-pulse"
-            : "border-[#EAE6DE] shadow-sm opacity-90 cursor-not-allowed"
+            ? "border-[#E06D75] shadow-[0_10px_24px_-4px_rgba(224,109,117,0.35)] cursor-pointer active:scale-95 animate-pulse"
+            : "border-[#EAE6DE] shadow-xs opacity-90 cursor-not-allowed"
         } ${animating || isRolling ? "rotate-[360deg] scale-110" : "rotate-0 scale-100"}`}
         style={{
           boxShadow: canClick
-            ? "0 10px 25px -4px rgba(224, 109, 117, 0.35), inset 0 2px 4px rgba(255, 255, 255, 0.9)"
+            ? "0 8px 20px -3px rgba(224, 109, 117, 0.35), inset 0 2px 4px rgba(255, 255, 255, 0.9)"
             : undefined,
         }}
       >

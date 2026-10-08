@@ -75,7 +75,7 @@ export function LudoBoard({
   });
 
   return (
-    <div className="relative w-full aspect-square max-w-[min(410px,92vw)] mx-auto p-1.5 bg-[#FAF7F2] rounded-3xl border-2 border-[#EAE6DE] shadow-2xl select-none overflow-hidden shrink-0">
+    <div className="relative w-full aspect-square max-w-[min(370px,88vw,46vh)] mx-auto p-1.5 bg-[#FAF7F2] rounded-3xl border-2 border-[#EAE6DE] shadow-2xl select-none overflow-hidden shrink-0">
       <svg
         viewBox="0 0 15 15"
         className="w-full h-full rounded-2xl overflow-hidden bg-white shadow-inner"
