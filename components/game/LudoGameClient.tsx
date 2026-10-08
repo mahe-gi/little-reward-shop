@@ -251,114 +251,47 @@ export function LudoGameClient({
             </p>
           </div>
 
-          {/* Mode Selector */}
-          <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-[#A49B94]">
-              Choose Play Style
-            </label>
-            <div className="grid grid-cols-2 gap-3">
+          {/* Mode Selector - Clean Segmented Switch */}
+          <div className="space-y-3 pt-2">
+            <div className="bg-[#EFEAE2] p-1 rounded-2xl flex gap-1">
               <button
                 type="button"
                 onClick={() => setSelectedMode("couch")}
-                className={`p-3.5 rounded-2xl border text-left transition-all ${
+                className={`flex-1 py-3 px-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                   selectedMode === "couch"
-                    ? "bg-white border-[#E06D75] ring-2 ring-[#E06D75]/20 shadow-sm"
-                    : "bg-[#FDFBF7] border-[#EAE6DE] opacity-75"
+                    ? "bg-white text-[#1E1A18] shadow-xs"
+                    : "text-[#756963] hover:text-[#1E1A18]"
                 }`}
               >
-                <span className="text-xl">🛋️</span>
-                <div className="font-bold text-xs text-[#1E1A18] mt-1">Couch Mode</div>
-                <div className="text-[10px] text-[#756963]">Pass & play together on 1 phone</div>
+                <span>🛋️</span>
+                <span>Pass & Play (1 Phone)</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setSelectedMode("remote")}
-                className={`p-3.5 rounded-2xl border text-left transition-all ${
+                className={`flex-1 py-3 px-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                   selectedMode === "remote"
-                    ? "bg-white border-[#E06D75] ring-2 ring-[#E06D75]/20 shadow-sm"
-                    : "bg-[#FDFBF7] border-[#EAE6DE] opacity-75"
+                    ? "bg-white text-[#1E1A18] shadow-xs"
+                    : "text-[#756963] hover:text-[#1E1A18]"
                 }`}
               >
-                <span className="text-xl">📱</span>
-                <div className="font-bold text-xs text-[#1E1A18] mt-1">Remote Mode</div>
-                <div className="text-[10px] text-[#756963]">Turn-by-turn when apart with alerts</div>
+                <span>📱</span>
+                <span>Play Apart (2 Phones)</span>
               </button>
-            </div>
-          </div>
-
-          {/* Token Count Selector */}
-          <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-[#A49B94]">
-              Token Count
-            </label>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => setSelectedPawnCount(4)}
-                className={`p-3 rounded-2xl border text-left transition-all ${
-                  selectedPawnCount === 4
-                    ? "bg-[#FCEBEE] border-[#E06D75] text-[#BA3F4A] ring-2 ring-[#E06D75]/20 font-bold shadow-xs"
-                    : "bg-white border-[#EAE6DE] text-[#1E1A18]"
-                }`}
-              >
-                <div className="text-xs font-bold">4 Tokens (Classic Ludo) 🎯</div>
-                <div className="text-[10px] text-[#756963] font-normal mt-0.5">Full traditional experience</div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setSelectedPawnCount(2)}
-                className={`p-3 rounded-2xl border text-left transition-all ${
-                  selectedPawnCount === 2
-                    ? "bg-[#FCEBEE] border-[#E06D75] text-[#BA3F4A] ring-2 ring-[#E06D75]/20 font-bold shadow-xs"
-                    : "bg-white border-[#EAE6DE] text-[#1E1A18]"
-                }`}
-              >
-                <div className="text-xs font-bold">2 Tokens (Fast Race) ⚡</div>
-                <div className="text-[10px] text-[#756963] font-normal mt-0.5">Quick couple match (~5 mins)</div>
-              </button>
-            </div>
-          </div>
-
-          {/* Stake Selector */}
-          <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-[#A49B94]">
-              Point Stakes
-            </label>
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                { pts: 0, label: "Friendly", sub: "Just for fun" },
-                { pts: 5, label: "5 pts", sub: "Pot: 10 pts" },
-                { pts: 10, label: "10 pts", sub: "Pot: 20 pts" },
-              ].map((s) => (
-                <button
-                  key={s.pts}
-                  type="button"
-                  onClick={() => setSelectedStake(s.pts)}
-                  className={`p-3 rounded-2xl border text-center transition-all ${
-                    selectedStake === s.pts
-                      ? "bg-[#FCEBEE] border-[#E06D75] text-[#BA3F4A] font-bold shadow-xs"
-                      : "bg-white border-[#EAE6DE] text-[#1E1A18]"
-                  }`}
-                >
-                  <div className="text-xs font-semibold">{s.label}</div>
-                  <div className="text-[9px] text-[#756963] mt-0.5">{s.sub}</div>
-                </button>
-              ))}
             </div>
           </div>
         </div>
 
         {/* Start CTA */}
-        <div className="pt-6 pb-4">
+        <div className="pt-6 pb-6">
           <button
             type="button"
             onClick={handleStartGame}
             disabled={loading}
             className="w-full py-4 rounded-full bg-linear-to-r from-[#E06D75] to-[#B43A47] text-white font-semibold text-base shadow-lg shadow-[#E06D75]/30 active:scale-98 transition-all hover:brightness-105 cursor-pointer disabled:opacity-50"
           >
-            {loading ? "Preparing Board..." : "Start Ludo Match 🎲"}
+            {loading ? "Preparing Board..." : "Start Game 🎲"}
           </button>
         </div>
       </div>
